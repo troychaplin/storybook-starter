@@ -171,14 +171,52 @@ export function Card({
 
 ## Gutenberg Integration Patterns
 
-### Static Block Usage (JavaScript)
+### CSS Loading Strategy
 
-For blocks where React renders both editor and frontend:
+This library supports two CSS consumption patterns:
 
+| Pattern | Use Case | Import |
+|---------|----------|--------|
+| **Individual CSS** | WordPress blocks (per-block loading) | `your-lib/dist/css/Card.css` |
+| **Bundled CSS** | React/Next.js apps | `your-lib/dist/styles.css` |
+
+**Important:** Tokens CSS (`tokens.css`) should always be loaded once globally, as it contains the CSS variables all components depend on.
+
+### WordPress Block Usage (Recommended for WP)
+
+For optimal WordPress performance, load CSS per-component:
+
+**In block.json:**
+```json
+{
+  "style": "file:./css/card.css",
+  "editorStyle": "file:./css/card.css"
+}
+```
+
+**Or enqueue manually in PHP:**
+```php
+// In your block's register function
+wp_register_style(
+  'cul-card',
+  'path/to/your-component-library/dist/css/Card.css',
+  ['cul-tokens'], // Depends on tokens
+  '1.0.0'
+);
+
+// Register tokens once globally (in theme or plugin init)
+wp_register_style(
+  'cul-tokens',
+  'path/to/your-component-library/dist/css/tokens.css',
+  [],
+  '1.0.0'
+);
+```
+
+**Static block (JS rendered):**
 ```tsx
-// In your block's edit.tsx
+// edit.tsx - CSS loaded via block.json, not JS import
 import { Card } from 'your-component-library';
-import 'your-component-library/dist/styles.css';
 
 export default function Edit({ attributes, setAttributes }) {
   return (
@@ -192,19 +230,7 @@ export default function Edit({ attributes, setAttributes }) {
 }
 ```
 
-### Dynamic Block Usage (PHP Rendered)
-
-For blocks where PHP renders the frontend:
-
-1. **Enqueue the CSS in your plugin/theme:**
-```php
-wp_enqueue_style(
-  'your-component-library',
-  'path/to/your-component-library/dist/styles.css'
-);
-```
-
-2. **Output matching markup in render callback:**
+**Dynamic block (PHP rendered):**
 ```php
 function render_card_block($attributes) {
   $classes = 'cul-card';
@@ -226,15 +252,32 @@ function render_card_block($attributes) {
 }
 ```
 
+### React/Next.js Usage
+
+For non-WordPress projects, import the bundled CSS once:
+
+```tsx
+// _app.tsx or layout.tsx
+import 'your-component-library/dist/styles.css';
+
+// Then use components anywhere
+import { Card } from 'your-component-library';
+```
+
 ## Build Outputs
 
 The build process generates:
 
 ```
 dist/
-├── index.js          # ES module bundle (React components)
-├── index.d.ts        # TypeScript declarations
-└── styles.css        # All component styles (can be used standalone)
+├── index.js              # ES module bundle (React components)
+├── index.d.ts            # TypeScript declarations
+├── styles.css            # Bundled CSS (all components + tokens)
+└── css/                  # Individual CSS files
+    ├── tokens.css        # CSS variables (load globally)
+    ├── reset.css         # Base styles (optional)
+    ├── Card.css          # Card component styles
+    └── [Component].css   # One file per component
 ```
 
 ### Package.json Exports
@@ -252,12 +295,50 @@ dist/
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
-    "./styles.css": "./dist/styles.css"
+    "./styles.css": "./dist/styles.css",
+    "./css/*": "./dist/css/*"
   },
   "files": ["dist"],
   "sideEffects": ["**/*.css"]
 }
 ```
+
+## Build Configuration
+
+### Vite Library Build
+
+The Vite config will:
+1. Build React components as ES modules
+2. Generate TypeScript declarations
+3. Copy individual CSS files to `dist/css/`
+4. Generate bundled `styles.css` with all CSS concatenated
+
+```ts
+// vite.config.ts (simplified)
+export default defineConfig({
+  build: {
+    lib: {
+      entry: 'src/index.ts',
+      formats: ['es'],
+      fileName: 'index'
+    },
+    rollupOptions: {
+      external: ['react', 'react-dom'],
+      output: {
+        assetFileNames: (assetInfo) => {
+          // Keep CSS files in css/ subdirectory
+          if (assetInfo.name?.endsWith('.css')) {
+            return 'css/[name][extname]';
+          }
+          return '[name][extname]';
+        }
+      }
+    }
+  }
+});
+```
+
+A post-build script will concatenate all CSS into `styles.css` for bundled consumption.
 
 ## Development Workflow
 
@@ -268,6 +349,7 @@ dist/
 | `npm run dev` | Start Storybook development server |
 | `npm run build` | Build component library for distribution |
 | `npm run build-storybook` | Build static Storybook site |
+| `npm run build:css` | Build CSS files (individual + bundled) |
 
 ### Adding a New Component
 
