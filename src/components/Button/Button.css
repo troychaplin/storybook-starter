@@ -1,0 +1,100 @@
+/**
+ * Button Component Styles
+ *
+ * Requires: tokens.css (CSS variables)
+ *
+ * BEM Structure:
+ * - .prefix-button (block)
+ * - .prefix-button--primary (modifier)
+ * - .prefix-button--secondary (modifier)
+ * - .prefix-button--outline (modifier)
+ * - .prefix-button--sm (modifier)
+ * - .prefix-button--md (modifier)
+ * - .prefix-button--lg (modifier)
+ */
+
+.prefix-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--prefix-font-family-base);
+  font-weight: var(--prefix-font-weight-medium);
+  line-height: var(--prefix-line-height-tight);
+  border: 2px solid transparent;
+  border-radius: var(--prefix-radius-md);
+  cursor: pointer;
+  transition:
+    background-color var(--prefix-transition-fast),
+    border-color var(--prefix-transition-fast),
+    color var(--prefix-transition-fast),
+    box-shadow var(--prefix-transition-fast);
+}
+
+.prefix-button:focus-visible {
+  outline: 2px solid var(--prefix-color-primary);
+  outline-offset: 2px;
+}
+
+.prefix-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ==========================================================================
+   Sizes
+   ========================================================================== */
+
+.prefix-button--sm {
+  padding: var(--prefix-spacing-xs) var(--prefix-spacing-sm);
+  font-size: var(--prefix-font-size-sm);
+}
+
+.prefix-button--md {
+  padding: var(--prefix-spacing-sm) var(--prefix-spacing-md);
+  font-size: var(--prefix-font-size-base);
+}
+
+.prefix-button--lg {
+  padding: var(--prefix-spacing-sm) var(--prefix-spacing-lg);
+  font-size: var(--prefix-font-size-lg);
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+/* Primary */
+.prefix-button--primary {
+  background-color: var(--prefix-color-primary);
+  border-color: var(--prefix-color-primary);
+  color: var(--prefix-color-text-inverse);
+}
+
+.prefix-button--primary:hover:not(:disabled) {
+  background-color: var(--prefix-color-primary-hover);
+  border-color: var(--prefix-color-primary-hover);
+}
+
+/* Secondary */
+.prefix-button--secondary {
+  background-color: var(--prefix-color-secondary);
+  border-color: var(--prefix-color-secondary);
+  color: var(--prefix-color-text-inverse);
+}
+
+.prefix-button--secondary:hover:not(:disabled) {
+  background-color: var(--prefix-color-secondary-hover);
+  border-color: var(--prefix-color-secondary-hover);
+}
+
+/* Outline */
+.prefix-button--outline {
+  background-color: transparent;
+  border-color: var(--prefix-color-border);
+  color: var(--prefix-color-text);
+}
+
+.prefix-button--outline:hover:not(:disabled) {
+  border-color: var(--prefix-color-primary);
+  color: var(--prefix-color-primary);
+}

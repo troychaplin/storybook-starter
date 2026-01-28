@@ -54,11 +54,11 @@ storybook-starter/
 
 ### Prefix Convention
 
-All CSS variables use the `--cul-` prefix (Component UI Library).
+All CSS variables use the `--prefix-` prefix (Component UI Library).
 
 **To customize for your project:**
 1. Open `src/styles/tokens.css`
-2. Find and replace `--cul-` with your prefix (e.g., `--mylib-`)
+2. Find and replace `--prefix-` with your prefix (e.g., `--mylib-`)
 3. Update component CSS files with the same replacement
 
 ### Token Categories
@@ -67,34 +67,34 @@ All CSS variables use the `--cul-` prefix (Component UI Library).
 /* tokens.css structure */
 
 /* Colors */
---cul-color-primary: #0073aa;
---cul-color-secondary: #23282d;
---cul-color-text: #1e1e1e;
---cul-color-background: #ffffff;
---cul-color-border: #dcdcde;
+--prefix-color-primary: #0073aa;
+--prefix-color-secondary: #23282d;
+--prefix-color-text: #1e1e1e;
+--prefix-color-background: #ffffff;
+--prefix-color-border: #dcdcde;
 
 /* Spacing */
---cul-spacing-xs: 0.25rem;
---cul-spacing-sm: 0.5rem;
---cul-spacing-md: 1rem;
---cul-spacing-lg: 1.5rem;
---cul-spacing-xl: 2rem;
+--prefix-spacing-xs: 0.25rem;
+--prefix-spacing-sm: 0.5rem;
+--prefix-spacing-md: 1rem;
+--prefix-spacing-lg: 1.5rem;
+--prefix-spacing-xl: 2rem;
 
 /* Typography */
---cul-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
---cul-font-size-sm: 0.875rem;
---cul-font-size-base: 1rem;
---cul-font-size-lg: 1.25rem;
---cul-font-size-xl: 1.5rem;
+--prefix-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+--prefix-font-size-sm: 0.875rem;
+--prefix-font-size-base: 1rem;
+--prefix-font-size-lg: 1.25rem;
+--prefix-font-size-xl: 1.5rem;
 
 /* Border Radius */
---cul-radius-sm: 2px;
---cul-radius-md: 4px;
---cul-radius-lg: 8px;
+--prefix-radius-sm: 2px;
+--prefix-radius-md: 4px;
+--prefix-radius-lg: 8px;
 
 /* Shadows */
---cul-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
---cul-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+--prefix-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+--prefix-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
 ```
 
 ### WordPress theme.json Mapping
@@ -104,9 +104,9 @@ Users can map these variables to WordPress theme.json values in their theme:
 ```css
 /* In WordPress theme - override tokens */
 :root {
-  --cul-color-primary: var(--wp--preset--color--primary);
-  --cul-spacing-md: var(--wp--preset--spacing--40);
-  --cul-font-family-base: var(--wp--preset--font-family--body);
+  --prefix-color-primary: var(--wp--preset--color--primary);
+  --prefix-spacing-md: var(--wp--preset--spacing--40);
+  --prefix-font-family-base: var(--wp--preset--font-family--body);
 }
 ```
 
@@ -114,7 +114,7 @@ Users can map these variables to WordPress theme.json values in their theme:
 
 ### Naming Conventions
 
-- **CSS classes:** BEM-style with prefix: `.cul-card`, `.cul-card__header`, `.cul-card--featured`
+- **CSS classes:** BEM-style with prefix: `.prefix-card`, `.prefix-card__header`, `.prefix-card--featured`
 - **Component files:** PascalCase: `Card.tsx`, `Card.stories.tsx`
 - **CSS files:** Match component name: `Card.css`
 
@@ -151,17 +151,17 @@ export function Card({
   className = ''
 }: CardProps) {
   const classes = [
-    'cul-card',
-    variant !== 'default' && `cul-card--${variant}`,
+    'prefix-card',
+    variant !== 'default' && `prefix-card--${variant}`,
     className
   ].filter(Boolean).join(' ');
 
   return (
     <article className={classes}>
-      <header className="cul-card__header">
-        <h3 className="cul-card__title">{title}</h3>
+      <header className="prefix-card__header">
+        <h3 className="prefix-card__title">{title}</h3>
       </header>
-      <div className="cul-card__content">
+      <div className="prefix-card__content">
         {children}
       </div>
     </article>
@@ -198,15 +198,15 @@ For optimal WordPress performance, load CSS per-component:
 ```php
 // In your block's register function
 wp_register_style(
-  'cul-card',
+  'prefix-card',
   'path/to/your-component-library/dist/css/Card.css',
-  ['cul-tokens'], // Depends on tokens
+  ['prefix-tokens'], // Depends on tokens
   '1.0.0'
 );
 
 // Register tokens once globally (in theme or plugin init)
 wp_register_style(
-  'cul-tokens',
+  'prefix-tokens',
   'path/to/your-component-library/dist/css/tokens.css',
   [],
   '1.0.0'
@@ -233,17 +233,17 @@ export default function Edit({ attributes, setAttributes }) {
 **Dynamic block (PHP rendered):**
 ```php
 function render_card_block($attributes) {
-  $classes = 'cul-card';
+  $classes = 'prefix-card';
   if (!empty($attributes['variant'])) {
-    $classes .= ' cul-card--' . esc_attr($attributes['variant']);
+    $classes .= ' prefix-card--' . esc_attr($attributes['variant']);
   }
 
   return sprintf(
     '<article class="%s">
-      <header class="cul-card__header">
-        <h3 class="cul-card__title">%s</h3>
+      <header class="prefix-card__header">
+        <h3 class="prefix-card__title">%s</h3>
       </header>
-      <div class="cul-card__content">%s</div>
+      <div class="prefix-card__content">%s</div>
     </article>',
     esc_attr($classes),
     esc_html($attributes['title']),
@@ -388,11 +388,11 @@ The starter includes a Card component demonstrating all patterns:
 - `className` (string) - Additional CSS classes
 
 **CSS Classes:**
-- `.cul-card` - Base card styles
-- `.cul-card__header` - Header container
-- `.cul-card__title` - Title element
-- `.cul-card__content` - Content container
-- `.cul-card--featured` - Featured variant modifier
+- `.prefix-card` - Base card styles
+- `.prefix-card__header` - Header container
+- `.prefix-card__title` - Title element
+- `.prefix-card__content` - Content container
+- `.prefix-card--featured` - Featured variant modifier
 
 ---
 

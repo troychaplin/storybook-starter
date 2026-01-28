@@ -1,0 +1,70 @@
+/**
+ * Card Component Styles
+ *
+ * Requires: tokens.css (CSS variables)
+ *
+ * BEM Structure:
+ * - .prefix-card (block)
+ * - .prefix-card__header (element)
+ * - .prefix-card__title (element)
+ * - .prefix-card__content (element)
+ * - .prefix-card--featured (modifier)
+ */
+
+.prefix-card {
+  background-color: var(--prefix-color-background);
+  border: 1px solid var(--prefix-color-border);
+  border-radius: var(--prefix-radius-lg);
+  box-shadow: var(--prefix-shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--prefix-transition-normal);
+}
+
+.prefix-card:hover {
+  box-shadow: var(--prefix-shadow-md);
+}
+
+/* Header */
+.prefix-card__header {
+  padding: var(--prefix-spacing-md) var(--prefix-spacing-lg);
+  border-bottom: 1px solid var(--prefix-color-border-light);
+}
+
+.prefix-card__title {
+  font-size: var(--prefix-font-size-lg);
+  font-weight: var(--prefix-font-weight-semibold);
+  line-height: var(--prefix-line-height-tight);
+  color: var(--prefix-color-text);
+}
+
+/* Content */
+.prefix-card__content {
+  padding: var(--prefix-spacing-lg);
+  color: var(--prefix-color-text);
+  font-size: var(--prefix-font-size-base);
+  line-height: var(--prefix-line-height-normal);
+}
+
+/* Nested paragraph spacing */
+.prefix-card__content p + p {
+  margin-top: var(--prefix-spacing-md);
+}
+
+/* ==========================================================================
+   Variants
+   ========================================================================== */
+
+/* Featured variant */
+.prefix-card--featured {
+  border-color: var(--prefix-color-primary);
+  border-width: 2px;
+}
+
+.prefix-card--featured .prefix-card__header {
+  background-color: var(--prefix-color-primary-light);
+  border-bottom-color: var(--prefix-color-primary);
+}
+
+.prefix-card--featured .prefix-card__title {
+  color: var(--prefix-color-primary);
+}
