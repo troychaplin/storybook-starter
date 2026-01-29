@@ -37,15 +37,26 @@ After installing, the library provides:
 ```
 node_modules/your-component-library/
 ├── dist/
-│   ├── index.js         # ES module (React components)
-│   ├── index.d.ts       # TypeScript declarations
-│   ├── styles.css       # Bundled CSS (all components)
-│   └── css/             # Individual CSS files
-│       ├── tokens.css   # Design tokens (required)
-│       ├── reset.css    # Base styles (optional)
-│       ├── Button.css   # Button component
-│       └── Card.css     # Card component
+│   ├── index.js          # ES module (React components)
+│   ├── index.d.ts        # TypeScript declarations
+│   ├── styles.css        # Bundled CSS (all components)
+│   ├── theme.json        # Generated theme.json base layer
+│   ├── integrate.php     # WordPress filter hook
+│   └── css/              # Individual CSS files
+│       ├── tokens.css    # CSS vars — hardcoded values (React/Next.js)
+│       ├── tokens.wp.css # CSS vars — mapped to --wp--preset--* (WordPress)
+│       ├── reset.css     # Base styles (optional)
+│       ├── Button.css    # Button component
+│       └── Card.css      # Card component
 ```
+
+**Key files for WordPress:**
+
+- **`integrate.php`** — Loads the library's `theme.json` as a base layer via `wp_theme_json_data_default`. Include this once in your theme's `functions.php` to get default colors, spacing, fonts, and custom values. Your theme's own `theme.json` overrides any values.
+- **`tokens.wp.css`** — CSS variables that map `--prefix-*` to `--wp--preset--*` with hardcoded fallbacks. Use this instead of `tokens.css` so components automatically pick up theme.json overrides.
+- **`theme.json`** — Generated from `config/tokens.json`. Contains the color palette, spacing scale, font families, font sizes, and custom values. Not meant to be edited directly.
+
+See [Token Architecture](./TOKEN-ARCHITECTURE.md) for details on how these files are generated from a single config.
 
 ## CSS Loading Strategy
 
@@ -55,19 +66,34 @@ WordPress loads block assets per-page based on which blocks are present. To main
 
 | File | When to Load | How |
 |------|-------------|-----|
-| `tokens.css` | Always (globally) | `wp_enqueue_style` in theme/plugin init |
+| `integrate.php` | Always (once in functions.php) | `require_once` — injects base theme.json |
+| `tokens.wp.css` | Always (globally) | `wp_enqueue_style` in theme/plugin init |
 | `reset.css` | Optional, globally | `wp_enqueue_style` in theme/plugin init |
 | `Card.css` | Only when Card block is used | `block.json` style field or block render |
 | `Button.css` | Only when Button block is used | `block.json` style field or block render |
+| `tokens.css` | Never in WordPress | Use `tokens.wp.css` instead |
 | `styles.css` | Never in WordPress | Use individual files instead |
+
+**Why `tokens.wp.css` instead of `tokens.css`?**
+
+`tokens.css` contains hardcoded values (`--prefix-color-primary: #0073aa`). It works, but components won't respond to theme.json overrides.
+
+`tokens.wp.css` maps to WordPress preset variables with fallbacks (`--prefix-color-primary: var(--wp--preset--color--primary, #0073aa)`). When a theme overrides the primary color in its theme.json, components automatically pick up the new value.
 
 ## Registering Styles in WordPress
 
-### Step 1: Register Global Styles (tokens)
+### Step 1: Load integrate.php and Register Global Styles
 
-In your plugin's main PHP file or theme's `functions.php`:
+In your theme's `functions.php`:
 
 ```php
+/**
+ * Load the component library's base theme.json layer.
+ * This injects default colors, spacing, fonts, and custom values
+ * via wp_theme_json_data_default. Your theme.json overrides any values.
+ */
+require_once get_template_directory() . '/node_modules/your-component-library/dist/integrate.php';
+
 /**
  * Register component library design tokens.
  * These must load on every page since all components depend on them.
@@ -79,7 +105,7 @@ function prefix_register_component_styles() {
 
     wp_register_style(
         'prefix-tokens',
-        $library_path . '/css/tokens.css',
+        $library_path . '/css/tokens.wp.css',
         [],
         '0.0.1'
     );
@@ -98,6 +124,8 @@ function prefix_register_component_styles() {
 add_action('wp_enqueue_scripts', 'prefix_register_component_styles');
 add_action('enqueue_block_editor_assets', 'prefix_register_component_styles');
 ```
+
+> **Note:** `integrate.php` handles the theme.json base layer (colors, spacing, fonts in the WordPress UI). `tokens.wp.css` maps `--prefix-*` variables to `--wp--preset--*` so components respond to theme.json overrides. Both are needed for full integration.
 
 ### Step 2: Register Component Styles Per-Block
 
@@ -464,41 +492,39 @@ $wrapper_attributes = get_block_wrapper_attributes();
 
 ## Theme Integration
 
-### Mapping Design Tokens to theme.json
+### How It Works
 
-Override the library's CSS variables with your WordPress theme values:
+The component library uses a two-layer integration with block themes:
 
-```css
-/* In your theme's style.css or a dedicated overrides file */
-:root {
-    /* Map to theme.json color palette */
-    --prefix-color-primary: var(--wp--preset--color--primary);
-    --prefix-color-secondary: var(--wp--preset--color--secondary);
-    --prefix-color-text: var(--wp--preset--color--contrast);
-    --prefix-color-background: var(--wp--preset--color--base);
+1. **`integrate.php`** — Injects a base `theme.json` via `wp_theme_json_data_default` (the lowest priority layer). This registers colors, spacing, fonts, and custom values with WordPress so they appear in the editor UI (Global Styles, block controls, etc.).
 
-    /* Map to theme.json spacing scale */
-    --prefix-spacing-xs: var(--wp--preset--spacing--20);
-    --prefix-spacing-sm: var(--wp--preset--spacing--30);
-    --prefix-spacing-md: var(--wp--preset--spacing--40);
-    --prefix-spacing-lg: var(--wp--preset--spacing--50);
-    --prefix-spacing-xl: var(--wp--preset--spacing--60);
+2. **`tokens.wp.css`** — Maps `--prefix-*` CSS variables to `--wp--preset--*` variables with hardcoded fallbacks. This means components automatically respond to theme.json overrides without manual CSS mapping.
 
-    /* Map to theme.json typography */
-    --prefix-font-family-base: var(--wp--preset--font-family--body);
-    --prefix-font-size-sm: var(--wp--preset--font-size--small);
-    --prefix-font-size-base: var(--wp--preset--font-size--medium);
-    --prefix-font-size-lg: var(--wp--preset--font-size--large);
-    --prefix-font-size-xl: var(--wp--preset--font-size--x-large);
+### WordPress theme.json Cascade
 
-    /* Map to theme.json custom values (border radius) */
-    --prefix-radius-sm: var(--wp--custom--border-radius--small, 2px);
-    --prefix-radius-md: var(--wp--custom--border-radius--medium, 4px);
-    --prefix-radius-lg: var(--wp--custom--border-radius--large, 8px);
-}
+The theme.json cascade (from lowest to highest priority):
+
+1. **WordPress core defaults**
+2. **Library base layer** ← `integrate.php` injects here via `wp_theme_json_data_default`
+3. **Parent theme** `theme.json`
+4. **Child theme** `theme.json`
+5. **User Global Styles** (editor customizations)
+
+Your theme's `theme.json` automatically overrides library defaults. No manual CSS variable mapping is needed — `tokens.wp.css` handles it.
+
+### Setup
+
+Add one line to your theme's `functions.php` (if not already done in Step 1):
+
+```php
+require_once get_template_directory() . '/node_modules/your-component-library/dist/integrate.php';
 ```
 
-### Example theme.json
+That's it. The library's colors, spacing, and fonts now appear as defaults in the WordPress editor.
+
+### Overriding Defaults in Your Theme
+
+Override any library default by defining the same slug in your theme's `theme.json`:
 
 ```json
 {
@@ -509,60 +535,23 @@ Override the library's CSS variables with your WordPress theme values:
             "palette": [
                 {
                     "slug": "primary",
-                    "color": "#0073aa",
+                    "color": "#e63946",
                     "name": "Primary"
-                },
-                {
-                    "slug": "secondary",
-                    "color": "#23282d",
-                    "name": "Secondary"
-                },
-                {
-                    "slug": "base",
-                    "color": "#ffffff",
-                    "name": "Base"
-                },
-                {
-                    "slug": "contrast",
-                    "color": "#1e1e1e",
-                    "name": "Contrast"
                 }
             ]
         },
         "spacing": {
             "spacingSizes": [
-                { "slug": "20", "size": "0.25rem", "name": "2X-Small" },
-                { "slug": "30", "size": "0.5rem", "name": "Small" },
-                { "slug": "40", "size": "1rem", "name": "Medium" },
-                { "slug": "50", "size": "1.5rem", "name": "Large" },
-                { "slug": "60", "size": "2rem", "name": "X-Large" }
+                { "slug": "40", "size": "1.25rem", "name": "Medium" }
             ]
-        },
-        "typography": {
-            "fontFamilies": [
-                {
-                    "slug": "body",
-                    "fontFamily": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-                    "name": "Body"
-                }
-            ],
-            "fontSizes": [
-                { "slug": "small", "size": "0.875rem", "name": "Small" },
-                { "slug": "medium", "size": "1rem", "name": "Medium" },
-                { "slug": "large", "size": "1.125rem", "name": "Large" },
-                { "slug": "x-large", "size": "1.25rem", "name": "X-Large" }
-            ]
-        },
-        "custom": {
-            "borderRadius": {
-                "small": "2px",
-                "medium": "4px",
-                "large": "8px"
-            }
         }
     }
 }
 ```
+
+Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, the component automatically picks up `#e63946` from your theme — no additional CSS needed.
+
+See [Token Architecture](./TOKEN-ARCHITECTURE.md) for the full list of generated token mappings.
 
 ## Editor Styles
 
@@ -593,13 +582,15 @@ function prefix_enqueue_editor_assets() {
 
     wp_enqueue_style(
         'prefix-tokens',
-        $library_path . '/css/tokens.css',
+        $library_path . '/css/tokens.wp.css',
         [],
         '0.0.1'
     );
 }
 add_action('enqueue_block_editor_assets', 'prefix_enqueue_editor_assets');
 ```
+
+> **Note:** If you already enqueue `tokens.wp.css` on both `wp_enqueue_scripts` and `enqueue_block_editor_assets` in Step 1, this separate function is not needed.
 
 #### Editor-Specific Overrides
 
@@ -648,7 +639,7 @@ import { Card } from 'your-component-library';
 </article>
 ```
 
-**CSS Files:** `tokens.css` + `Card.css`
+**CSS Files:** `tokens.wp.css` + `Card.css`
 
 ---
 
@@ -689,7 +680,7 @@ import { Button } from 'your-component-library';
 </button>
 ```
 
-**CSS Files:** `tokens.css` + `Button.css`
+**CSS Files:** `tokens.wp.css` + `Button.css`
 
 ## Troubleshooting
 
@@ -724,12 +715,19 @@ If a saved static block shows "This block contains unexpected content":
 
 This is expected and fine. `wp_enqueue_style` is idempotent — if `prefix-tokens` is already enqueued, WordPress skips the duplicate. Using style dependencies ensures tokens always load before any component CSS.
 
+### tokens.css vs tokens.wp.css
+
+- **`tokens.css`** — Hardcoded values. Use for React/Next.js projects outside WordPress.
+- **`tokens.wp.css`** — Maps to `--wp--preset--*` variables with hardcoded fallbacks. Use in WordPress so components respond to theme.json and Global Styles overrides.
+
+If components aren't picking up your theme.json color/spacing changes, check that you're loading `tokens.wp.css` and not `tokens.css`.
+
 ### Performance with many block types
 
 With this per-block loading approach:
 
 - Only CSS for blocks present on the page gets enqueued
-- `tokens.css` loads once globally (~4KB)
+- `tokens.wp.css` loads once globally (~4KB)
 - Each component CSS is typically 1-2KB
 - A page with 5 different component blocks loads ~14KB of CSS total
 - A page with 0 component blocks loads only the tokens (~4KB)
