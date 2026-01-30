@@ -1,13 +1,16 @@
 # Gutenberg Integration Guide
 
-This guide covers how to use the component library in WordPress Gutenberg blocks. It assumes you have a WordPress plugin or theme that registers custom blocks.
+This guide covers how to use the component library in WordPress Gutenberg blocks. Integration is split between two projects:
+
+- **Block theme** — Handles the design system: `integrate.php`, `theme.json`, and `tokens.wp.css`
+- **Block plugin** — Handles component CSS, block registration, and block rendering
 
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Installing the Library](#installing-the-library)
-- [CSS Loading Strategy](#css-loading-strategy)
-- [Registering Styles in WordPress](#registering-styles-in-wordpress)
+- [Published Package Structure](#published-package-structure)
+- [Theme Setup](#theme-setup)
+- [Plugin Setup](#plugin-setup)
 - [Static Blocks (JS Rendered)](#static-blocks-js-rendered)
 - [Dynamic Blocks (PHP Rendered)](#dynamic-blocks-php-rendered)
 - [Theme Integration](#theme-integration)
@@ -21,20 +24,18 @@ This guide covers how to use the component library in WordPress Gutenberg blocks
 
 - WordPress 6.0+
 - Node.js 20+ (for building blocks with `@wordpress/scripts`)
-- A custom block plugin or theme that registers blocks
-- This component library installed as a dependency
+- A block theme and a block plugin
+- This component library installed as a dependency in both projects
 
-## Installing the Library
+## Published Package Structure
 
-From your block plugin or theme directory:
+Install the library from your theme or plugin directory:
 
 ```bash
 npm install your-component-library
 ```
 
-After installing, the library provides JS/CSS assets via `node_modules`. WordPress-specific PHP and theme.json files must be **copied into your theme** — they cannot be loaded from `node_modules` at runtime since that directory does not exist on production servers.
-
-### Published package structure
+The published package contains:
 
 ```
 node_modules/your-component-library/
@@ -53,131 +54,152 @@ node_modules/your-component-library/
 │       └── tokens.wp.css # CSS vars — mapped to --wp--preset--* (WordPress)
 ```
 
-### Copy WordPress files into your theme
-
-```bash
-# Create a directory in your theme for the library files
-mkdir -p inc/story-to-block
-
-# Copy the PHP integration and theme.json
-cp node_modules/your-component-library/dist/wp/integrate.php inc/story-to-block/
-cp node_modules/your-component-library/dist/wp/theme.json inc/story-to-block/
-
-# Copy CSS assets into your theme's assets directory
-mkdir -p assets/css/components
-cp node_modules/your-component-library/dist/wp/tokens.wp.css assets/css/components/
-cp node_modules/your-component-library/dist/css/Card.css assets/css/components/
-cp node_modules/your-component-library/dist/css/Button.css assets/css/components/
-```
-
-**Key files for WordPress:**
-
-- **`integrate.php`** — Loads the library's `theme.json` as a base layer via `wp_theme_json_data_default`. Copy into your theme and include via `require_once` in `functions.php`. Your theme's own `theme.json` overrides any values.
-- **`tokens.wp.css`** — CSS variables that map `--prefix-*` to `--wp--preset--*` with hardcoded fallbacks. Use this instead of `tokens.css` so components automatically pick up theme.json overrides.
-- **`theme.json`** — Generated from `stb.config.json`. Contains the color palette, spacing scale, font families, font sizes, and custom values. Not meant to be edited directly.
+**Key distinction:** Files in `dist/wp/` are PHP and JSON files that must be **copied into your theme** — `node_modules` does not exist on production servers. Files in `dist/css/` are component stylesheets that get copied into your **plugin** alongside the blocks that use them.
 
 See [Token Architecture](./TOKEN-ARCHITECTURE.md) for details on how these files are generated from a single config.
 
-## CSS Loading Strategy
+---
 
-WordPress loads block assets per-page based on which blocks are present. To maintain this performance benefit, load CSS files individually per-block rather than loading the full bundle.
+## Theme Setup
 
-### What to load where
+The theme is responsible for the design system layer: loading the library's base `theme.json`, enqueuing `tokens.wp.css` globally, and optionally overriding token values in its own `theme.json`.
 
-| File | When to Load | How |
-|------|-------------|-----|
-| `integrate.php` | Always (once in functions.php) | `require_once` — injects base theme.json |
-| `tokens.wp.css` | Always (globally) | `wp_enqueue_style` in theme/plugin init |
-| `reset.css` | Optional, globally | `wp_enqueue_style` in theme/plugin init |
-| `Card.css` | Only when Card block is used | `block.json` style field or block render |
-| `Button.css` | Only when Button block is used | `block.json` style field or block render |
-| `tokens.css` | Never in WordPress | Use `tokens.wp.css` instead |
-| `styles.css` | Never in WordPress | Use individual files instead |
+### Step 1: Copy library files into the theme
 
-**Why `tokens.wp.css` instead of `tokens.css`?**
+```bash
+# Create a directory for the library's PHP integration
+mkdir -p inc/story-to-block
 
-`tokens.css` contains hardcoded values (`--prefix-color-primary: #0073aa`). It works, but components won't respond to theme.json overrides.
+# Copy the PHP filter and generated theme.json
+cp node_modules/your-component-library/dist/wp/integrate.php inc/story-to-block/
+cp node_modules/your-component-library/dist/wp/theme.json inc/story-to-block/
 
-`tokens.wp.css` maps to WordPress preset variables with fallbacks (`--prefix-color-primary: var(--wp--preset--color--primary, #0073aa)`). When a theme overrides the primary color in its theme.json, components automatically pick up the new value.
+# Copy the WordPress token stylesheet
+mkdir -p assets/css
+cp node_modules/your-component-library/dist/wp/tokens.wp.css assets/css/
+```
 
-## Registering Styles in WordPress
-
-### Step 1: Load integrate.php and Register Global Styles
+### Step 2: Load integrate.php and enqueue tokens
 
 In your theme's `functions.php`:
 
 ```php
 /**
  * Load the component library's base theme.json layer.
- * Copy integrate.php and theme.json into your theme (e.g. inc/story-to-block/).
+ * Injects default colors, spacing, fonts, and custom values via
+ * wp_theme_json_data_default. Your theme's theme.json overrides these.
  */
 require_once get_template_directory() . '/inc/story-to-block/integrate.php';
 
 /**
- * Register component library design tokens.
- * These must load on every page since all components depend on them.
+ * Enqueue the component library's design tokens globally.
+ * All component blocks depend on these CSS variables.
  */
-function prefix_register_component_styles() {
-    $theme_uri = get_template_directory_uri();
-
-    wp_register_style(
+function prefix_enqueue_tokens() {
+    wp_enqueue_style(
         'prefix-tokens',
-        $theme_uri . '/assets/css/components/tokens.wp.css',
+        get_template_directory_uri() . '/assets/css/tokens.wp.css',
         [],
         '0.0.1'
     );
-
-    // Enqueue globally — all components need these variables
-    wp_enqueue_style('prefix-tokens');
-
-    // Optional: enqueue reset if you want the base styles
-    wp_register_style(
-        'prefix-reset',
-        $theme_uri . '/assets/css/components/reset.css',
-        ['prefix-tokens'],
-        '0.0.1'
-    );
 }
-add_action('wp_enqueue_scripts', 'prefix_register_component_styles');
-add_action('enqueue_block_editor_assets', 'prefix_register_component_styles');
+add_action( 'wp_enqueue_scripts', 'prefix_enqueue_tokens' );
+add_action( 'enqueue_block_editor_assets', 'prefix_enqueue_tokens' );
 ```
 
-> **Note:** `integrate.php` handles the theme.json base layer (colors, spacing, fonts in the WordPress UI). `tokens.wp.css` maps `--prefix-*` variables to `--wp--preset--*` so components respond to theme.json overrides. Both are needed for full integration.
+### Step 3: Override defaults in your theme.json (optional)
 
-### Step 2: Register Component Styles Per-Block
+Your theme's `theme.json` overrides any library defaults. Only define what's different:
 
-Each block registers only the CSS it needs:
+```json
+{
+    "$schema": "https://schemas.wp.org/trunk/theme.json",
+    "version": 3,
+    "settings": {
+        "color": {
+            "palette": [
+                {
+                    "slug": "primary",
+                    "color": "#e63946",
+                    "name": "Primary"
+                }
+            ]
+        }
+    }
+}
+```
+
+Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, components automatically pick up `#e63946` from your theme — no additional CSS needed.
+
+### What the theme provides
+
+| File | Purpose |
+|------|---------|
+| `integrate.php` + `theme.json` | Injects library tokens into the WordPress theme.json cascade as defaults |
+| `tokens.wp.css` | Maps `--prefix-*` CSS variables to `--wp--preset--*` so components respond to theme.json overrides |
+| Theme's own `theme.json` | Overrides any library defaults (colors, spacing, fonts) |
+
+**Why `tokens.wp.css` instead of `tokens.css`?**
+
+`tokens.css` contains hardcoded values (`--prefix-color-primary: #0073aa`). Components work but won't respond to theme.json overrides.
+
+`tokens.wp.css` maps to WordPress preset variables with fallbacks (`--prefix-color-primary: var(--wp--preset--color--primary, #0073aa)`). When the theme overrides a color in its theme.json, components automatically pick up the new value.
+
+---
+
+## Plugin Setup
+
+The plugin is responsible for registering blocks and their component CSS. It installs the component library as a build dependency, imports React components for the editor, and copies component CSS files for frontend rendering.
+
+### Step 1: Install the library
+
+```bash
+npm install your-component-library
+```
+
+### Step 2: Copy component CSS into the plugin
+
+```bash
+# Copy individual component stylesheets
+mkdir -p assets/css
+cp node_modules/your-component-library/dist/css/Card.css assets/css/
+cp node_modules/your-component-library/dist/css/Button.css assets/css/
+# Copy any other component CSS files your blocks use
+```
+
+### Step 3: Register component styles
+
+In your plugin's main PHP file:
 
 ```php
 /**
- * Register component styles for individual blocks.
- * WordPress will only enqueue these when the block is on the page.
+ * Register component library styles for blocks.
+ * Each style is associated with a block via block.json.
+ * WordPress only enqueues them when the block appears on the page.
  */
 function prefix_register_block_styles() {
-    $theme_uri = get_template_directory_uri();
+    $plugin_uri = plugin_dir_url( __FILE__ );
 
-    // Card component CSS
     wp_register_style(
         'prefix-card',
-        $theme_uri . '/assets/css/components/Card.css',
-        ['prefix-tokens'],
+        $plugin_uri . 'assets/css/Card.css',
+        [ 'prefix-tokens' ],
         '0.0.1'
     );
 
-    // Button component CSS
     wp_register_style(
         'prefix-button',
-        $theme_uri . '/assets/css/components/Button.css',
-        ['prefix-tokens'],
+        $plugin_uri . 'assets/css/Button.css',
+        [ 'prefix-tokens' ],
         '0.0.1'
     );
 }
-add_action('init', 'prefix_register_block_styles');
+add_action( 'init', 'prefix_register_block_styles' );
 ```
 
-### Step 3: Associate Styles with Blocks
+> **Note:** The dependency on `prefix-tokens` ensures the theme's token stylesheet loads before any component CSS. The theme must register and enqueue this handle (see [Theme Setup](#theme-setup)).
 
-#### Option A: Via block.json (recommended)
+### Step 4: Associate styles with blocks via block.json
 
 ```json
 {
@@ -191,23 +213,24 @@ add_action('init', 'prefix_register_block_styles');
 }
 ```
 
-The `style` array references the handle you registered with `wp_register_style`. WordPress will enqueue it automatically when the block appears on a page.
+The `style` array references the handle registered with `wp_register_style`. WordPress enqueues it automatically when the block appears on a page.
 
-#### Option B: Via PHP (for dynamic blocks)
+#### Alternative: Register via PHP
+
+For blocks registered in PHP rather than `block.json`:
 
 ```php
 register_block_type('your-plugin/card', [
-    'render_callback' => 'render_card_block',
-    'style_handles'   => ['prefix-card'],
+    'render_callback'      => 'render_card_block',
+    'style_handles'        => ['prefix-card'],
     'editor_style_handles' => ['prefix-card'],
 ]);
 ```
 
-#### Option C: Manual enqueue in render callback
+#### Alternative: Manual enqueue in render callback
 
 ```php
 function render_card_block($attributes) {
-    // Enqueue only when this block actually renders
     wp_enqueue_style('prefix-card');
 
     return sprintf(
@@ -216,6 +239,26 @@ function render_card_block($attributes) {
     );
 }
 ```
+
+### What the plugin provides
+
+| Concern | Plugin responsibility |
+|---------|---------------------|
+| Component CSS | Copy and register per-component stylesheets |
+| Block JS | Import React components from the library for the editor |
+| Block registration | `block.json` with `style` and `editorStyle` handles |
+| Rendering | Edit component (React) and save/render.php (markup) |
+
+### CSS loading summary
+
+| File | Loaded by | When |
+|------|-----------|------|
+| `integrate.php` | Theme | Always (functions.php require_once) |
+| `tokens.wp.css` | Theme | Always (global enqueue) |
+| `Card.css` | Plugin | Only when Card block is on the page |
+| `Button.css` | Plugin | Only when Button block is on the page |
+| `tokens.css` | Neither | Use `tokens.wp.css` instead |
+| `styles.css` | Neither | Use individual files instead |
 
 ## Static Blocks (JS Rendered)
 
@@ -529,45 +572,6 @@ The theme.json cascade (from lowest to highest priority):
 
 Your theme's `theme.json` automatically overrides library defaults. No manual CSS variable mapping is needed — `tokens.wp.css` handles it.
 
-### Setup
-
-Add one line to your theme's `functions.php` (if not already done in Step 1):
-
-```php
-require_once get_template_directory() . '/inc/story-to-block/integrate.php';
-```
-
-That's it. The library's colors, spacing, and fonts now appear as defaults in the WordPress editor.
-
-### Overriding Defaults in Your Theme
-
-Override any library default by defining the same slug in your theme's `theme.json`:
-
-```json
-{
-    "$schema": "https://schemas.wp.org/trunk/theme.json",
-    "version": 3,
-    "settings": {
-        "color": {
-            "palette": [
-                {
-                    "slug": "primary",
-                    "color": "#e63946",
-                    "name": "Primary"
-                }
-            ]
-        },
-        "spacing": {
-            "spacingSizes": [
-                { "slug": "40", "size": "1.25rem", "name": "Medium" }
-            ]
-        }
-    }
-}
-```
-
-Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, the component automatically picks up `#e63946` from your theme — no additional CSS needed.
-
 See [Token Architecture](./TOKEN-ARCHITECTURE.md) for the full list of generated token mappings.
 
 ## Editor Styles
@@ -576,9 +580,13 @@ See [Token Architecture](./TOKEN-ARCHITECTURE.md) for the full list of generated
 
 The block editor uses an iframe. Styles must be explicitly loaded inside it.
 
-#### Using editorStyle in block.json
+#### Tokens in the editor
 
-The simplest approach — add `editorStyle` to your block.json:
+The theme's `enqueue_block_editor_assets` hook (see [Theme Setup](#theme-setup)) loads `tokens.wp.css` into the editor iframe. This ensures CSS variables are available for all component blocks in the editor.
+
+#### Component CSS in the editor
+
+Add `editorStyle` to your block.json alongside `style`:
 
 ```json
 {
@@ -587,25 +595,7 @@ The simplest approach — add `editorStyle` to your block.json:
 }
 ```
 
-This tells WordPress to load the style in both the editor iframe and the frontend.
-
-#### Loading Tokens in the Editor
-
-The tokens must also be available in the editor. Add them via `enqueue_block_editor_assets`:
-
-```php
-function prefix_enqueue_editor_assets() {
-    wp_enqueue_style(
-        'prefix-tokens',
-        get_template_directory_uri() . '/assets/css/components/tokens.wp.css',
-        [],
-        '0.0.1'
-    );
-}
-add_action('enqueue_block_editor_assets', 'prefix_enqueue_editor_assets');
-```
-
-> **Note:** If you already enqueue `tokens.wp.css` on both `wp_enqueue_scripts` and `enqueue_block_editor_assets` in Step 1, this separate function is not needed.
+This tells WordPress to load the component CSS in both the editor iframe and the frontend.
 
 #### Editor-Specific Overrides
 
