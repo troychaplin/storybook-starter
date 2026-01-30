@@ -4,7 +4,11 @@ interface ThemeJson {
   $schema: string;
   version: number;
   settings: {
-    color?: { palette: Array<{ slug: string; color: string; name: string }> };
+    color?: {
+      custom?: boolean;
+      customGradient?: boolean;
+      palette: Array<{ slug: string; color: string; name: string }>;
+    };
     spacing?: { spacingSizes: Array<{ slug: string; size: string; name: string }> };
     typography?: {
       fontFamilies?: Array<{ slug: string; fontFamily: string; name: string }>;
@@ -44,7 +48,11 @@ export function generateThemeJson(config: StbConfig): string {
     name: entry.name!,
   }));
   if (colorPalette.length > 0) {
-    themeJson.settings.color = { palette: colorPalette };
+    themeJson.settings.color = {
+      custom: false,
+      customGradient: false,
+      palette: colorPalette,
+    };
   }
 
   // Spacing sizes
