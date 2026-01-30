@@ -6,9 +6,13 @@
  * wp_theme_json_data_default. The active theme's theme.json
  * overrides any values defined here.
  *
- * Usage: require this file in your theme's functions.php:
+ * Setup:
+ *   1. Copy this file and theme.json into your theme (e.g. inc/story-to-block/)
+ *   2. Add to your theme's functions.php:
+ *      require_once get_template_directory() . '/inc/story-to-block/integrate.php';
  *
- *   require_once get_template_directory() . '/node_modules/your-component-library/dist/wp/integrate.php';
+ * Or copy the add_filter block below directly into your functions.php
+ * and update the $library_json_path to match your file location.
  *
  * @package story-to-block
  */

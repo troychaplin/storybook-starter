@@ -354,15 +354,45 @@ This section covers how a WordPress theme or plugin developer uses a published c
 
 ### Install the Component Library
 
-From your WordPress theme or plugin directory:
-
 ```bash
 npm install your-component-library
 ```
 
+### Copy WordPress Assets into Your Theme
+
+The published library contains WordPress-specific files in `dist/wp/` and component CSS in `dist/css/`. Copy these into your theme since `node_modules` should not exist on the server:
+
+```bash
+# From your theme directory
+cp node_modules/your-component-library/dist/wp/integrate.php inc/story-to-block/integrate.php
+cp node_modules/your-component-library/dist/wp/theme.json    inc/story-to-block/theme.json
+cp node_modules/your-component-library/dist/wp/tokens.wp.css assets/css/tokens.wp.css
+cp node_modules/your-component-library/dist/css/Card.css     assets/css/Card.css
+cp node_modules/your-component-library/dist/css/Button.css   assets/css/Button.css
+```
+
+Your theme structure would look like:
+
+```
+your-theme/
+├── inc/
+│   └── story-to-block/
+│       ├── integrate.php    (loads theme.json via wp_theme_json_data_default)
+│       └── theme.json       (base layer — keep these two files together)
+├── assets/
+│   └── css/
+│       ├── tokens.wp.css    (CSS variables mapped to --wp--preset--*)
+│       ├── Card.css
+│       └── Button.css
+├── functions.php
+└── theme.json               (your theme's own theme.json — overrides library defaults)
+```
+
+> **Tip:** You could add a build script to automate this copy step so it runs when you install or update the library.
+
 ### Load the Integration Hook
 
-Add one line to your theme's `functions.php`:
+In your theme's `functions.php`:
 
 ```php
 /**
@@ -370,10 +400,28 @@ Add one line to your theme's `functions.php`:
  * This injects default colors, spacing, fonts, and custom values
  * via wp_theme_json_data_default. Your theme.json overrides any values.
  */
-require_once get_template_directory() . '/node_modules/your-component-library/dist/wp/integrate.php';
+require_once get_template_directory() . '/inc/story-to-block/integrate.php';
 ```
 
-This registers the library's design tokens as defaults in the WordPress theme.json cascade. The theme's own `theme.json`, child themes, and user Global Styles all take priority over these defaults.
+Alternatively, copy the filter directly into `functions.php` instead of using the file:
+
+```php
+add_filter( 'wp_theme_json_data_default', function ( $theme_json ) {
+    $library_json_path = get_template_directory() . '/inc/story-to-block/theme.json';
+
+    if ( ! file_exists( $library_json_path ) ) {
+        return $theme_json;
+    }
+
+    $library_data = json_decode( file_get_contents( $library_json_path ), true );
+
+    if ( ! is_array( $library_data ) ) {
+        return $theme_json;
+    }
+
+    return $theme_json->update_with( $library_data );
+} );
+```
 
 ### Enqueue Styles
 
@@ -381,15 +429,15 @@ Register `tokens.wp.css` globally and component CSS per-block:
 
 ```php
 function mytheme_register_component_styles() {
-    $lib = get_template_directory_uri() . '/node_modules/your-component-library/dist';
+    $theme_uri = get_template_directory_uri();
 
     // Global — all components depend on these variables
-    wp_register_style('lib-tokens', $lib . '/wp/tokens.wp.css', [], '0.0.1');
+    wp_register_style('lib-tokens', $theme_uri . '/assets/css/tokens.wp.css', [], '0.0.1');
     wp_enqueue_style('lib-tokens');
 
     // Per-component — WordPress loads these only when the block is on the page
-    wp_register_style('lib-card', $lib . '/css/Card.css', ['lib-tokens'], '0.0.1');
-    wp_register_style('lib-button', $lib . '/css/Button.css', ['lib-tokens'], '0.0.1');
+    wp_register_style('lib-card', $theme_uri . '/assets/css/Card.css', ['lib-tokens'], '0.0.1');
+    wp_register_style('lib-button', $theme_uri . '/assets/css/Button.css', ['lib-tokens'], '0.0.1');
 }
 add_action('wp_enqueue_scripts', 'mytheme_register_component_styles');
 add_action('enqueue_block_editor_assets', 'mytheme_register_component_styles');

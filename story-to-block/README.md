@@ -195,6 +195,16 @@ The generated PHP file hooks into `wp_theme_json_data_default` — the lowest pr
 
 A theme's `theme.json` automatically overrides library defaults.
 
+### Using in WordPress
+
+The `integrate.php` and `theme.json` files must be **copied into your theme** — `node_modules` does not exist on production servers. Copy both files into a directory in your theme (e.g. `inc/story-to-block/`) and include via `require_once`:
+
+```php
+require_once get_template_directory() . '/inc/story-to-block/integrate.php';
+```
+
+Similarly, copy `tokens.wp.css` and component CSS files into your theme's assets directory and enqueue them with `wp_register_style` / `wp_enqueue_style`.
+
 ### WordPress Token Mapping
 
 | Category | WordPress Mapping | Editor UI |
