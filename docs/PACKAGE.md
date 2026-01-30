@@ -1,51 +1,55 @@
 # story-to-block
 
-`story-to-block` is an npm package that bridges a Storybook component library with WordPress block themes. It reads a configuration file from your project and generates WordPress-specific assets: a `theme.json` base layer, CSS token mappings, and a PHP integration hook.
-
-This package does not replace your Storybook setup. It adds to it.
+`story-to-block` is an npm package that bridges a Storybook component library with WordPress block themes. It reads a single configuration file and generates all CSS token files and WordPress-specific assets from one source of truth.
 
 ## What It Does
 
-You maintain a component library in Storybook with CSS variables (`--prefix-*`). `story-to-block` generates the files WordPress needs to consume those same tokens:
+You define your design tokens once in `stb.config.json`. The generate command produces everything your component library and WordPress themes need:
 
 ```
 your-project/
-├── stb.config.json              (you create this)
+├── stb.config.json                  (you create this — single source of truth)
 │
 │   npx story-to-block generate
 │
+├── src/styles/
+│   └── tokens.css                   (generated — CSS vars for Storybook dev)
+│
 ├── dist/
-│   ├── wp/                      (generated)
-│   │   ├── theme.json           (base theme.json for wp_theme_json_data_default)
-│   │   ├── tokens.wp.css        (--prefix-* mapped to --wp--preset--*)
-│   │   └── integrate.php        (PHP filter hook)
-│   ├── css/                     (your existing build output)
-│   │   ├── tokens.css
-│   │   ├── Card.css
+│   ├── css/
+│   │   ├── tokens.css               (generated — CSS vars for React/Next.js)
+│   │   ├── Card.css                 (your component CSS, unchanged)
 │   │   └── Button.css
+│   ├── wp/
+│   │   ├── theme.json               (generated — base theme.json layer)
+│   │   ├── tokens.wp.css            (generated — CSS vars mapped to --wp--preset--*)
+│   │   └── integrate.php            (generated — PHP filter hook)
 │   ├── index.js
 │   └── styles.css
 ```
 
-## Requirements
+`tokens.css` is no longer hand-written. It is generated from the config, ensuring your Storybook components, published React package, and WordPress assets all share the same values.
 
-- An existing Storybook project that builds a component library
-- CSS variables using a consistent prefix (e.g. `--prefix-*`)
-- npm or Node.js 20+
+---
 
-## Installation
+## Part 1: Building a Component Library
+
+This section covers how a developer uses `story-to-block` when building and publishing a component library.
+
+### Installation
 
 ```bash
 npm install story-to-block --save-dev
 ```
 
-## Configuration
+### Creating the Config
 
-Create `stb.config.json` in your project root:
+Create `stb.config.json` in your project root. This file defines every design token your components use:
 
 ```json
 {
   "prefix": "prefix",
+  "tokensPath": "src/styles/tokens.css",
   "outDir": "dist/wp",
   "tokens": {
     "color": {
@@ -57,6 +61,9 @@ Create `stb.config.json` in your project root:
       "primary-hover": {
         "value": "#005a87"
       },
+      "primary-light": {
+        "value": "#e5f3f9"
+      },
       "secondary": {
         "value": "#23282d",
         "name": "Secondary",
@@ -67,10 +74,34 @@ Create `stb.config.json` in your project root:
         "name": "Contrast",
         "slug": "contrast"
       },
+      "text-muted": {
+        "value": "#6b7280"
+      },
       "background": {
         "value": "#ffffff",
         "name": "Base",
         "slug": "base"
+      },
+      "background-alt": {
+        "value": "#f9fafb"
+      },
+      "border": {
+        "value": "#dcdcde"
+      },
+      "success": {
+        "value": "#00a32a",
+        "name": "Success",
+        "slug": "success"
+      },
+      "warning": {
+        "value": "#dba617",
+        "name": "Warning",
+        "slug": "warning"
+      },
+      "error": {
+        "value": "#d63638",
+        "name": "Error",
+        "slug": "error"
       }
     },
     "spacing": {
@@ -78,45 +109,65 @@ Create `stb.config.json` in your project root:
       "sm":  { "value": "0.5rem",  "slug": "30", "name": "Small" },
       "md":  { "value": "1rem",    "slug": "40", "name": "Medium" },
       "lg":  { "value": "1.5rem",  "slug": "50", "name": "Large" },
-      "xl":  { "value": "2rem",    "slug": "60", "name": "X-Large" }
+      "xl":  { "value": "2rem",    "slug": "60", "name": "X-Large" },
+      "2xl": { "value": "3rem",    "slug": "70", "name": "2X-Large" }
     },
     "fontFamily": {
       "base": {
         "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
         "name": "System Sans",
         "slug": "body"
+      },
+      "mono": {
+        "value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace",
+        "name": "Monospace",
+        "slug": "mono"
       }
     },
     "fontSize": {
-      "sm":   { "value": "0.875rem", "slug": "small",  "name": "Small" },
-      "base": { "value": "1rem",     "slug": "medium", "name": "Medium" },
-      "lg":   { "value": "1.125rem", "slug": "large",  "name": "Large" }
+      "xs":   { "value": "0.75rem" },
+      "sm":   { "value": "0.875rem", "slug": "small",    "name": "Small" },
+      "base": { "value": "1rem",     "slug": "medium",   "name": "Medium" },
+      "lg":   { "value": "1.125rem", "slug": "large",    "name": "Large" },
+      "xl":   { "value": "1.25rem",  "slug": "x-large",  "name": "X-Large" },
+      "2xl":  { "value": "1.5rem",   "slug": "xx-large", "name": "XX-Large" },
+      "3xl":  { "value": "1.875rem" }
     },
     "fontWeight": {
       "normal":   { "value": "400" },
+      "medium":   { "value": "500" },
       "semibold": { "value": "600" },
       "bold":     { "value": "700" }
     },
     "lineHeight": {
       "tight":   { "value": "1.25" },
-      "normal":  { "value": "1.5" }
+      "normal":  { "value": "1.5" },
+      "relaxed": { "value": "1.75" }
     },
     "radius": {
-      "sm": { "value": "2px" },
-      "md": { "value": "4px" },
-      "lg": { "value": "8px" }
+      "none": { "value": "0" },
+      "sm":   { "value": "2px" },
+      "md":   { "value": "4px" },
+      "lg":   { "value": "8px" },
+      "xl":   { "value": "12px" },
+      "full": { "value": "9999px" }
     },
     "shadow": {
       "sm": { "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
-      "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1)" }
+      "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+      "lg": { "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" }
     },
     "transition": {
       "fast":   { "value": "150ms ease" },
-      "normal": { "value": "200ms ease" }
+      "normal": { "value": "200ms ease" },
+      "slow":   { "value": "300ms ease" }
     },
     "zIndex": {
       "dropdown": { "value": "100" },
-      "modal":    { "value": "300" }
+      "sticky":   { "value": "200" },
+      "modal":    { "value": "300" },
+      "popover":  { "value": "400" },
+      "tooltip":  { "value": "500" }
     }
   }
 }
@@ -124,62 +175,140 @@ Create `stb.config.json` in your project root:
 
 ### Config Fields
 
-| Field | Required | Description |
-|-------|----------|-------------|
-| `prefix` | Yes | The CSS variable prefix used in your component library |
-| `outDir` | No | Output directory for generated files. Defaults to `dist/wp` |
-| `tokens` | Yes | Token definitions grouped by category |
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `prefix` | Yes | — | CSS variable prefix used in your component library (e.g. `prefix` produces `--prefix-*`) |
+| `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file for local development |
+| `outDir` | No | `dist/wp` | Output directory for WordPress-specific generated files |
+| `tokens` | Yes | — | Token definitions grouped by category |
 
 ### Token Properties
 
-Each token requires a `value`. Tokens with `name` and `slug` are exposed to the WordPress editor UI. Tokens without them exist only in CSS.
+Each token requires a `value`. The optional `name` and `slug` fields control whether a token is visible in the WordPress editor UI.
 
 | Property | Required | Description |
 |----------|----------|-------------|
 | `value` | Yes | The CSS value (color hex, rem, font stack, etc.) |
-| `name` | No | Human-readable label shown in the WordPress editor |
-| `slug` | No | WordPress preset slug. Required alongside `name` |
+| `name` | No | Human-readable label shown in the WordPress editor UI |
+| `slug` | No | WordPress preset slug. Required alongside `name` for theme.json output |
+
+Tokens with `name` + `slug` are included in theme.json and mapped to `--wp--preset--*` variables. Tokens without them exist only as CSS variables with hardcoded values.
 
 **Examples:**
 
-- `"primary": { "value": "#0073aa", "name": "Primary", "slug": "primary" }` — appears in the editor color picker AND generates a CSS variable
-- `"primary-hover": { "value": "#005a87" }` — CSS variable only, not visible in the editor
+- `"primary": { "value": "#0073aa", "name": "Primary", "slug": "primary" }` — appears in the WordPress editor color picker, generates a CSS variable, and maps to `--wp--preset--color--primary` in `tokens.wp.css`
+- `"primary-hover": { "value": "#005a87" }` — generates a CSS variable only, not visible in the WordPress editor
 
-## Usage
-
-### Generate WordPress Assets
+### Running the Generator
 
 ```bash
 npx story-to-block generate
 ```
 
-This reads `stb.config.json` and writes to `dist/wp/`:
+This reads `stb.config.json` and produces:
 
-| Generated File | Purpose |
-|----------------|---------|
-| `theme.json` | Base theme.json containing colors, spacing, fonts, and custom values. Only includes tokens with `name` + `slug`. |
-| `tokens.wp.css` | CSS variables mapping `--prefix-*` to `--wp--preset--*` with hardcoded fallbacks. Tokens without a WordPress mapping use hardcoded values only. |
-| `integrate.php` | PHP filter that loads `theme.json` via `wp_theme_json_data_default`. |
+| Generated File | Location | Purpose |
+|----------------|----------|---------|
+| `tokens.css` | `src/styles/tokens.css` | CSS variables with hardcoded values, used by Storybook during development |
+| `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer with colors, spacing, fonts, and custom values |
+| `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapping `--prefix-*` to `--wp--preset--*` with hardcoded fallbacks |
+| `integrate.php` | `dist/wp/integrate.php` | PHP filter that loads theme.json via `wp_theme_json_data_default` |
 
-### Add to Your Build
+### Using Generated Tokens in Components
 
-Add the generate step to your existing build scripts:
+After running the generator, `src/styles/tokens.css` contains all your CSS variables:
+
+```css
+/* Auto-generated by story-to-block — do not edit manually */
+
+:root {
+  /* Colors */
+  --prefix-color-primary: #0073aa;
+  --prefix-color-primary-hover: #005a87;
+  --prefix-color-primary-light: #e5f3f9;
+  --prefix-color-secondary: #23282d;
+  --prefix-color-text: #1e1e1e;
+  --prefix-color-text-muted: #6b7280;
+  --prefix-color-background: #ffffff;
+  --prefix-color-background-alt: #f9fafb;
+  --prefix-color-border: #dcdcde;
+  /* ... */
+
+  /* Spacing */
+  --prefix-spacing-xs: 0.25rem;
+  --prefix-spacing-sm: 0.5rem;
+  --prefix-spacing-md: 1rem;
+  /* ... */
+
+  /* Font Families */
+  --prefix-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  /* ... */
+}
+```
+
+Your Storybook preview imports this file as normal:
+
+```ts
+// .storybook/preview.ts
+import '../src/styles/tokens.css';
+import '../src/styles/reset.css';
+```
+
+Component CSS files reference the variables directly:
+
+```css
+/* Card.css */
+.prefix-card {
+  background-color: var(--prefix-color-background);
+  border: 1px solid var(--prefix-color-border);
+  border-radius: var(--prefix-radius-lg);
+  padding: var(--prefix-spacing-md);
+}
+
+.prefix-card--featured {
+  border-color: var(--prefix-color-primary);
+}
+```
+
+Nothing about how you write component CSS changes. The only difference is that `tokens.css` is generated from the config instead of written by hand.
+
+### Updating Tokens
+
+To change a design token value:
+
+1. Edit `stb.config.json`
+2. Run `npx story-to-block generate`
+3. All outputs update — `tokens.css`, `tokens.wp.css`, `theme.json`
+
+To add a new token, add it to the appropriate category in the config and run the generator. Then reference `--prefix-{category}-{name}` in your component CSS.
+
+### Changing the Prefix
+
+Update `prefix` in `stb.config.json` and run the generator. This updates all CSS variable names in the generated files.
+
+Component CSS files and class names (e.g. `.prefix-card`) are not affected by the generator — those require a manual find-and-replace. The prefix in the config controls CSS variable names only.
+
+### Build Scripts
+
+Add the generate step to your project's build pipeline:
 
 ```json
 {
   "scripts": {
-    "dev": "storybook dev -p 6006",
-    "build": "npm run build:lib && npm run build:css && npm run build:wp",
+    "generate": "story-to-block generate",
+    "dev": "npm run generate && storybook dev -p 6006",
+    "build": "npm run generate && npm run build:lib && npm run build:css",
     "build:lib": "vite build",
-    "build:css": "node scripts/build-css.js",
-    "build:wp": "story-to-block generate"
+    "build:css": "node scripts/build-css.js"
   }
 }
 ```
 
-### Update package.json Exports
+The generate step runs before both `dev` and `build` to ensure `tokens.css` exists when Storybook or Vite needs it. The WordPress assets (`dist/wp/`) are generated at the same time and included in the build output.
 
-Add the WordPress assets to your library's package exports so consumers can access them:
+### Publishing the Library
+
+When publishing your component library to npm, include the WordPress assets in your package exports:
 
 ```json
 {
@@ -198,116 +327,67 @@ Add the WordPress assets to your library's package exports so consumers can acce
 }
 ```
 
-## What Gets Generated
+After publishing, the package contains everything a consumer needs for both React/Next.js and WordPress:
 
-### theme.json
-
-A standard WordPress theme.json file containing only tokens that have `name` and `slug`. This is not a full theme — it provides defaults that any block theme can extend.
-
-```json
-{
-  "$schema": "https://schemas.wp.org/trunk/theme.json",
-  "version": 3,
-  "settings": {
-    "color": {
-      "palette": [
-        { "slug": "primary", "color": "#0073aa", "name": "Primary" }
-      ]
-    },
-    "spacing": {
-      "spacingSizes": [
-        { "slug": "40", "size": "1rem", "name": "Medium" }
-      ]
-    },
-    "typography": {
-      "fontFamilies": [ ... ],
-      "fontSizes": [ ... ]
-    },
-    "custom": {
-      "fontWeight": { "normal": "400", "semibold": "600" },
-      "lineHeight": { "tight": "1.25", "normal": "1.5" },
-      "radius": { "sm": "2px", "md": "4px" },
-      "shadow": { ... },
-      "transition": { ... }
-    }
-  }
-}
+```
+node_modules/your-component-library/
+├── dist/
+│   ├── index.js              # React components (ES module)
+│   ├── index.d.ts            # TypeScript declarations
+│   ├── styles.css            # Bundled CSS (all components + tokens)
+│   ├── css/
+│   │   ├── tokens.css        # CSS vars with hardcoded values
+│   │   ├── reset.css         # Base styles (optional)
+│   │   ├── Card.css          # Individual component CSS
+│   │   └── Button.css
+│   └── wp/
+│       ├── theme.json        # WordPress theme.json base layer
+│       ├── tokens.wp.css     # CSS vars mapped to --wp--preset--*
+│       └── integrate.php     # PHP filter hook
 ```
 
-Categories without a native theme.json mapping (fontWeight, lineHeight, radius, shadow, transition) go under `settings.custom`. WordPress generates `--wp--custom--*` variables for these. zIndex is omitted from theme.json entirely.
+---
 
-### tokens.wp.css
+## Part 2: Consuming the Library in WordPress
 
-Maps your `--prefix-*` variables to WordPress preset variables with fallbacks:
+This section covers how a WordPress theme or plugin developer uses a published component library that was built with `story-to-block`.
 
-```css
-:root {
-  /* Tokens with WordPress mapping — responds to theme.json overrides */
-  --prefix-color-primary: var(--wp--preset--color--primary, #0073aa);
-  --prefix-color-text: var(--wp--preset--color--contrast, #1e1e1e);
-  --prefix-spacing-md: var(--wp--preset--spacing--40, 1rem);
-  --prefix-font-size-base: var(--wp--preset--font-size--medium, 1rem);
+### Install the Component Library
 
-  /* Tokens without WordPress mapping — hardcoded values */
-  --prefix-color-primary-hover: #005a87;
-  --prefix-font-weight-normal: 400;
-  --prefix-radius-md: 4px;
-  --prefix-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
-```
-
-When a theme overrides `primary` to `#e63946` in its theme.json, `--wp--preset--color--primary` changes and `--prefix-color-primary` automatically picks up the new value. No manual CSS overrides needed.
-
-### integrate.php
-
-A PHP file that loads `theme.json` as a default base layer in WordPress:
-
-```php
-add_filter('wp_theme_json_data_default', function ($theme_json) {
-    $library_json_path = __DIR__ . '/theme.json';
-    if (!file_exists($library_json_path)) {
-        return $theme_json;
-    }
-    $library_data = json_decode(file_get_contents($library_json_path), true);
-    if (!is_array($library_data)) {
-        return $theme_json;
-    }
-    return $theme_json->update_with($library_data);
-});
-```
-
-This uses `wp_theme_json_data_default`, the lowest priority layer in the WordPress theme.json cascade. The theme's own `theme.json`, child theme, and user Global Styles all override these values.
-
-## WordPress Theme Setup
-
-After publishing your component library with `story-to-block` outputs, a WordPress theme integrates it like this:
-
-### 1. Install the Component Library
+From your WordPress theme or plugin directory:
 
 ```bash
-cd wp-content/themes/your-theme
 npm install your-component-library
 ```
 
-### 2. Load the Integration Hook
+### Load the Integration Hook
 
-In `functions.php`:
+Add one line to your theme's `functions.php`:
 
 ```php
-// Load the library's base theme.json layer
+/**
+ * Load the component library's base theme.json layer.
+ * This injects default colors, spacing, fonts, and custom values
+ * via wp_theme_json_data_default. Your theme.json overrides any values.
+ */
 require_once get_template_directory() . '/node_modules/your-component-library/dist/wp/integrate.php';
 ```
 
-### 3. Enqueue Token CSS
+This registers the library's design tokens as defaults in the WordPress theme.json cascade. The theme's own `theme.json`, child themes, and user Global Styles all take priority over these defaults.
+
+### Enqueue Styles
+
+Register `tokens.wp.css` globally and component CSS per-block:
 
 ```php
 function mytheme_register_component_styles() {
     $lib = get_template_directory_uri() . '/node_modules/your-component-library/dist';
 
+    // Global — all components depend on these variables
     wp_register_style('lib-tokens', $lib . '/wp/tokens.wp.css', [], '0.0.1');
     wp_enqueue_style('lib-tokens');
 
-    // Register component CSS — WordPress loads these only when the block is on the page
+    // Per-component — WordPress loads these only when the block is on the page
     wp_register_style('lib-card', $lib . '/css/Card.css', ['lib-tokens'], '0.0.1');
     wp_register_style('lib-button', $lib . '/css/Button.css', ['lib-tokens'], '0.0.1');
 }
@@ -315,19 +395,32 @@ add_action('wp_enqueue_scripts', 'mytheme_register_component_styles');
 add_action('enqueue_block_editor_assets', 'mytheme_register_component_styles');
 ```
 
-### 4. Reference in block.json
+**Why `tokens.wp.css` instead of `tokens.css`?**
+
+`tokens.css` uses hardcoded values (`--prefix-color-primary: #0073aa`). Components render correctly but don't respond to theme.json overrides.
+
+`tokens.wp.css` maps to WordPress preset variables with fallbacks (`--prefix-color-primary: var(--wp--preset--color--primary, #0073aa)`). When a theme overrides the primary color in its theme.json, components automatically pick up the new value.
+
+### Reference Styles in block.json
+
+Associate registered style handles with your blocks:
 
 ```json
 {
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
   "name": "your-plugin/card",
+  "title": "Card",
   "style": ["lib-card"],
   "editorStyle": ["lib-card"]
 }
 ```
 
-### 5. Override in theme.json (optional)
+WordPress enqueues `lib-card` (and its dependency `lib-tokens`) only when the Card block appears on the page.
 
-The library provides defaults. Override anything by defining the same slug:
+### Override Defaults in theme.json
+
+The library provides sensible defaults. Override any value by defining the same slug in your theme's `theme.json`:
 
 ```json
 {
@@ -338,47 +431,65 @@ The library provides defaults. Override anything by defining the same slug:
       "palette": [
         { "slug": "primary", "color": "#e63946", "name": "Primary" }
       ]
+    },
+    "spacing": {
+      "spacingSizes": [
+        { "slug": "40", "size": "1.25rem", "name": "Medium" }
+      ]
     }
   }
 }
 ```
 
-Components using `--prefix-color-primary` automatically pick up `#e63946` because `tokens.wp.css` maps it through `var(--wp--preset--color--primary, ...)`.
+Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, components automatically pick up the theme's `#e63946` value. No additional CSS or configuration is needed.
 
-## How Tokens Map to WordPress
+You only need to define what's different. All other values fall through from the library's defaults.
 
-| Token Category | CSS Variable | WordPress Mapping | Editor Visibility |
-|----------------|-------------|-------------------|-------------------|
-| Color (with name/slug) | `--prefix-color-*` | `--wp--preset--color--{slug}` | Color picker |
-| Color (without) | `--prefix-color-*` | None (hardcoded) | Not visible |
-| Spacing | `--prefix-spacing-*` | `--wp--preset--spacing--{slug}` | Spacing controls |
-| Font Family | `--prefix-font-family-*` | `--wp--preset--font-family--{slug}` | Font picker |
-| Font Size (with name/slug) | `--prefix-font-size-*` | `--wp--preset--font-size--{slug}` | Size picker |
-| Font Size (without) | `--prefix-font-size-*` | None (hardcoded) | Not visible |
-| Font Weight | `--prefix-font-weight-*` | `--wp--custom--font-weight--*` | Not visible |
-| Line Height | `--prefix-line-height-*` | `--wp--custom--line-height--*` | Not visible |
-| Border Radius | `--prefix-radius-*` | `--wp--custom--radius--*` | Not visible |
-| Shadow | `--prefix-shadow-*` | `--wp--custom--shadow--*` | Not visible |
-| Transition | `--prefix-transition-*` | `--wp--custom--transition--*` | Not visible |
-| Z-Index | `--prefix-z-*` | None | Not visible |
+---
 
-## theme.json Cascade
+## Reference
 
-The WordPress theme.json merge order (lowest to highest priority):
+### What Gets Generated
+
+| File | From Config | Description |
+|------|-------------|-------------|
+| `src/styles/tokens.css` | All tokens | CSS variables with hardcoded values. Used by Storybook and bundled into `dist/css/tokens.css` for React/Next.js consumers. |
+| `dist/wp/tokens.wp.css` | All tokens | CSS variables where tokens with `name` + `slug` map to `--wp--preset--*` with fallbacks. Tokens without mapping use hardcoded values. |
+| `dist/wp/theme.json` | Tokens with `name` + `slug` only | WordPress theme.json containing color palette, spacing scale, font families, font sizes, and custom values. |
+| `dist/wp/integrate.php` | Static (no token data) | PHP filter that loads theme.json via `wp_theme_json_data_default`. |
+
+### Token Category Mapping
+
+| Category | CSS Variable | tokens.wp.css Mapping | theme.json Location | Editor UI |
+|----------|-------------|----------------------|-------------------|-----------|
+| Color (with name/slug) | `--prefix-color-*` | `var(--wp--preset--color--{slug}, value)` | `settings.color.palette` | Color picker |
+| Color (without) | `--prefix-color-*` | Hardcoded value | Not included | Not visible |
+| Spacing | `--prefix-spacing-*` | `var(--wp--preset--spacing--{slug}, value)` | `settings.spacing.spacingSizes` | Spacing controls |
+| Font Family | `--prefix-font-family-*` | `var(--wp--preset--font-family--{slug}, value)` | `settings.typography.fontFamilies` | Font picker |
+| Font Size (with name/slug) | `--prefix-font-size-*` | `var(--wp--preset--font-size--{slug}, value)` | `settings.typography.fontSizes` | Size picker |
+| Font Size (without) | `--prefix-font-size-*` | Hardcoded value | Not included | Not visible |
+| Font Weight | `--prefix-font-weight-*` | Hardcoded value | `settings.custom.fontWeight` | Not visible |
+| Line Height | `--prefix-line-height-*` | Hardcoded value | `settings.custom.lineHeight` | Not visible |
+| Border Radius | `--prefix-radius-*` | Hardcoded value | `settings.custom.radius` | Not visible |
+| Shadow | `--prefix-shadow-*` | Hardcoded value | `settings.custom.shadow` | Not visible |
+| Transition | `--prefix-transition-*` | Hardcoded value | `settings.custom.transition` | Not visible |
+| Z-Index | `--prefix-z-*` | Hardcoded value | Not included | Not visible |
+
+### theme.json Cascade
+
+WordPress merges theme.json layers in this order (lowest to highest priority):
 
 1. **WordPress core defaults**
-2. **Library base layer** — `integrate.php` injects here
+2. **Library base layer** — `integrate.php` injects here via `wp_theme_json_data_default`
 3. **Parent theme** `theme.json`
 4. **Child theme** `theme.json`
 5. **User Global Styles** (editor customizations)
 
-The library sits at layer 2. Everything above it wins. A theme author writes their `theme.json` normally and only the values they define override the library defaults.
+The library sits at layer 2. Everything above it wins.
 
-## What This Package Does NOT Do
+### What This Package Does NOT Do
 
-- It does not modify your Storybook setup or component code
-- It does not generate `tokens.css` — your existing build handles that
+- It does not modify your component TSX or CSS files
 - It does not scaffold blocks, `block.json`, or PHP render templates (planned for a future version)
-- It does not require any changes to how your React components reference CSS variables
-
-Your component CSS files continue to use `--prefix-*` variables. `story-to-block` only generates the WordPress layer that makes those variables respond to theme.json.
+- It does not change how components reference CSS variables — they use `--prefix-*` everywhere
+- It does not require WordPress to build or develop components — WordPress assets are generated alongside the standard build
