@@ -1,427 +1,252 @@
-# Storybook Starter for Gutenberg Integration
+# Build Plan: story-to-block
 
-A starter project for building component libraries that integrate seamlessly with WordPress Gutenberg blocks.
+## Overview
 
-## Project Goals
+Build the `story-to-block` npm package that generates CSS token files and WordPress assets from a single JSON config. The package will be developed in a `story-to-block/` folder at the project root for prototyping, then moved to a standalone repo for publishing via GitHub Actions.
 
-- Provide a cloneable starter for building UI component libraries
-- Optimize for Gutenberg block development (both static and dynamic blocks)
-- Use CSS variables for easy theming and WordPress theme.json compatibility
-- Support both React component usage and CSS-only consumption
-
-## Technology Stack
-
-| Technology | Version | Purpose |
-|------------|---------|---------|
-| Node.js | 20 LTS (18 LTS compatible) | Runtime |
-| Vite | Latest | Build tool |
-| Storybook | 8.x | Component documentation |
-| React | 18.x | Component authoring (matches WP 6.x) |
-| TypeScript | 5.x | Type safety and documentation |
-| CSS | Modern (with nesting) | Styling - no preprocessor |
-
-## Package Manager
-
-**npm** - Chosen for universal compatibility since this is a starter project others will clone.
-
-## Directory Structure
+## Project Structure
 
 ```
 storybook-starter/
-├── .storybook/
-│   ├── main.ts              # Storybook configuration
-│   ├── preview.ts           # Global decorators, parameters
-│   └── manager.ts           # Storybook UI customization (optional)
+├── story-to-block/              (the package we're building)
+│   ├── package.json
+│   ├── tsconfig.json
+│   ├── src/
+│   │   ├── index.ts             (main entry — exports programmatic API)
+│   │   ├── cli.ts               (CLI entry — npx story-to-block generate)
+│   │   ├── config.ts            (reads + validates stb.config.json)
+│   │   ├── generators/
+│   │   │   ├── tokens-css.ts    (generates tokens.css)
+│   │   │   ├── tokens-wp-css.ts (generates tokens.wp.css)
+│   │   │   ├── theme-json.ts    (generates theme.json)
+│   │   │   └── integrate-php.ts (generates integrate.php)
+│   │   └── types.ts             (shared TypeScript types)
+│   ├── templates/
+│   │   └── integrate.php.tpl    (PHP template with placeholder)
+│   └── tests/
+│       ├── config.test.ts
+│       ├── tokens-css.test.ts
+│       ├── tokens-wp-css.test.ts
+│       ├── theme-json.test.ts
+│       └── integration.test.ts
+├── stb.config.json              (config for this starter project)
+├── docs/
 ├── src/
-│   ├── components/
-│   │   └── Card/
-│   │       ├── Card.tsx     # Component implementation
-│   │       ├── Card.stories.tsx  # Storybook stories
-│   │       ├── Card.css     # Component styles
-│   │       └── index.ts     # Public export
-│   ├── styles/
-│   │   ├── tokens.css       # CSS variables (design tokens)
-│   │   └── reset.css        # Minimal reset/base styles
-│   └── index.ts             # Library entry point
-├── dist/                    # Build output (generated)
-├── package.json
-├── tsconfig.json
-├── vite.config.ts
-└── README.md
+└── ...
 ```
 
-## CSS Variable Strategy
+## Phases
 
-### Prefix Convention
+### Phase 1: Package Scaffold
 
-All CSS variables use the `--prefix-` prefix (Component UI Library).
+Set up the `story-to-block/` folder as a buildable TypeScript package.
 
-**To customize for your project:**
-1. Open `src/styles/tokens.css`
-2. Find and replace `--prefix-` with your prefix (e.g., `--mylib-`)
-3. Update component CSS files with the same replacement
+- [ ] Create `story-to-block/package.json`
+  - name: `story-to-block`
+  - type: module
+  - bin: `./dist/cli.js`
+  - main: `./dist/index.js`
+  - types: `./dist/index.d.ts`
+  - devDependencies: typescript, vitest
+  - no runtime dependencies (Node built-ins only)
+- [ ] Create `story-to-block/tsconfig.json`
+  - Target ES2022, module NodeNext
+  - outDir: dist
+  - strict mode
+- [ ] Create `story-to-block/src/types.ts`
+  - `StbConfig` interface (prefix, tokensPath, outDir, tokens)
+  - `TokenCategory` type (color, spacing, fontFamily, fontSize, etc.)
+  - `TokenEntry` interface (value, name?, slug?)
+  - `TokenGroup` type (Record<string, TokenEntry>)
 
-### Token Categories
+### Phase 2: Config Reader
 
-```css
-/* tokens.css structure */
+Read and validate `stb.config.json`.
 
-/* Colors */
---prefix-color-primary: #0073aa;
---prefix-color-secondary: #23282d;
---prefix-color-text: #1e1e1e;
---prefix-color-background: #ffffff;
---prefix-color-border: #dcdcde;
+- [ ] Create `story-to-block/src/config.ts`
+  - `loadConfig(configPath?: string): StbConfig`
+  - Defaults: `tokensPath = "src/styles/tokens.css"`, `outDir = "dist/wp"`
+  - Validates required fields: `prefix`, `tokens`
+  - Validates each token has a `value`
+  - Validates `name` and `slug` appear together (not one without the other)
+  - Clear error messages on validation failure
+- [ ] Create `story-to-block/tests/config.test.ts`
+  - Valid config loads correctly
+  - Missing prefix throws
+  - Token without value throws
+  - Token with name but no slug throws
+  - Defaults applied when fields omitted
 
-/* Spacing */
---prefix-spacing-xs: 0.25rem;
---prefix-spacing-sm: 0.5rem;
---prefix-spacing-md: 1rem;
---prefix-spacing-lg: 1.5rem;
---prefix-spacing-xl: 2rem;
+### Phase 3: Token Generators
 
-/* Typography */
---prefix-font-family-base: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
---prefix-font-size-sm: 0.875rem;
---prefix-font-size-base: 1rem;
---prefix-font-size-lg: 1.25rem;
---prefix-font-size-xl: 1.5rem;
+Each generator is a pure function: takes config in, returns string out.
 
-/* Border Radius */
---prefix-radius-sm: 2px;
---prefix-radius-md: 4px;
---prefix-radius-lg: 8px;
+#### 3a: tokens.css Generator
 
-/* Shadows */
---prefix-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
---prefix-shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
-```
+- [ ] Create `story-to-block/src/generators/tokens-css.ts`
+  - `generateTokensCss(config: StbConfig): string`
+  - Outputs `:root { }` block with all tokens as `--{prefix}-{category}-{key}: {value}`
+  - Groups by category with CSS comments
+  - Adds "auto-generated" header comment
+  - Category-to-variable mapping:
+    - color → `--prefix-color-{key}`
+    - spacing → `--prefix-spacing-{key}`
+    - fontFamily → `--prefix-font-family-{key}`
+    - fontSize → `--prefix-font-size-{key}`
+    - fontWeight → `--prefix-font-weight-{key}`
+    - lineHeight → `--prefix-line-height-{key}`
+    - radius → `--prefix-radius-{key}`
+    - shadow → `--prefix-shadow-{key}`
+    - transition → `--prefix-transition-{key}`
+    - zIndex → `--prefix-z-{key}`
+- [ ] Create `story-to-block/tests/tokens-css.test.ts`
+  - Generates correct variable names
+  - Groups tokens by category
+  - Uses configured prefix
+  - Includes header comment
 
-### WordPress theme.json Mapping
+#### 3b: tokens.wp.css Generator
 
-Users can map these variables to WordPress theme.json values in their theme:
+- [ ] Create `story-to-block/src/generators/tokens-wp-css.ts`
+  - `generateTokensWpCss(config: StbConfig): string`
+  - Tokens with `name` + `slug` → `--{prefix}-{category}-{key}: var(--wp--preset--{wpCategory}--{slug}, {value})`
+  - Tokens without → `--{prefix}-{category}-{key}: {value}` (hardcoded, same as tokens.css)
+  - WordPress category mapping:
+    - color (with slug) → `--wp--preset--color--{slug}`
+    - spacing → `--wp--preset--spacing--{slug}`
+    - fontFamily → `--wp--preset--font-family--{slug}`
+    - fontSize (with slug) → `--wp--preset--font-size--{slug}`
+    - fontWeight, lineHeight, radius, shadow, transition, zIndex → hardcoded only (no wp preset mapping)
+  - Adds "auto-generated" header comment
+- [ ] Create `story-to-block/tests/tokens-wp-css.test.ts`
+  - Tokens with slug produce var() mapping
+  - Tokens without slug produce hardcoded values
+  - Correct WordPress preset paths per category
+  - fontWeight/radius/etc. always hardcoded
 
-```css
-/* In WordPress theme - override tokens */
-:root {
-  --prefix-color-primary: var(--wp--preset--color--primary);
-  --prefix-spacing-md: var(--wp--preset--spacing--40);
-  --prefix-font-family-base: var(--wp--preset--font-family--body);
-}
-```
+#### 3c: theme.json Generator
 
-## Component Guidelines
+- [ ] Create `story-to-block/src/generators/theme-json.ts`
+  - `generateThemeJson(config: StbConfig): string`
+  - Only includes tokens with `name` + `slug`
+  - Category mapping:
+    - color → `settings.color.palette[]` (`{ slug, color, name }`)
+    - spacing → `settings.spacing.spacingSizes[]` (`{ slug, size, name }`)
+    - fontFamily → `settings.typography.fontFamilies[]` (`{ slug, fontFamily, name }`)
+    - fontSize → `settings.typography.fontSizes[]` (`{ slug, size, name }`)
+  - Categories without native theme.json support go under `settings.custom`:
+    - fontWeight → `settings.custom.fontWeight`
+    - lineHeight → `settings.custom.lineHeight`
+    - radius → `settings.custom.radius`
+    - shadow → `settings.custom.shadow`
+    - transition → `settings.custom.transition`
+  - zIndex is excluded entirely
+  - Outputs `$schema`, `version: 3`
+  - Pretty-printed JSON (2-space indent)
+- [ ] Create `story-to-block/tests/theme-json.test.ts`
+  - Only named/slugged tokens included in palette/sizes
+  - Unnamed tokens excluded
+  - Custom categories placed under settings.custom
+  - zIndex excluded entirely
+  - Valid theme.json structure
 
-### Naming Conventions
+#### 3d: integrate.php Generator
 
-- **CSS classes:** BEM-style with prefix: `.prefix-card`, `.prefix-card__header`, `.prefix-card--featured`
-- **Component files:** PascalCase: `Card.tsx`, `Card.stories.tsx`
-- **CSS files:** Match component name: `Card.css`
+- [ ] Create `story-to-block/templates/integrate.php.tpl`
+  - Static PHP template (no token data injected)
+  - Contains the `wp_theme_json_data_default` filter
+  - Reads `theme.json` from `__DIR__`
+  - Includes `ABSPATH` guard and doc comment
+- [ ] Create `story-to-block/src/generators/integrate-php.ts`
+  - `generateIntegratePhp(): string`
+  - Reads the template file and returns it
+  - No token-specific content — this file is always the same
 
-### Component Structure
+### Phase 4: CLI
 
-Each component should include:
+Wire up the generators behind a CLI command.
 
-1. **TypeScript interface** - Documented props
-2. **Semantic HTML** - Accessible markup
-3. **CSS classes** - Predictable, documented class names
-4. **Stories** - Usage examples and controls
+- [ ] Create `story-to-block/src/cli.ts`
+  - `#!/usr/bin/env node` shebang
+  - Parses `generate` command (only command for v1)
+  - Optional `--config <path>` flag (defaults to `./stb.config.json`)
+  - Optional `--dry-run` flag (outputs to stdout instead of writing files)
+  - Calls `loadConfig()` → runs all generators → writes files
+  - Writes to:
+    - `{tokensPath}` (tokens.css for local dev)
+    - `{outDir}/tokens.wp.css`
+    - `{outDir}/theme.json`
+    - `{outDir}/integrate.php`
+  - Creates output directories if they don't exist
+  - Logs which files were written
+  - Exits with code 1 on error
+- [ ] Create `story-to-block/src/index.ts`
+  - Exports programmatic API: `generate(configPath?: string)`
+  - Also exports individual generators for advanced use
 
-### Example Component Pattern
+### Phase 5: Integration with Storybook Starter
 
-```tsx
-// Card.tsx
-import './Card.css';
+Wire `story-to-block` into this project to validate it works.
 
-export interface CardProps {
-  /** Card title displayed in the header */
-  title: string;
-  /** Main content of the card */
-  children: React.ReactNode;
-  /** Visual variant */
-  variant?: 'default' | 'featured';
-  /** Additional CSS classes */
-  className?: string;
-}
+- [ ] Create `stb.config.json` at the project root
+  - Migrate token values from existing `src/styles/tokens.css`
+  - Set prefix to `prefix`
+  - Set tokensPath to `src/styles/tokens.css`
+  - Set outDir to `dist/wp`
+- [ ] Update `package.json` scripts
+  - Add `"generate": "node story-to-block/dist/cli.js generate"`
+  - Update `"dev"` to `"npm run generate && storybook dev -p 6006"`
+  - Update `"build"` to `"npm run generate && npm run build:lib && npm run build:css"`
+- [ ] Update `package.json` exports
+  - Add `"./wp/*": "./dist/wp/*"`
+- [ ] Verify `src/styles/tokens.css` matches current hand-written version after generation
+- [ ] Verify Storybook dev server works with generated tokens
+- [ ] Verify Vite build output includes `dist/wp/` files
+- [ ] Add `src/styles/tokens.css` note in file: `/* Auto-generated by story-to-block — do not edit manually */`
+- [ ] Add `dist/wp/` to `.gitignore` (generated output)
 
-export function Card({
-  title,
-  children,
-  variant = 'default',
-  className = ''
-}: CardProps) {
-  const classes = [
-    'prefix-card',
-    variant !== 'default' && `prefix-card--${variant}`,
-    className
-  ].filter(Boolean).join(' ');
+### Phase 6: Tests
 
-  return (
-    <article className={classes}>
-      <header className="prefix-card__header">
-        <h3 className="prefix-card__title">{title}</h3>
-      </header>
-      <div className="prefix-card__content">
-        {children}
-      </div>
-    </article>
-  );
-}
-```
+- [ ] Write unit tests for all generators (listed in Phase 3)
+- [ ] Write config validation tests (listed in Phase 2)
+- [ ] Create `story-to-block/tests/integration.test.ts`
+  - Full end-to-end: load a test config → generate all files → verify outputs
+  - Verify tokens.css contains all variables
+  - Verify tokens.wp.css has correct var() mappings
+  - Verify theme.json only contains named tokens
+  - Verify integrate.php matches template
+- [ ] Add test script to `story-to-block/package.json`: `"test": "vitest"`
 
-## Gutenberg Integration Patterns
+### Phase 7: Prepare for Standalone Repo
 
-### CSS Loading Strategy
+Steps for when the package is ready to move out.
 
-This library supports two CSS consumption patterns:
+- [ ] Finalize `story-to-block/package.json` for publishing
+  - Set `files: ["dist", "templates"]`
+  - Add `engines: { node: ">=20" }`
+  - Add keywords, description, license, repository
+- [ ] Add `story-to-block/README.md` (can reference PACKAGE.md content)
+- [ ] Move to standalone repo
+- [ ] Set up GitHub Actions for:
+  - CI: lint + test on PR
+  - Publish: npm publish on tag/release
+- [ ] Update this project to install `story-to-block` from npm instead of local path
+- [ ] Remove `story-to-block/` folder from this repo
 
-| Pattern | Use Case | Import |
-|---------|----------|--------|
-| **Individual CSS** | WordPress blocks (per-block loading) | `your-lib/dist/css/Card.css` |
-| **Bundled CSS** | React/Next.js apps | `your-lib/dist/styles.css` |
-
-**Important:** Tokens CSS (`tokens.css`) should always be loaded once globally, as it contains the CSS variables all components depend on.
-
-### WordPress Block Usage (Recommended for WP)
-
-For optimal WordPress performance, load CSS per-component:
-
-**In block.json:**
-```json
-{
-  "style": "file:./css/card.css",
-  "editorStyle": "file:./css/card.css"
-}
-```
-
-**Or enqueue manually in PHP:**
-```php
-// In your block's register function
-wp_register_style(
-  'prefix-card',
-  'path/to/your-component-library/dist/css/Card.css',
-  ['prefix-tokens'], // Depends on tokens
-  '1.0.0'
-);
-
-// Register tokens once globally (in theme or plugin init)
-wp_register_style(
-  'prefix-tokens',
-  'path/to/your-component-library/dist/css/tokens.css',
-  [],
-  '1.0.0'
-);
-```
-
-**Static block (JS rendered):**
-```tsx
-// edit.tsx - CSS loaded via block.json, not JS import
-import { Card } from 'your-component-library';
-
-export default function Edit({ attributes, setAttributes }) {
-  return (
-    <Card title={attributes.title}>
-      <RichText
-        value={attributes.content}
-        onChange={(content) => setAttributes({ content })}
-      />
-    </Card>
-  );
-}
-```
-
-**Dynamic block (PHP rendered):**
-```php
-function render_card_block($attributes) {
-  $classes = 'prefix-card';
-  if (!empty($attributes['variant'])) {
-    $classes .= ' prefix-card--' . esc_attr($attributes['variant']);
-  }
-
-  return sprintf(
-    '<article class="%s">
-      <header class="prefix-card__header">
-        <h3 class="prefix-card__title">%s</h3>
-      </header>
-      <div class="prefix-card__content">%s</div>
-    </article>',
-    esc_attr($classes),
-    esc_html($attributes['title']),
-    wp_kses_post($attributes['content'])
-  );
-}
-```
-
-### React/Next.js Usage
-
-For non-WordPress projects, import the bundled CSS once:
-
-```tsx
-// _app.tsx or layout.tsx
-import 'your-component-library/dist/styles.css';
-
-// Then use components anywhere
-import { Card } from 'your-component-library';
-```
-
-## Build Outputs
-
-The build process generates:
+## Build Order
 
 ```
-dist/
-├── index.js              # ES module bundle (React components)
-├── index.d.ts            # TypeScript declarations
-├── styles.css            # Bundled CSS (all components + tokens)
-└── css/                  # Individual CSS files
-    ├── tokens.css        # CSS variables (load globally)
-    ├── reset.css         # Base styles (optional)
-    ├── Card.css          # Card component styles
-    └── [Component].css   # One file per component
+Phase 1 (scaffold) → Phase 2 (config) → Phase 3a-3d (generators) → Phase 4 (CLI)
+                                                                        ↓
+Phase 6 (tests) ←──────────────────────────────────────── Phase 5 (integration)
+                                                                        ↓
+                                                           Phase 7 (standalone repo)
 ```
 
-### Package.json Exports
+## Key Decisions
 
-```json
-{
-  "name": "your-component-library",
-  "version": "0.0.1",
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./dist/index.js",
-      "types": "./dist/index.d.ts"
-    },
-    "./styles.css": "./dist/styles.css",
-    "./css/*": "./dist/css/*"
-  },
-  "files": ["dist"],
-  "sideEffects": ["**/*.css"]
-}
-```
-
-## Build Configuration
-
-### Vite Library Build
-
-The Vite config will:
-1. Build React components as ES modules
-2. Generate TypeScript declarations
-3. Copy individual CSS files to `dist/css/`
-4. Generate bundled `styles.css` with all CSS concatenated
-
-```ts
-// vite.config.ts (simplified)
-export default defineConfig({
-  build: {
-    lib: {
-      entry: 'src/index.ts',
-      formats: ['es'],
-      fileName: 'index'
-    },
-    rollupOptions: {
-      external: ['react', 'react-dom'],
-      output: {
-        assetFileNames: (assetInfo) => {
-          // Keep CSS files in css/ subdirectory
-          if (assetInfo.name?.endsWith('.css')) {
-            return 'css/[name][extname]';
-          }
-          return '[name][extname]';
-        }
-      }
-    }
-  }
-});
-```
-
-A post-build script will concatenate all CSS into `styles.css` for bundled consumption.
-
-## Development Workflow
-
-### Available Scripts
-
-| Command | Purpose |
-|---------|---------|
-| `npm run dev` | Start Storybook development server |
-| `npm run build` | Build component library for distribution |
-| `npm run build-storybook` | Build static Storybook site |
-| `npm run build:css` | Build CSS files (individual + bundled) |
-
-### Adding a New Component
-
-1. Create folder: `src/components/ComponentName/`
-2. Add files: `ComponentName.tsx`, `ComponentName.css`, `ComponentName.stories.tsx`, `index.ts`
-3. Export from `src/index.ts`
-4. Component automatically appears in Storybook
-
-## Accessibility Requirements
-
-All components must:
-
-- Use semantic HTML elements
-- Include proper ARIA attributes where needed
-- Support keyboard navigation
-- Meet WCAG 2.1 AA color contrast requirements
-- Work with screen readers
-
-## Browser Support
-
-Targeting browsers that support:
-- CSS custom properties (variables)
-- CSS nesting
-- ES modules
-
-This aligns with WordPress's browser support policy (latest 2 versions of major browsers).
-
-## Initial Component: Card
-
-The starter includes a Card component demonstrating all patterns:
-
-**Props:**
-- `title` (string, required) - Card heading
-- `children` (ReactNode, required) - Card content
-- `variant` ('default' | 'featured') - Visual style
-- `className` (string) - Additional CSS classes
-
-**CSS Classes:**
-- `.prefix-card` - Base card styles
-- `.prefix-card__header` - Header container
-- `.prefix-card__title` - Title element
-- `.prefix-card__content` - Content container
-- `.prefix-card--featured` - Featured variant modifier
-
----
-
-## Implementation Checklist
-
-- [ ] Initialize npm project
-- [ ] Install dependencies
-- [ ] Configure TypeScript
-- [ ] Configure Vite
-- [ ] Configure Storybook
-- [ ] Create tokens.css with CSS variables
-- [ ] Create reset.css with minimal base styles
-- [ ] Build Card component
-- [ ] Create Card stories
-- [ ] Configure build output for publishing
-- [ ] Write README with usage instructions
-
-## Files to Create
-
-1. `package.json` - Project configuration and dependencies
-2. `tsconfig.json` - TypeScript configuration
-3. `vite.config.ts` - Vite build configuration
-4. `.storybook/main.ts` - Storybook configuration
-5. `.storybook/preview.ts` - Storybook preview configuration
-6. `src/styles/tokens.css` - CSS design tokens
-7. `src/styles/reset.css` - Base styles
-8. `src/components/Card/Card.tsx` - Card component
-9. `src/components/Card/Card.css` - Card styles
-10. `src/components/Card/Card.stories.tsx` - Card stories
-11. `src/components/Card/index.ts` - Card export
-12. `src/index.ts` - Library entry point
-13. `README.md` - Project documentation
+- **Zero runtime dependencies.** The package uses only Node.js built-ins (fs, path, process). No chalk, no commander, no lodash.
+- **Pure generator functions.** Each generator takes config in and returns a string. File I/O is handled only in the CLI layer. This makes testing straightforward.
+- **TypeScript with ESM.** Matches the Storybook starter's setup. Compiled to `dist/` for consumption.
+- **Template for PHP.** `integrate.php` is a static file copied from a template. No token data is injected into it — it reads `theme.json` at runtime.
+- **Prototype locally, publish separately.** Build inside this repo for fast iteration, move to standalone repo when stable.
