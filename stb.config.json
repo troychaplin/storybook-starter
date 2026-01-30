@@ -1,0 +1,142 @@
+{
+  "prefix": "prefix",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
+  "tokens": {
+    "color": {
+      "primary": {
+        "value": "#0073aa",
+        "name": "Primary",
+        "slug": "primary"
+      },
+      "primary-hover": {
+        "value": "#005a87"
+      },
+      "primary-light": {
+        "value": "#e5f3f9"
+      },
+      "secondary": {
+        "value": "#23282d",
+        "name": "Secondary",
+        "slug": "secondary"
+      },
+      "secondary-hover": {
+        "value": "#1a1e21"
+      },
+      "secondary-light": {
+        "value": "#f1f1f1"
+      },
+      "text": {
+        "value": "#1e1e1e",
+        "name": "Contrast",
+        "slug": "contrast"
+      },
+      "text-muted": {
+        "value": "#6b7280"
+      },
+      "text-inverse": {
+        "value": "#ffffff"
+      },
+      "background": {
+        "value": "#ffffff",
+        "name": "Base",
+        "slug": "base"
+      },
+      "background-alt": {
+        "value": "#f9fafb"
+      },
+      "border": {
+        "value": "#dcdcde"
+      },
+      "border-light": {
+        "value": "#e5e7eb"
+      },
+      "success": {
+        "value": "#00a32a",
+        "name": "Success",
+        "slug": "success"
+      },
+      "warning": {
+        "value": "#dba617",
+        "name": "Warning",
+        "slug": "warning"
+      },
+      "error": {
+        "value": "#d63638",
+        "name": "Error",
+        "slug": "error"
+      },
+      "info": {
+        "value": "#72aee6",
+        "name": "Info",
+        "slug": "info"
+      }
+    },
+    "spacing": {
+      "xs":  { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
+      "sm":  { "value": "0.5rem",  "slug": "30", "name": "Small" },
+      "md":  { "value": "1rem",    "slug": "40", "name": "Medium" },
+      "lg":  { "value": "1.5rem",  "slug": "50", "name": "Large" },
+      "xl":  { "value": "2rem",    "slug": "60", "name": "X-Large" },
+      "2xl": { "value": "3rem",    "slug": "70", "name": "2X-Large" }
+    },
+    "fontFamily": {
+      "base": {
+        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif",
+        "name": "System Sans",
+        "slug": "body"
+      },
+      "mono": {
+        "value": "ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace",
+        "name": "Monospace",
+        "slug": "mono"
+      }
+    },
+    "fontSize": {
+      "xs":   { "value": "0.75rem" },
+      "sm":   { "value": "0.875rem",  "slug": "small",    "name": "Small" },
+      "base": { "value": "1rem",      "slug": "medium",   "name": "Medium" },
+      "lg":   { "value": "1.125rem",  "slug": "large",    "name": "Large" },
+      "xl":   { "value": "1.25rem",   "slug": "x-large",  "name": "X-Large" },
+      "2xl":  { "value": "1.5rem",    "slug": "xx-large", "name": "XX-Large" },
+      "3xl":  { "value": "1.875rem" }
+    },
+    "fontWeight": {
+      "normal":   { "value": "400" },
+      "medium":   { "value": "500" },
+      "semibold": { "value": "600" },
+      "bold":     { "value": "700" }
+    },
+    "lineHeight": {
+      "tight":   { "value": "1.25" },
+      "normal":  { "value": "1.5" },
+      "relaxed": { "value": "1.75" }
+    },
+    "radius": {
+      "none": { "value": "0" },
+      "sm":   { "value": "2px" },
+      "md":   { "value": "4px" },
+      "lg":   { "value": "8px" },
+      "xl":   { "value": "12px" },
+      "full": { "value": "9999px" }
+    },
+    "shadow": {
+      "sm": { "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
+      "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" },
+      "lg": { "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)" },
+      "xl": { "value": "0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1)" }
+    },
+    "transition": {
+      "fast":   { "value": "150ms ease" },
+      "normal": { "value": "200ms ease" },
+      "slow":   { "value": "300ms ease" }
+    },
+    "zIndex": {
+      "dropdown": { "value": "100" },
+      "sticky":   { "value": "200" },
+      "modal":    { "value": "300" },
+      "popover":  { "value": "400" },
+      "tooltip":  { "value": "500" }
+    }
+  }
+}
