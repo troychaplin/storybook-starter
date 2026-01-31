@@ -16,6 +16,7 @@ This guide covers how to use the component library in WordPress Gutenberg blocks
 - [Theme Integration](#theme-integration)
 - [Editor Styles](#editor-styles)
 - [Component Reference](#component-reference)
+- [Known Issues](#known-issues)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -738,3 +739,48 @@ With this per-block loading approach:
 - A page with 0 component blocks loads only the tokens (~4KB)
 
 This scales well even with 70+ block types registered, since only the blocks actually used on each page load their CSS.
+
+---
+
+## Known Issues
+
+### Style variation preview shows blank colors for the default palette
+
+**Symptom:** When using style variations (JSON files in the theme's `styles/` directory), the default variation's color palette preview appears as white/blank in the Site Editor's style picker, even though the palette works correctly when applied.
+
+**Cause:** The style variation preview does not read colors from `settings.color.palette`. Instead, it extracts colors from the `styles` section — specifically `styles.color.text` and `styles.elements.button.color.background`. If the theme's root `theme.json` has no `styles` section, the preview has no colors to render.
+
+This is a WordPress core behavior introduced in [Gutenberg PR #59514](https://github.com/WordPress/gutenberg/pull/59514). There is an [open issue (#60478)](https://github.com/WordPress/gutenberg/issues/60478) proposing a `settings.example` property to let theme authors explicitly control preview colors, but it has not been implemented yet.
+
+**Workaround:** Add a `styles` section to both your theme's root `theme.json` and each style variation JSON file. The preview needs `styles.color` and `styles.elements.button` to render swatches:
+
+```json
+{
+    "styles": {
+        "color": {
+            "background": "var:preset|color|base",
+            "text": "var:preset|color|contrast"
+        },
+        "elements": {
+            "button": {
+                "color": {
+                    "background": "var:preset|color|primary",
+                    "text": "var:preset|color|base"
+                }
+            }
+        }
+    }
+}
+```
+
+**Why the library can't fix this:** The `styles` section defines how tokens are *applied* to page elements (background, text, buttons), which is a theme-level concern. The library provides the design tokens (`settings`), but the theme decides how to use them. Each theme and style variation will map different palette colors to background, text, and button roles.
+
+### Avoid `defaultPalette: false` in the library's theme.json
+
+**Symptom:** Setting `"defaultPalette": false` in `settings.color` causes the library's own color palette to disappear.
+
+**Cause:** The library's `theme.json` is injected at the WordPress default layer via `wp_theme_json_data_default`. The `defaultPalette: false` setting tells WordPress to exclude the default palette — which includes the library's palette since it lives at that layer.
+
+**Recommendation:** Do not add `defaultPalette: false` to the library's generated `theme.json`. If a theme needs to remove the WordPress default palette, it should set this in its own `theme.json` (layer 3), where it won't affect the library's injected palette.
+
+The library's generated `theme.json` uses `"custom": false` and `"customGradient": false` to disable the custom color picker in the Site Editor. These settings are safe at the default layer and can be overridden by themes that want to re-enable them.
