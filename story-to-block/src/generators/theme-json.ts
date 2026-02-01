@@ -72,15 +72,19 @@ export function generateThemeJson(config: StbConfig): string {
 function buildNamedEntries(
   group: TokenGroup,
   valueKey: string,
-): Array<Record<string, string>> {
-  const entries: Array<Record<string, string>> = [];
+): Array<Record<string, unknown>> {
+  const entries: Array<Record<string, unknown>> = [];
   for (const entry of Object.values(group)) {
     if (entry.name && entry.slug) {
-      entries.push({
+      const obj: Record<string, unknown> = {
         slug: entry.slug,
         [valueKey]: entry.value,
         name: entry.name,
-      });
+      };
+      if (entry.fluid) {
+        obj.fluid = entry.fluid;
+      }
+      entries.push(obj);
     }
   }
   return entries;

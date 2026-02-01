@@ -63,6 +63,32 @@
                 }
             }
         },
+        "fontSize": {
+            "small": {
+                "value": "1rem",
+                "name": "Small",
+                "slug": "small",
+                "fluid": { "min": "0.875rem", "max": "1rem" }
+            },
+            "medium": {
+                "value": "1.125rem",
+                "name": "Medium",
+                "slug": "medium",
+                "fluid": { "min": "1rem", "max": "1.125rem" }
+            },
+            "large": {
+                "value": "1.25rem",
+                "name": "Large",
+                "slug": "large",
+                "fluid": { "min": "1.125rem", "max": "1.25rem" }
+            },
+            "x-large": {
+                "value": "1.5rem",
+                "name": "X-Large",
+                "slug": "x-large",
+                "fluid": { "min": "1.25rem", "max": "1.5rem" }
+            }
+        },
         "shadow": {
             "shadow-1": {
                 "value": "15px 7px 17px 11px rgba(0, 0, 0, 0.2)",

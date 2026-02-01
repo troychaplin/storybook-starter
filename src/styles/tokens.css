@@ -15,6 +15,12 @@
   --prefix-gradient-gradient-1: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
   --prefix-gradient-gradient-2: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
 
+  /* Font Sizes */
+  --prefix-font-size-small: 1rem;
+  --prefix-font-size-medium: 1.125rem;
+  --prefix-font-size-large: 1.25rem;
+  --prefix-font-size-x-large: 1.5rem;
+
   /* Shadows */
   --prefix-shadow-shadow-1: 15px 7px 17px 11px rgba(0, 0, 0, 0.2);
   --prefix-shadow-shadow-2: inset -5px -4px 5px 8px rgba(0, 0, 0, 0.2);

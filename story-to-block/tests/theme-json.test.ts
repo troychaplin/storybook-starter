@@ -166,3 +166,30 @@ describe('generateThemeJson — shadow presets', () => {
     expect(parsed.settings.custom.shadow.md).toBeUndefined();
   });
 });
+
+describe('generateThemeJson — fluid font sizes', () => {
+  const fluidConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      fontSize: {
+        small: { value: '1rem', name: 'Small', slug: 'small', fluid: { min: '0.875rem', max: '1rem' } },
+        medium: { value: '1.125rem', name: 'Medium', slug: 'medium' },
+      },
+    },
+  };
+
+  const output = generateThemeJson(fluidConfig);
+  const parsed = JSON.parse(output);
+
+  it('includes fluid object on font sizes that have it', () => {
+    const small = parsed.settings.typography.fontSizes.find((f: Record<string, unknown>) => f.slug === 'small');
+    expect(small.fluid).toEqual({ min: '0.875rem', max: '1rem' });
+  });
+
+  it('omits fluid on font sizes without it', () => {
+    const medium = parsed.settings.typography.fontSizes.find((f: Record<string, unknown>) => f.slug === 'medium');
+    expect(medium.fluid).toBeUndefined();
+  });
+});

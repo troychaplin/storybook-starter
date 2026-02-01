@@ -2,6 +2,7 @@ export interface TokenEntry {
   value: string;
   name?: string;
   slug?: string;
+  fluid?: { min: string; max: string };
 }
 
 export type TokenGroup = Record<string, TokenEntry>;
