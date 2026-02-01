@@ -1,6 +1,6 @@
-# Testing the story-to-block Integration
+# Testing
 
-This guide walks through verifying that `story-to-block` is correctly integrated with the Storybook starter project.
+This guide walks through verifying that the Storybook starter project and its `story-to-block` integration are working correctly.
 
 ## Prerequisites
 
@@ -27,6 +27,7 @@ npx vitest run
 **Expected output:** 5 test files, 44 tests passing.
 
 Tests cover:
+
 - Config validation (required fields, name/slug pairing, unknown categories)
 - `tokens.css` generation (variable names, grouping, prefix)
 - `tokens.wp.css` generation (var() mappings for slugged tokens, hardcoded for others)

@@ -1,156 +1,16 @@
-# Gutenberg Integration Guide
+# Plugin Integration
 
-This guide covers how to use the component library in WordPress Gutenberg blocks. Integration is split between two projects:
-
-- **Block theme** — Handles the design system: `integrate.php`, `theme.json`, and `tokens.wp.css`
-- **Block plugin** — Handles component CSS, block registration, and block rendering
-
-## Table of Contents
-
-- [Prerequisites](#prerequisites)
-- [Published Package Structure](#published-package-structure)
-- [Theme Setup](#theme-setup)
-- [Plugin Setup](#plugin-setup)
-- [Static Blocks (JS Rendered)](#static-blocks-js-rendered)
-- [Dynamic Blocks (PHP Rendered)](#dynamic-blocks-php-rendered)
-- [Theme Integration](#theme-integration)
-- [Editor Styles](#editor-styles)
-- [Component Reference](#component-reference)
-- [Known Issues](#known-issues)
-- [Troubleshooting](#troubleshooting)
-
----
+This guide covers how to integrate a component library built with `story-to-block` into a WordPress block plugin. The plugin is responsible for registering blocks and their component CSS, importing React components for the editor, and rendering blocks on the frontend.
 
 ## Prerequisites
 
 - WordPress 6.0+
 - Node.js 20+ (for building blocks with `@wordpress/scripts`)
-- A block theme and a block plugin
-- This component library installed as a dependency in both projects
+- A block plugin
+- A published component library built with `story-to-block`
+- The theme must already be set up with `integrate.php` and `tokens.wp.css` (see [Theme Integration](./THEME-INTEGRATION.md))
 
-## Published Package Structure
-
-Install the library from your theme or plugin directory:
-
-```bash
-npm install your-component-library
-```
-
-The published package contains:
-
-```
-node_modules/your-component-library/
-├── dist/
-│   ├── index.js          # ES module (React components)
-│   ├── index.d.ts        # TypeScript declarations
-│   ├── styles.css        # Bundled CSS (all components)
-│   ├── css/              # Individual CSS files
-│   │   ├── tokens.css    # CSS vars — hardcoded values (React/Next.js)
-│   │   ├── reset.css     # Base styles (optional)
-│   │   ├── Button.css    # Button component
-│   │   └── Card.css      # Card component
-│   └── wp/
-│       ├── theme.json    # Generated theme.json base layer
-│       ├── integrate.php # WordPress filter hook
-│       └── tokens.wp.css # CSS vars — mapped to --wp--preset--* (WordPress)
-```
-
-**Key distinction:** Files in `dist/wp/` are PHP and JSON files that must be **copied into your theme** — `node_modules` does not exist on production servers. Files in `dist/css/` are component stylesheets that get copied into your **plugin** alongside the blocks that use them.
-
-See [Token Architecture](./TOKEN-ARCHITECTURE.md) for details on how these files are generated from a single config.
-
----
-
-## Theme Setup
-
-The theme is responsible for the design system layer: loading the library's base `theme.json`, enqueuing `tokens.wp.css` globally, and optionally overriding token values in its own `theme.json`.
-
-### Step 1: Copy library files into the theme
-
-```bash
-# Create a directory for the library's PHP integration
-mkdir -p inc/story-to-block
-
-# Copy the PHP filter and generated theme.json
-cp node_modules/your-component-library/dist/wp/integrate.php inc/story-to-block/
-cp node_modules/your-component-library/dist/wp/theme.json inc/story-to-block/
-
-# Copy the WordPress token stylesheet
-mkdir -p assets/css
-cp node_modules/your-component-library/dist/wp/tokens.wp.css assets/css/
-```
-
-### Step 2: Load integrate.php and enqueue tokens
-
-In your theme's `functions.php`:
-
-```php
-/**
- * Load the component library's base theme.json layer.
- * Injects default colors, spacing, fonts, and custom values via
- * wp_theme_json_data_default. Your theme's theme.json overrides these.
- */
-require_once get_template_directory() . '/inc/story-to-block/integrate.php';
-
-/**
- * Enqueue the component library's design tokens globally.
- * All component blocks depend on these CSS variables.
- */
-function prefix_enqueue_tokens() {
-    wp_enqueue_style(
-        'prefix-tokens',
-        get_template_directory_uri() . '/assets/css/tokens.wp.css',
-        [],
-        '0.0.1'
-    );
-}
-add_action( 'wp_enqueue_scripts', 'prefix_enqueue_tokens' );
-add_action( 'enqueue_block_editor_assets', 'prefix_enqueue_tokens' );
-```
-
-### Step 3: Override defaults in your theme.json (optional)
-
-Your theme's `theme.json` overrides any library defaults. Only define what's different:
-
-```json
-{
-    "$schema": "https://schemas.wp.org/trunk/theme.json",
-    "version": 3,
-    "settings": {
-        "color": {
-            "palette": [
-                {
-                    "slug": "primary",
-                    "color": "#e63946",
-                    "name": "Primary"
-                }
-            ]
-        }
-    }
-}
-```
-
-Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, components automatically pick up `#e63946` from your theme — no additional CSS needed.
-
-### What the theme provides
-
-| File | Purpose |
-|------|---------|
-| `integrate.php` + `theme.json` | Injects library tokens into the WordPress theme.json cascade as defaults |
-| `tokens.wp.css` | Maps `--prefix-*` CSS variables to `--wp--preset--*` so components respond to theme.json overrides |
-| Theme's own `theme.json` | Overrides any library defaults (colors, spacing, fonts) |
-
-**Why `tokens.wp.css` instead of `tokens.css`?**
-
-`tokens.css` contains hardcoded values (`--prefix-color-primary: #0073aa`). Components work but won't respond to theme.json overrides.
-
-`tokens.wp.css` maps to WordPress preset variables with fallbacks (`--prefix-color-primary: var(--wp--preset--color--primary, #0073aa)`). When the theme overrides a color in its theme.json, components automatically pick up the new value.
-
----
-
-## Plugin Setup
-
-The plugin is responsible for registering blocks and their component CSS. It installs the component library as a build dependency, imports React components for the editor, and copies component CSS files for frontend rendering.
+## Setup
 
 ### Step 1: Install the library
 
@@ -198,7 +58,7 @@ function prefix_register_block_styles() {
 add_action( 'init', 'prefix_register_block_styles' );
 ```
 
-> **Note:** The dependency on `prefix-tokens` ensures the theme's token stylesheet loads before any component CSS. The theme must register and enqueue this handle (see [Theme Setup](#theme-setup)).
+> **Note:** The dependency on `prefix-tokens` ensures the theme's token stylesheet loads before any component CSS. The theme must register and enqueue this handle (see [Theme Integration](./THEME-INTEGRATION.md)).
 
 ### Step 4: Associate styles with blocks via block.json
 
@@ -241,7 +101,7 @@ function render_card_block($attributes) {
 }
 ```
 
-### What the plugin provides
+## What the Plugin Provides
 
 | Concern | Plugin responsibility |
 |---------|---------------------|
@@ -250,7 +110,7 @@ function render_card_block($attributes) {
 | Block registration | `block.json` with `style` and `editorStyle` handles |
 | Rendering | Edit component (React) and save/render.php (markup) |
 
-### CSS loading summary
+## CSS Loading Summary
 
 | File | Loaded by | When |
 |------|-----------|------|
@@ -402,7 +262,7 @@ export default function save({ attributes }: SaveProps) {
 
 ### Important Note on Static Blocks
 
-The save component outputs raw HTML with CSS class names — it does **not** import the React component. This is because WordPress stores the HTML in the database and re-renders it without JavaScript on the frontend. The component library provides:
+The save component outputs raw HTML with CSS class names — it does **not** import the React component. WordPress stores the HTML in the database and re-renders it without JavaScript on the frontend. The component library provides:
 
 1. The CSS that styles those class names
 2. The React component for the editor experience
@@ -551,64 +411,6 @@ $wrapper_attributes = get_block_wrapper_attributes();
 
 **Recommendation:** Use dynamic blocks for most components. The flexibility to update markup without breaking existing content is worth the minor performance trade-off.
 
-## Theme Integration
-
-### How It Works
-
-The component library uses a two-layer integration with block themes:
-
-1. **`integrate.php`** — Injects a base `theme.json` via `wp_theme_json_data_default` (the lowest priority layer). This registers colors, spacing, fonts, and custom values with WordPress so they appear in the editor UI (Global Styles, block controls, etc.).
-
-2. **`tokens.wp.css`** — Maps `--prefix-*` CSS variables to `--wp--preset--*` variables with hardcoded fallbacks. This means components automatically respond to theme.json overrides without manual CSS mapping.
-
-### WordPress theme.json Cascade
-
-The theme.json cascade (from lowest to highest priority):
-
-1. **WordPress core defaults**
-2. **Library base layer** ← `integrate.php` injects here via `wp_theme_json_data_default`
-3. **Parent theme** `theme.json`
-4. **Child theme** `theme.json`
-5. **User Global Styles** (editor customizations)
-
-Your theme's `theme.json` automatically overrides library defaults. No manual CSS variable mapping is needed — `tokens.wp.css` handles it.
-
-See [Token Architecture](./TOKEN-ARCHITECTURE.md) for the full list of generated token mappings.
-
-## Editor Styles
-
-### Making Styles Work in the Block Editor
-
-The block editor uses an iframe. Styles must be explicitly loaded inside it.
-
-#### Tokens in the editor
-
-The theme's `enqueue_block_editor_assets` hook (see [Theme Setup](#theme-setup)) loads `tokens.wp.css` into the editor iframe. This ensures CSS variables are available for all component blocks in the editor.
-
-#### Component CSS in the editor
-
-Add `editorStyle` to your block.json alongside `style`:
-
-```json
-{
-    "style": ["prefix-card"],
-    "editorStyle": ["prefix-card"]
-}
-```
-
-This tells WordPress to load the component CSS in both the editor iframe and the frontend.
-
-#### Editor-Specific Overrides
-
-If components need adjustments inside the editor (e.g., different max-width):
-
-```css
-/* editor.css — enqueue via editorStyle */
-.editor-styles-wrapper .prefix-card {
-    max-width: 100%;
-}
-```
-
 ## Component Reference
 
 ### Card
@@ -679,11 +481,6 @@ import { Button } from 'your-component-library';
 <button class="prefix-button prefix-button--primary prefix-button--md">
     Click me
 </button>
-
-<!-- Disabled state -->
-<button class="prefix-button prefix-button--primary prefix-button--md" disabled>
-    Disabled
-</button>
 ```
 
 **CSS Files:** `tokens.wp.css` + `Button.css`
@@ -700,14 +497,8 @@ import { Button } from 'your-component-library';
 ### Styles not appearing in block editor
 
 1. **Add `editorStyle` to block.json** — the editor iframe needs styles explicitly loaded
-2. **Enqueue tokens via `enqueue_block_editor_assets`** — the editor needs tokens too
+2. **Enqueue tokens via `enqueue_block_editor_assets`** — the editor needs tokens too (this is the theme's responsibility)
 3. **Check for iframe isolation** — styles in the parent page don't reach the editor iframe
-
-### CSS variables not taking effect
-
-1. **Tokens must load before component CSS.** Set `['prefix-tokens']` as a dependency
-2. **Check specificity.** Theme overrides may need to match or exceed library specificity
-3. **Verify the variable names match.** Open browser dev tools and inspect the element
 
 ### Block validation errors (static blocks only)
 
@@ -721,13 +512,6 @@ If a saved static block shows "This block contains unexpected content":
 
 This is expected and fine. `wp_enqueue_style` is idempotent — if `prefix-tokens` is already enqueued, WordPress skips the duplicate. Using style dependencies ensures tokens always load before any component CSS.
 
-### tokens.css vs tokens.wp.css
-
-- **`tokens.css`** — Hardcoded values. Use for React/Next.js projects outside WordPress.
-- **`tokens.wp.css`** — Maps to `--wp--preset--*` variables with hardcoded fallbacks. Use in WordPress so components respond to theme.json and Global Styles overrides.
-
-If components aren't picking up your theme.json color/spacing changes, check that you're loading `tokens.wp.css` and not `tokens.css`.
-
 ### Performance with many block types
 
 With this per-block loading approach:
@@ -739,48 +523,3 @@ With this per-block loading approach:
 - A page with 0 component blocks loads only the tokens (~4KB)
 
 This scales well even with 70+ block types registered, since only the blocks actually used on each page load their CSS.
-
----
-
-## Known Issues
-
-### Style variation preview shows blank colors for the default palette
-
-**Symptom:** When using style variations (JSON files in the theme's `styles/` directory), the default variation's color palette preview appears as white/blank in the Site Editor's style picker, even though the palette works correctly when applied.
-
-**Cause:** The style variation preview does not read colors from `settings.color.palette`. Instead, it extracts colors from the `styles` section — specifically `styles.color.text` and `styles.elements.button.color.background`. If the theme's root `theme.json` has no `styles` section, the preview has no colors to render.
-
-This is a WordPress core behavior introduced in [Gutenberg PR #59514](https://github.com/WordPress/gutenberg/pull/59514). There is an [open issue (#60478)](https://github.com/WordPress/gutenberg/issues/60478) proposing a `settings.example` property to let theme authors explicitly control preview colors, but it has not been implemented yet.
-
-**Workaround:** Add a `styles` section to both your theme's root `theme.json` and each style variation JSON file. The preview needs `styles.color` and `styles.elements.button` to render swatches:
-
-```json
-{
-    "styles": {
-        "color": {
-            "background": "var:preset|color|base",
-            "text": "var:preset|color|contrast"
-        },
-        "elements": {
-            "button": {
-                "color": {
-                    "background": "var:preset|color|primary",
-                    "text": "var:preset|color|base"
-                }
-            }
-        }
-    }
-}
-```
-
-**Why the library can't fix this:** The `styles` section defines how tokens are *applied* to page elements (background, text, buttons), which is a theme-level concern. The library provides the design tokens (`settings`), but the theme decides how to use them. Each theme and style variation will map different palette colors to background, text, and button roles.
-
-### Avoid `defaultPalette: false` in the library's theme.json
-
-**Symptom:** Setting `"defaultPalette": false` in `settings.color` causes the library's own color palette to disappear.
-
-**Cause:** The library's `theme.json` is injected at the WordPress default layer via `wp_theme_json_data_default`. The `defaultPalette: false` setting tells WordPress to exclude the default palette — which includes the library's palette since it lives at that layer.
-
-**Recommendation:** Do not add `defaultPalette: false` to the library's generated `theme.json`. If a theme needs to remove the WordPress default palette, it should set this in its own `theme.json` (layer 3), where it won't affect the library's injected palette.
-
-The library's generated `theme.json` uses `"custom": false` and `"customGradient": false` to disable the custom color picker in the Site Editor. These settings are safe at the default layer and can be overridden by themes that want to re-enable them.
