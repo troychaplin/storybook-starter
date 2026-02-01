@@ -169,7 +169,7 @@ This option falls under the styles entry and is not an ideal candidate for the c
 
 ----
 
-### Shadows
+## Shadows
 
 Custom shadows should be supported in the Story to Block generator. Default can be disabled in the theme's primary `theme.json` file as per the example below. The styles map to `box-shadow`.
 
