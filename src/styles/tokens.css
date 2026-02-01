@@ -15,6 +15,10 @@
   --prefix-gradient-gradient-1: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
   --prefix-gradient-gradient-2: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
 
+  /* Shadows */
+  --prefix-shadow-shadow-1: 15px 7px 17px 11px rgba(0, 0, 0, 0.2);
+  --prefix-shadow-shadow-2: inset -5px -4px 5px 8px rgba(0, 0, 0, 0.2);
+
   /* Layout */
   --prefix-layout-content-size: 768px;
   --prefix-layout-wide-size: 1280px;

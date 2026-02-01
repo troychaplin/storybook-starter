@@ -62,6 +62,18 @@
                     "slug": "custom-gradient-2"
                 }
             }
+        },
+        "shadow": {
+            "shadow-1": {
+                "value": "15px 7px 17px 11px rgba(0, 0, 0, 0.2)",
+                "name": "Shadow 1",
+                "slug": "shadow-1"
+            },
+            "shadow-2": {
+                "value": "inset -5px -4px 5px 8px rgba(0, 0, 0, 0.2)",
+                "name": "Shadow 2",
+                "slug": "shadow-2"
+            }
         }
     }
 }
