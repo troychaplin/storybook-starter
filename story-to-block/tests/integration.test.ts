@@ -12,8 +12,10 @@ const testConfig = {
   outDir: 'out/wp',
   tokens: {
     color: {
-      primary: { value: '#ff0000', name: 'Primary', slug: 'primary' },
-      muted: { value: '#999999' },
+      palette: {
+        primary: { value: '#ff0000', name: 'Primary', slug: 'primary' },
+        muted: { value: '#999999' },
+      },
     },
     spacing: {
       md: { value: '1rem', slug: '40', name: 'Medium' },

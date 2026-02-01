@@ -1,122 +1,101 @@
 import type { StbConfig, TokenCategory, TokenGroup } from '../types.js';
+import { CATEGORY_REGISTRY, CATEGORY_ORDER, kebabToCamel } from '../types.js';
 
-interface ThemeJson {
-  $schema: string;
-  version: number;
-  settings: {
-    color?: {
-      custom?: boolean;
-      customGradient?: boolean;
-      palette: Array<{ slug: string; color: string; name: string }>;
-    };
-    spacing?: { spacingSizes: Array<{ slug: string; size: string; name: string }> };
-    typography?: {
-      fontFamilies?: Array<{ slug: string; fontFamily: string; name: string }>;
-      fontSizes?: Array<{ slug: string; size: string; name: string }>;
-    };
-    custom?: Record<string, Record<string, string>>;
-  };
-}
-
-/**
- * Categories that map to settings.custom in theme.json.
- * These generate --wp--custom--* variables but don't appear in editor UI controls.
- */
-const CUSTOM_CATEGORIES: TokenCategory[] = [
-  'fontWeight', 'lineHeight', 'radius', 'shadow', 'transition',
-];
-
-const CUSTOM_KEY_MAP: Partial<Record<TokenCategory, string>> = {
-  fontWeight: 'fontWeight',
-  lineHeight: 'lineHeight',
-  radius: 'radius',
-  shadow: 'shadow',
-  transition: 'transition',
-};
+/* eslint-disable @typescript-eslint/no-explicit-any */
+type AnySettings = Record<string, any>;
 
 export function generateThemeJson(config: StbConfig): string {
-  const themeJson: ThemeJson = {
-    $schema: 'https://schemas.wp.org/trunk/theme.json',
-    version: 3,
-    settings: {},
-  };
-
-  // Color palette
-  const colorPalette = buildNamedEntries(config.tokens.color, (entry) => ({
-    slug: entry.slug!,
-    color: entry.value,
-    name: entry.name!,
-  }));
-  if (colorPalette.length > 0) {
-    themeJson.settings.color = {
-      custom: false,
-      customGradient: false,
-      palette: colorPalette,
-    };
-  }
-
-  // Spacing sizes
-  const spacingSizes = buildNamedEntries(config.tokens.spacing, (entry) => ({
-    slug: entry.slug!,
-    size: entry.value,
-    name: entry.name!,
-  }));
-  if (spacingSizes.length > 0) {
-    themeJson.settings.spacing = { spacingSizes };
-  }
-
-  // Typography
-  const fontFamilies = buildNamedEntries(config.tokens.fontFamily, (entry) => ({
-    slug: entry.slug!,
-    fontFamily: entry.value,
-    name: entry.name!,
-  }));
-  const fontSizes = buildNamedEntries(config.tokens.fontSize, (entry) => ({
-    slug: entry.slug!,
-    size: entry.value,
-    name: entry.name!,
-  }));
-  if (fontFamilies.length > 0 || fontSizes.length > 0) {
-    themeJson.settings.typography = {};
-    if (fontFamilies.length > 0) themeJson.settings.typography.fontFamilies = fontFamilies;
-    if (fontSizes.length > 0) themeJson.settings.typography.fontSizes = fontSizes;
-  }
-
-  // Custom categories (fontWeight, lineHeight, radius, shadow, transition)
+  const settings: AnySettings = {};
   const custom: Record<string, Record<string, string>> = {};
-  for (const category of CUSTOM_CATEGORIES) {
+
+  for (const category of CATEGORY_ORDER) {
     const group = config.tokens[category];
     if (!group) continue;
 
-    const key = CUSTOM_KEY_MAP[category]!;
-    const values: Record<string, string> = {};
+    const def = CATEGORY_REGISTRY[category];
 
-    for (const [tokenKey, entry] of Object.entries(group)) {
-      values[tokenKey] = entry.value;
+    // Excluded categories (zIndex) — skip entirely
+    if (def.exclude) continue;
+
+    // Direct-map categories (layout) — map token keys directly to a settings object
+    if (def.directMap && def.themeJson) {
+      const obj: Record<string, string> = {};
+      for (const [key, entry] of Object.entries(group)) {
+        obj[kebabToCamel(key)] = entry.value;
+      }
+      if (Object.keys(obj).length > 0) {
+        setNestedValue(settings, def.themeJson.path, obj);
+      }
+      continue;
     }
 
-    if (Object.keys(values).length > 0) {
-      custom[key] = values;
+    // Preset categories (color, spacing, etc.) — build arrays from named tokens
+    if (def.themeJson) {
+      const presets = buildNamedEntries(group, def.themeJson.valueKey);
+      if (presets.length > 0) {
+        setNestedValue(settings, def.themeJson.path, presets);
+      }
+    }
+
+    // Custom categories — tokens without name+slug (or all tokens if custom-only)
+    if (def.custom) {
+      const values: Record<string, string> = {};
+      for (const [tokenKey, entry] of Object.entries(group)) {
+        // If category has both themeJson and custom (like shadow),
+        // only put tokens WITHOUT name+slug into custom
+        if (def.themeJson && entry.name && entry.slug) continue;
+        values[tokenKey] = entry.value;
+      }
+      if (Object.keys(values).length > 0) {
+        custom[def.custom] = values;
+      }
     }
   }
+
+  // Merge custom values into settings
   if (Object.keys(custom).length > 0) {
-    themeJson.settings.custom = custom;
+    settings.custom = custom;
   }
+
+  const themeJson = {
+    $schema: 'https://schemas.wp.org/trunk/theme.json',
+    version: 3,
+    settings,
+  };
 
   return JSON.stringify(themeJson, null, 2) + '\n';
 }
 
-function buildNamedEntries<T>(
-  group: TokenGroup | undefined,
-  mapper: (entry: { value: string; name: string; slug: string }) => T,
-): T[] {
-  if (!group) return [];
-
-  const entries: T[] = [];
+/**
+ * Build an array of preset objects from tokens that have name + slug.
+ */
+function buildNamedEntries(
+  group: TokenGroup,
+  valueKey: string,
+): Array<Record<string, string>> {
+  const entries: Array<Record<string, string>> = [];
   for (const entry of Object.values(group)) {
     if (entry.name && entry.slug) {
-      entries.push(mapper(entry as { value: string; name: string; slug: string }));
+      entries.push({
+        slug: entry.slug,
+        [valueKey]: entry.value,
+        name: entry.name,
+      });
     }
   }
   return entries;
+}
+
+/**
+ * Set a value at a dot-separated path in a nested object.
+ * e.g. setNestedValue(obj, "color.palette", [...]) → obj.color.palette = [...]
+ */
+function setNestedValue(obj: AnySettings, path: string, value: unknown): void {
+  const parts = path.split('.');
+  let current = obj;
+  for (let i = 0; i < parts.length - 1; i++) {
+    if (!current[parts[i]]) current[parts[i]] = {};
+    current = current[parts[i]];
+  }
+  current[parts[parts.length - 1]] = value;
 }

@@ -7,7 +7,7 @@ const config: StbConfig = {
   tokensPath: 'src/styles/tokens.css',
   outDir: 'dist/wp',
   tokens: {
-    color: {
+    colorPalette: {
       primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
       'primary-hover': { value: '#005a87' },
     },
@@ -104,5 +104,65 @@ describe('generateThemeJson', () => {
 
   it('excludes zIndex entirely', () => {
     expect(parsed.settings.custom.zIndex).toBeUndefined();
+  });
+});
+
+describe('generateThemeJson — layout tokens', () => {
+  const layoutConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      layout: {
+        'content-size': { value: '645px' },
+        'wide-size': { value: '1340px' },
+      },
+    },
+  };
+
+  const output = generateThemeJson(layoutConfig);
+  const parsed = JSON.parse(output);
+
+  it('generates settings.layout with camelCase keys', () => {
+    expect(parsed.settings.layout).toEqual({
+      contentSize: '645px',
+      wideSize: '1340px',
+    });
+  });
+});
+
+describe('generateThemeJson — shadow presets', () => {
+  const shadowConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      shadow: {
+        sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' },
+        md: { value: '0 4px 6px -1px rgb(0 0 0 / 0.1)', name: 'Medium', slug: 'md' },
+        custom: { value: '0 0 0 2px rgb(0 0 0 / 0.2)' },
+      },
+    },
+  };
+
+  const output = generateThemeJson(shadowConfig);
+  const parsed = JSON.parse(output);
+
+  it('places named shadows in settings.shadow.presets', () => {
+    expect(parsed.settings.shadow.presets).toEqual([
+      { slug: 'sm', shadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small' },
+      { slug: 'md', shadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)', name: 'Medium' },
+    ]);
+  });
+
+  it('places unnamed shadows in settings.custom.shadow', () => {
+    expect(parsed.settings.custom.shadow).toEqual({
+      custom: '0 0 0 2px rgb(0 0 0 / 0.2)',
+    });
+  });
+
+  it('excludes named shadows from settings.custom', () => {
+    expect(parsed.settings.custom.shadow.sm).toBeUndefined();
+    expect(parsed.settings.custom.shadow.md).toBeUndefined();
   });
 });

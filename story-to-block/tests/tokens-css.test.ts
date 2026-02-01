@@ -7,7 +7,7 @@ const config: StbConfig = {
   tokensPath: 'src/styles/tokens.css',
   outDir: 'dist/wp',
   tokens: {
-    color: {
+    colorPalette: {
       primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
       'primary-hover': { value: '#005a87' },
     },
@@ -69,5 +69,30 @@ describe('generateTokensCss', () => {
 
   it('uses hardcoded values for all tokens (no var() wrappers)', () => {
     expect(output).not.toContain('var(');
+  });
+});
+
+describe('generateTokensCss — layout tokens', () => {
+  const layoutConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      layout: {
+        'content-size': { value: '645px' },
+        'wide-size': { value: '1340px' },
+      },
+    },
+  };
+
+  const output = generateTokensCss(layoutConfig);
+
+  it('generates layout CSS variables', () => {
+    expect(output).toContain('--test-layout-content-size: 645px;');
+    expect(output).toContain('--test-layout-wide-size: 1340px;');
+  });
+
+  it('groups layout tokens with a comment', () => {
+    expect(output).toContain('/* Layout */');
   });
 });

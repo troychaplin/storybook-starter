@@ -1,23 +1,5 @@
-import type { StbConfig, TokenCategory, TokenGroup } from '../types.js';
-import { CATEGORY_CSS_SEGMENT } from '../types.js';
-
-const CATEGORY_LABELS: Record<TokenCategory, string> = {
-  color: 'Colors',
-  spacing: 'Spacing',
-  fontFamily: 'Font Families',
-  fontSize: 'Font Sizes',
-  fontWeight: 'Font Weights',
-  lineHeight: 'Line Heights',
-  radius: 'Border Radius',
-  shadow: 'Shadows',
-  transition: 'Transitions',
-  zIndex: 'Z-Index',
-};
-
-const CATEGORY_ORDER: TokenCategory[] = [
-  'color', 'spacing', 'fontFamily', 'fontSize', 'fontWeight',
-  'lineHeight', 'radius', 'shadow', 'transition', 'zIndex',
-];
+import type { StbConfig } from '../types.js';
+import { CATEGORY_REGISTRY, CATEGORY_ORDER } from '../types.js';
 
 export function generateTokensCss(config: StbConfig): string {
   const lines: string[] = [
@@ -32,16 +14,17 @@ export function generateTokensCss(config: StbConfig): string {
     const group = config.tokens[category];
     if (!group) continue;
 
+    const def = CATEGORY_REGISTRY[category];
+
     if (!firstCategory) {
       lines.push('');
     }
     firstCategory = false;
 
-    lines.push(`  /* ${CATEGORY_LABELS[category]} */`);
+    lines.push(`  /* ${def.label} */`);
 
     for (const [key, entry] of Object.entries(group)) {
-      const segment = CATEGORY_CSS_SEGMENT[category];
-      lines.push(`  --${config.prefix}-${segment}-${key}: ${entry.value};`);
+      lines.push(`  --${config.prefix}-${def.cssSegment}-${key}: ${entry.value};`);
     }
   }
 

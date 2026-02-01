@@ -6,7 +6,9 @@ const minimalConfig: StbConfigInput = {
   prefix: 'test',
   tokens: {
     color: {
-      primary: { value: '#0073aa' },
+      palette: {
+        primary: { value: '#0073aa' },
+      },
     },
   },
 };
@@ -31,7 +33,7 @@ describe('validateConfig', () => {
 
   it('throws if prefix is missing', () => {
     expect(() =>
-      validateConfig({ prefix: '', tokens: { color: { primary: { value: '#000' } } } }),
+      validateConfig({ prefix: '', tokens: { color: { palette: { primary: { value: '#000' } } } } }),
     ).toThrow('"prefix" is required');
   });
 
@@ -45,7 +47,7 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({
         prefix: 'test',
-        tokens: { color: { primary: {} as any } },
+        tokens: { color: { palette: { primary: {} as any } } },
       }),
     ).toThrow('missing a "value"');
   });
@@ -54,7 +56,7 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({
         prefix: 'test',
-        tokens: { color: { primary: { value: '#000', name: 'Primary' } } },
+        tokens: { color: { palette: { primary: { value: '#000', name: 'Primary' } } } },
       }),
     ).toThrow('has "name" but no "slug"');
   });
@@ -63,7 +65,7 @@ describe('validateConfig', () => {
     expect(() =>
       validateConfig({
         prefix: 'test',
-        tokens: { color: { primary: { value: '#000', slug: 'primary' } } },
+        tokens: { color: { palette: { primary: { value: '#000', slug: 'primary' } } } },
       }),
     ).toThrow('has "slug" but no "name"');
   });
@@ -73,12 +75,14 @@ describe('validateConfig', () => {
       prefix: 'test',
       tokens: {
         color: {
-          primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+          palette: {
+            primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+          },
         },
       },
     });
-    expect(result.tokens.color!.primary.name).toBe('Primary');
-    expect(result.tokens.color!.primary.slug).toBe('primary');
+    expect(result.tokens.colorPalette!.primary.name).toBe('Primary');
+    expect(result.tokens.colorPalette!.primary.slug).toBe('primary');
   });
 
   it('throws on unknown category', () => {
@@ -87,6 +91,43 @@ describe('validateConfig', () => {
         prefix: 'test',
         tokens: { bogus: { x: { value: '1' } } } as any,
       }),
-    ).toThrow('Unknown token category "bogus"');
+    ).toThrow('Unknown token category');
+  });
+
+  it('normalizes nested color.palette to flat colorPalette', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      tokens: {
+        color: {
+          palette: { primary: { value: '#0073aa' } },
+        },
+      },
+    });
+    expect(result.tokens.colorPalette).toBeDefined();
+    expect(result.tokens.colorPalette!.primary.value).toBe('#0073aa');
+  });
+
+  it('normalizes nested color.gradient to flat colorGradient', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      tokens: {
+        color: {
+          gradient: {
+            sunset: { value: 'linear-gradient(135deg, #ff6b6b, #feca57)', name: 'Sunset', slug: 'sunset' },
+          },
+        },
+      },
+    });
+    expect(result.tokens.colorGradient).toBeDefined();
+    expect(result.tokens.colorGradient!.sunset.value).toContain('linear-gradient');
+  });
+
+  it('throws on unknown color sub-category', () => {
+    expect(() =>
+      validateConfig({
+        prefix: 'test',
+        tokens: { color: { bogus: { x: { value: '#000' } } } },
+      }),
+    ).toThrow('Unknown sub-category "color.bogus"');
   });
 });

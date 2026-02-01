@@ -4,77 +4,18 @@
   /* Colors */
   --prefix-color-primary: #0073aa;
   --prefix-color-primary-hover: #005a87;
-  --prefix-color-primary-light: #e5f3f9;
   --prefix-color-secondary: #23282d;
   --prefix-color-secondary-hover: #1a1e21;
-  --prefix-color-secondary-light: #f1f1f1;
-  --prefix-color-text: #1e1e1e;
-  --prefix-color-text-muted: #6b7280;
-  --prefix-color-text-inverse: #ffffff;
-  --prefix-color-background: #ffffff;
-  --prefix-color-background-alt: #f9fafb;
-  --prefix-color-border: #dcdcde;
-  --prefix-color-border-light: #e5e7eb;
   --prefix-color-success: #00a32a;
   --prefix-color-warning: #dba617;
   --prefix-color-error: #d63638;
   --prefix-color-info: #72aee6;
 
-  /* Spacing */
-  --prefix-spacing-xs: 0.25rem;
-  --prefix-spacing-sm: 0.5rem;
-  --prefix-spacing-md: 1rem;
-  --prefix-spacing-lg: 1.5rem;
-  --prefix-spacing-xl: 2rem;
-  --prefix-spacing-2xl: 3rem;
+  /* Gradients */
+  --prefix-gradient-gradient-1: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
+  --prefix-gradient-gradient-2: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
 
-  /* Font Families */
-  --prefix-font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
-  --prefix-font-family-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
-
-  /* Font Sizes */
-  --prefix-font-size-xs: 0.75rem;
-  --prefix-font-size-sm: 0.875rem;
-  --prefix-font-size-base: 1rem;
-  --prefix-font-size-lg: 1.125rem;
-  --prefix-font-size-xl: 1.25rem;
-  --prefix-font-size-2xl: 1.5rem;
-  --prefix-font-size-3xl: 1.875rem;
-
-  /* Font Weights */
-  --prefix-font-weight-normal: 400;
-  --prefix-font-weight-medium: 500;
-  --prefix-font-weight-semibold: 600;
-  --prefix-font-weight-bold: 700;
-
-  /* Line Heights */
-  --prefix-line-height-tight: 1.25;
-  --prefix-line-height-normal: 1.5;
-  --prefix-line-height-relaxed: 1.75;
-
-  /* Border Radius */
-  --prefix-radius-none: 0;
-  --prefix-radius-sm: 2px;
-  --prefix-radius-md: 4px;
-  --prefix-radius-lg: 8px;
-  --prefix-radius-xl: 12px;
-  --prefix-radius-full: 9999px;
-
-  /* Shadows */
-  --prefix-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-  --prefix-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  --prefix-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-  --prefix-shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
-
-  /* Transitions */
-  --prefix-transition-fast: 150ms ease;
-  --prefix-transition-normal: 200ms ease;
-  --prefix-transition-slow: 300ms ease;
-
-  /* Z-Index */
-  --prefix-z-dropdown: 100;
-  --prefix-z-sticky: 200;
-  --prefix-z-modal: 300;
-  --prefix-z-popover: 400;
-  --prefix-z-tooltip: 500;
+  /* Layout */
+  --prefix-layout-content-size: 768px;
+  --prefix-layout-wide-size: 1280px;
 }

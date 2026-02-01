@@ -1,23 +1,5 @@
-import type { StbConfig, TokenCategory } from '../types.js';
-import { CATEGORY_CSS_SEGMENT, WP_PRESET_MAPPING } from '../types.js';
-
-const CATEGORY_ORDER: TokenCategory[] = [
-  'color', 'spacing', 'fontFamily', 'fontSize', 'fontWeight',
-  'lineHeight', 'radius', 'shadow', 'transition', 'zIndex',
-];
-
-const CATEGORY_LABELS: Record<TokenCategory, string> = {
-  color: 'Colors',
-  spacing: 'Spacing',
-  fontFamily: 'Font Families',
-  fontSize: 'Font Sizes',
-  fontWeight: 'Font Weights',
-  lineHeight: 'Line Heights',
-  radius: 'Border Radius',
-  shadow: 'Shadows',
-  transition: 'Transitions',
-  zIndex: 'Z-Index',
-};
+import type { StbConfig } from '../types.js';
+import { CATEGORY_REGISTRY, CATEGORY_ORDER } from '../types.js';
 
 export function generateTokensWpCss(config: StbConfig): string {
   const lines: string[] = [
@@ -32,21 +14,20 @@ export function generateTokensWpCss(config: StbConfig): string {
     const group = config.tokens[category];
     if (!group) continue;
 
+    const def = CATEGORY_REGISTRY[category];
+
     if (!firstCategory) {
       lines.push('');
     }
     firstCategory = false;
 
-    lines.push(`  /* ${CATEGORY_LABELS[category]} */`);
-
-    const wpPreset = WP_PRESET_MAPPING[category];
+    lines.push(`  /* ${def.label} */`);
 
     for (const [key, entry] of Object.entries(group)) {
-      const segment = CATEGORY_CSS_SEGMENT[category];
-      const varName = `--${config.prefix}-${segment}-${key}`;
+      const varName = `--${config.prefix}-${def.cssSegment}-${key}`;
 
-      if (wpPreset && entry.slug) {
-        lines.push(`  ${varName}: var(${wpPreset}--${entry.slug}, ${entry.value});`);
+      if (def.wpPreset && entry.slug) {
+        lines.push(`  ${varName}: var(${def.wpPreset}--${entry.slug}, ${entry.value});`);
       } else {
         lines.push(`  ${varName}: ${entry.value};`);
       }

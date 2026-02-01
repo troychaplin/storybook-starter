@@ -7,7 +7,7 @@ const config: StbConfig = {
   tokensPath: 'src/styles/tokens.css',
   outDir: 'dist/wp',
   tokens: {
-    color: {
+    colorPalette: {
       primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
       'primary-hover': { value: '#005a87' },
     },
@@ -81,5 +81,53 @@ describe('generateTokensWpCss', () => {
   it('always uses hardcoded values for zIndex (no wp preset)', () => {
     expect(output).toContain('--test-z-modal: 300;');
     expect(output).not.toContain('--wp--preset--z');
+  });
+});
+
+describe('generateTokensWpCss — shadow presets', () => {
+  const shadowConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      shadow: {
+        sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' },
+        custom: { value: '0 0 0 2px rgb(0 0 0 / 0.2)' },
+      },
+    },
+  };
+
+  const output = generateTokensWpCss(shadowConfig);
+
+  it('maps shadow tokens with slug to --wp--preset--shadow--{slug}', () => {
+    expect(output).toContain(
+      '--test-shadow-sm: var(--wp--preset--shadow--sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));',
+    );
+  });
+
+  it('uses hardcoded value for shadow tokens without slug', () => {
+    expect(output).toContain('--test-shadow-custom: 0 0 0 2px rgb(0 0 0 / 0.2);');
+  });
+});
+
+describe('generateTokensWpCss — layout tokens', () => {
+  const layoutConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      layout: {
+        'content-size': { value: '645px' },
+        'wide-size': { value: '1340px' },
+      },
+    },
+  };
+
+  const output = generateTokensWpCss(layoutConfig);
+
+  it('uses hardcoded values for layout (no wp preset)', () => {
+    expect(output).toContain('--test-layout-content-size: 645px;');
+    expect(output).toContain('--test-layout-wide-size: 1340px;');
+    expect(output).not.toContain('--wp--preset--layout');
   });
 });
