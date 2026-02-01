@@ -5,6 +5,7 @@ import type { StbConfig } from '../src/types.js';
 const config: StbConfig = {
   prefix: 'test',
   tokensPath: 'src/styles/tokens.css',
+  fontsPath: 'public/fonts',
   outDir: 'dist/wp',
   tokens: {
     colorPalette: {
@@ -111,6 +112,7 @@ describe('generateThemeJson — layout tokens', () => {
   const layoutConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
     outDir: 'dist/wp',
     tokens: {
       layout: {
@@ -135,6 +137,7 @@ describe('generateThemeJson — shadow presets', () => {
   const shadowConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
     outDir: 'dist/wp',
     tokens: {
       shadow: {
@@ -171,6 +174,7 @@ describe('generateThemeJson — fluid font sizes', () => {
   const fluidConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
     outDir: 'dist/wp',
     tokens: {
       fontSize: {
@@ -191,5 +195,87 @@ describe('generateThemeJson — fluid font sizes', () => {
   it('omits fluid on font sizes without it', () => {
     const medium = parsed.settings.typography.fontSizes.find((f: Record<string, unknown>) => f.slug === 'medium');
     expect(medium.fluid).toBeUndefined();
+  });
+});
+
+describe('generateThemeJson — typography flags', () => {
+  it('sets fluid and defaultFontSizes when fontSize tokens exist', () => {
+    const cfg: StbConfig = {
+      prefix: 'test',
+      tokensPath: 'src/styles/tokens.css',
+      fontsPath: 'public/fonts',
+      outDir: 'dist/wp',
+      tokens: {
+        fontSize: {
+          small: { value: '1rem', name: 'Small', slug: 'small' },
+        },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.typography.fluid).toBe(true);
+    expect(parsed.settings.typography.defaultFontSizes).toBe(false);
+  });
+
+  it('does not set typography flags when no fontSize tokens', () => {
+    const cfg: StbConfig = {
+      prefix: 'test',
+      tokensPath: 'src/styles/tokens.css',
+      fontsPath: 'public/fonts',
+      outDir: 'dist/wp',
+      tokens: {
+        fontFamily: {
+          base: { value: 'sans-serif', name: 'Sans', slug: 'body' },
+        },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.typography.fluid).toBeUndefined();
+    expect(parsed.settings.typography.defaultFontSizes).toBeUndefined();
+  });
+});
+
+describe('generateThemeJson — fontFace', () => {
+  const fontConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
+    outDir: 'dist/wp',
+    tokens: {
+      fontFamily: {
+        inter: {
+          value: 'Inter, sans-serif',
+          name: 'Inter',
+          slug: 'inter',
+          fontFace: [
+            { weight: '300', style: 'normal', src: 'inter-300-normal.woff2' },
+          ],
+        },
+        system: {
+          value: '-apple-system, sans-serif',
+          name: 'System',
+          slug: 'system',
+        },
+      },
+    },
+  };
+
+  const output = generateThemeJson(fontConfig);
+  const parsed = JSON.parse(output);
+
+  it('includes fontFace array on fonts that have it', () => {
+    const inter = parsed.settings.typography.fontFamilies.find((f: Record<string, unknown>) => f.slug === 'inter');
+    expect(inter.fontFace).toEqual([
+      {
+        fontFamily: 'Inter',
+        fontStyle: 'normal',
+        fontWeight: '300',
+        src: ['file:./assets/fonts/inter/inter-300-normal.woff2'],
+      },
+    ]);
+  });
+
+  it('omits fontFace on fonts without it', () => {
+    const system = parsed.settings.typography.fontFamilies.find((f: Record<string, unknown>) => f.slug === 'system');
+    expect(system.fontFace).toBeUndefined();
   });
 });

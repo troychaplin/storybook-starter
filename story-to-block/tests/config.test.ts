@@ -130,4 +130,65 @@ describe('validateConfig', () => {
       }),
     ).toThrow('Unknown sub-category "color.bogus"');
   });
+
+  it('defaults fontsPath to public/fonts', () => {
+    const result = validateConfig(minimalConfig);
+    expect(result.fontsPath).toBe('public/fonts');
+  });
+
+  it('accepts custom fontsPath', () => {
+    const result = validateConfig({ ...minimalConfig, fontsPath: 'assets/fonts' });
+    expect(result.fontsPath).toBe('assets/fonts');
+  });
+
+  it('accepts fontFace on fontFamily tokens', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      tokens: {
+        fontFamily: {
+          inter: {
+            value: 'Inter, sans-serif',
+            name: 'Inter',
+            slug: 'inter',
+            fontFace: [{ weight: '400', style: 'normal', src: 'inter-400-normal.woff2' }],
+          },
+        },
+      },
+    });
+    expect(result.tokens.fontFamily!.inter.fontFace).toHaveLength(1);
+  });
+
+  it('throws if fontFace is present without name+slug', () => {
+    expect(() =>
+      validateConfig({
+        prefix: 'test',
+        tokens: {
+          fontFamily: {
+            inter: {
+              value: 'Inter, sans-serif',
+              fontFace: [{ weight: '400', style: 'normal', src: 'inter.woff2' }],
+            },
+          },
+        },
+      }),
+    ).toThrow('has "fontFace" but requires "name" and "slug"');
+  });
+
+  it('throws if fontFace entry is missing required fields', () => {
+    expect(() =>
+      validateConfig({
+        prefix: 'test',
+        tokens: {
+          fontFamily: {
+            inter: {
+              value: 'Inter, sans-serif',
+              name: 'Inter',
+              slug: 'inter',
+              fontFace: [{ weight: '400', style: 'normal' } as any],
+            },
+          },
+        },
+      }),
+    ).toThrow('must have "weight", "style", and "src"');
+  });
 });

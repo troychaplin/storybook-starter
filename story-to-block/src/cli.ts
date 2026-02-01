@@ -35,11 +35,17 @@ try {
     const { generateTokensWpCss } = await import('./generators/tokens-wp-css.js');
     const { generateThemeJson } = await import('./generators/theme-json.js');
     const { generateIntegratePhp } = await import('./generators/integrate-php.js');
+    const { generateFontsCss } = await import('./generators/fonts-css.js');
 
     const config = loadConfig(configPath);
 
     console.log('=== tokens.css ===');
     console.log(generateTokensCss(config));
+    const fontsCss = generateFontsCss(config);
+    if (fontsCss) {
+      console.log('=== fonts.css ===');
+      console.log(fontsCss);
+    }
     console.log('=== tokens.wp.css ===');
     console.log(generateTokensWpCss(config));
     console.log('=== theme.json ===');

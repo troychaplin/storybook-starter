@@ -1,8 +1,15 @@
+export interface FontFaceEntry {
+  weight: string;
+  style: string;
+  src: string;
+}
+
 export interface TokenEntry {
   value: string;
   name?: string;
   slug?: string;
   fluid?: { min: string; max: string };
+  fontFace?: FontFaceEntry[];
 }
 
 export type TokenGroup = Record<string, TokenEntry>;
@@ -155,6 +162,7 @@ export const CATEGORY_ORDER = [...VALID_CATEGORIES].sort(
 export interface StbConfig {
   prefix: string;
   tokensPath: string;
+  fontsPath: string;
   outDir: string;
   tokens: Partial<Record<TokenCategory, TokenGroup>>;
 }
@@ -163,6 +171,7 @@ export interface StbConfig {
 export interface StbConfigInput {
   prefix: string;
   tokensPath?: string;
+  fontsPath?: string;
   outDir?: string;
   tokens: Record<string, TokenGroup | Record<string, TokenGroup>>;
 }

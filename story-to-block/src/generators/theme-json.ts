@@ -52,6 +52,14 @@ export function generateThemeJson(config: StbConfig): string {
     }
   }
 
+  // When custom font sizes are defined, enable fluid typography
+  // and disable WP default font sizes so only ours appear
+  if (config.tokens.fontSize) {
+    if (!settings.typography) settings.typography = {};
+    settings.typography.fluid = true;
+    settings.typography.defaultFontSizes = false;
+  }
+
   // Merge custom values into settings
   if (Object.keys(custom).length > 0) {
     settings.custom = custom;
@@ -83,6 +91,14 @@ function buildNamedEntries(
       };
       if (entry.fluid) {
         obj.fluid = entry.fluid;
+      }
+      if (entry.fontFace && entry.fontFace.length > 0) {
+        obj.fontFace = entry.fontFace.map(face => ({
+          fontFamily: entry.name,
+          fontStyle: face.style,
+          fontWeight: face.weight,
+          src: [`file:./assets/fonts/${entry.slug}/${face.src}`],
+        }));
       }
       entries.push(obj);
     }

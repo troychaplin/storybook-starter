@@ -5,6 +5,7 @@ import type { StbConfig } from '../src/types.js';
 const config: StbConfig = {
   prefix: 'test',
   tokensPath: 'src/styles/tokens.css',
+  fontsPath: 'public/fonts',
   outDir: 'dist/wp',
   tokens: {
     colorPalette: {
@@ -88,6 +89,7 @@ describe('generateTokensWpCss — shadow presets', () => {
   const shadowConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
     outDir: 'dist/wp',
     tokens: {
       shadow: {
@@ -114,6 +116,7 @@ describe('generateTokensWpCss — layout tokens', () => {
   const layoutConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
     outDir: 'dist/wp',
     tokens: {
       layout: {

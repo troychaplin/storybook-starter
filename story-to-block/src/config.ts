@@ -5,6 +5,7 @@ import { CATEGORY_REGISTRY, NESTED_CATEGORIES, VALID_CATEGORIES } from './types.
 
 const DEFAULTS = {
   tokensPath: 'src/styles/tokens.css',
+  fontsPath: 'public/fonts',
   outDir: 'dist/wp',
 } as const;
 
@@ -97,6 +98,7 @@ export function validateConfig(input: StbConfigInput): StbConfig {
   return {
     prefix: input.prefix,
     tokensPath: input.tokensPath ?? DEFAULTS.tokensPath,
+    fontsPath: input.fontsPath ?? DEFAULTS.fontsPath,
     outDir: input.outDir ?? DEFAULTS.outDir,
     tokens,
   };
@@ -124,6 +126,17 @@ function validateTokenGroup(category: string, group: TokenGroup, isDirectMap?: b
 
     if (hasSlug && !hasName) {
       throw new Error(`Config error: Token "${category}.${key}" has "slug" but no "name". Both are required together.`);
+    }
+
+    if (entry.fontFace) {
+      if (!hasName || !hasSlug) {
+        throw new Error(`Config error: Token "${category}.${key}" has "fontFace" but requires "name" and "slug".`);
+      }
+      for (const [i, face] of entry.fontFace.entries()) {
+        if (!face.weight || !face.style || !face.src) {
+          throw new Error(`Config error: Token "${category}.${key}.fontFace[${i}]" must have "weight", "style", and "src".`);
+        }
+      }
     }
   }
 }

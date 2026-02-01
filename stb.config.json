@@ -63,6 +63,21 @@
                 }
             }
         },
+        "fontFamily": {
+            "inter": {
+                "value": "Inter, sans-serif",
+                "name": "Inter",
+                "slug": "inter",
+                "fontFace": [
+                    { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+                ]
+            },
+            "system": {
+                "value": "-apple-system, BlinkMacSystemFont, sans-serif",
+                "name": "System",
+                "slug": "system"
+            }
+        },
         "fontSize": {
             "small": {
                 "value": "1rem",
