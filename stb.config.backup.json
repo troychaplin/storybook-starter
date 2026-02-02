@@ -1,0 +1,135 @@
+{
+    "prefix": "prefix",
+    "tokensPath": "src/styles/tokens.css",
+    "outDir": "dist/wp",
+    "tokens": {
+        "layout": {
+            "content-size": { "value": "768px" },
+            "wide-size":    { "value": "1280px" }
+        },
+        "color": {
+            "palette": {
+                "primary": {
+                    "value": "#0073aa",
+                    "name": "Primary",
+                    "slug": "primary"
+                },
+                "primary-hover": {
+                    "value": "#005a87",
+                    "name": "Primary Hover",
+                    "slug": "primary-hover"
+                },
+                "secondary": {
+                    "value": "#23282d",
+                    "name": "Secondary",
+                    "slug": "secondary"
+                },
+                "secondary-hover": {
+                    "value": "#1a1e21",
+                    "name": "Secondary Hover",
+                    "slug": "secondary-hover"
+                },
+                "success": {
+                    "value": "#00a32a",
+                    "name": "Success",
+                    "slug": "success"
+                },
+                "warning": {
+                    "value": "#dba617",
+                    "name": "Warning",
+                    "slug": "warning"
+                },
+                "error": {
+                    "value": "#d63638",
+                    "name": "Error",
+                    "slug": "error"
+                },
+                "info": {
+                    "value": "#72aee6",
+                    "name": "Info",
+                    "slug": "info"
+                }
+            },
+            "gradient": {
+                "gradient-1": {
+                    "value": "linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%)",
+                    "name": "Gradient 1",
+                    "slug": "custom-gradient-1"
+                },
+                "gradient-2": {
+                    "value": "linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%)",
+                    "name": "Gradient 2",
+                    "slug": "custom-gradient-2"
+                }
+            }
+        },
+        "fontFamily": {
+            "inter": {
+                "value": "Inter, sans-serif",
+                "name": "Inter",
+                "slug": "inter",
+                "fontFace": [
+                    { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+                ]
+            },
+            "system": {
+                "value": "-apple-system, BlinkMacSystemFont, sans-serif",
+                "name": "System",
+                "slug": "system"
+            }
+        },
+        "fontSize": {
+            "small": {
+                "value": "1rem",
+                "name": "Small",
+                "slug": "small",
+                "fluid": { "min": "0.875rem", "max": "1rem" }
+            },
+            "medium": {
+                "value": "1.125rem",
+                "name": "Medium",
+                "slug": "medium",
+                "fluid": { "min": "1rem", "max": "1.125rem" }
+            },
+            "large": {
+                "value": "1.25rem",
+                "name": "Large",
+                "slug": "large",
+                "fluid": { "min": "1.125rem", "max": "1.25rem" }
+            },
+            "x-large": {
+                "value": "1.5rem",
+                "name": "X-Large",
+                "slug": "x-large",
+                "fluid": { "min": "1.25rem", "max": "1.5rem" }
+            }
+        },
+        "shadow": {
+            "natural": {
+                "value": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+                "name": "Natural",
+                "slug": "natural"
+            },
+            "deep": {
+                "value": "12px 12px 50px rgba(0, 0, 0, 0.4)",
+                "name": "Deep",
+                "slug": "deep"
+            },
+            "sharp": {
+                "value": "6px 6px 0px rgba(0, 0, 0, 0.2)",
+                "name": "Sharp",
+                "slug": "sharp"
+            },
+            "outlined": {
+                "value": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
+                "name": "Outlined",
+                "slug": "outlined"
+            },
+            "crisp": {
+                "value": "6px 6px 0px rgb(0, 0, 0)",
+                "name": "Crisp",
+                "slug": "crisp"
+            }
+        }
+    }
+}
