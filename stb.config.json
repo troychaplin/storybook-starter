@@ -105,15 +105,30 @@
             }
         },
         "shadow": {
-            "shadow-1": {
-                "value": "15px 7px 17px 11px rgba(0, 0, 0, 0.2)",
-                "name": "Shadow 1",
-                "slug": "shadow-1"
+            "natural": {
+                "value": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+                "name": "Natural",
+                "slug": "natural"
             },
-            "shadow-2": {
-                "value": "inset -5px -4px 5px 8px rgba(0, 0, 0, 0.2)",
-                "name": "Shadow 2",
-                "slug": "shadow-2"
+            "deep": {
+                "value": "12px 12px 50px rgba(0, 0, 0, 0.4)",
+                "name": "Deep",
+                "slug": "deep"
+            },
+            "sharp": {
+                "value": "6px 6px 0px rgba(0, 0, 0, 0.2)",
+                "name": "Sharp",
+                "slug": "sharp"
+            },
+            "outlined": {
+                "value": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
+                "name": "Outlined",
+                "slug": "outlined"
+            },
+            "crisp": {
+                "value": "6px 6px 0px rgb(0, 0, 0)",
+                "name": "Crisp",
+                "slug": "crisp"
             }
         }
     }

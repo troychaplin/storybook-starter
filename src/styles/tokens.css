@@ -26,6 +26,11 @@
   --prefix-font-size-x-large: 1.5rem;
 
   /* Shadows */
+  --prefix-shadow-natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
+  --prefix-shadow-deep: 12px 12px 50px rgba(0, 0, 0, 0.4);
+  --prefix-shadow-sharp: 6px 6px 0px rgba(0, 0, 0, 0.2);
+  --prefix-shadow-outlined: 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0);
+  --prefix-shadow-crisp: 6px 6px 0px rgb(0, 0, 0);
   --prefix-shadow-shadow-1: 15px 7px 17px 11px rgba(0, 0, 0, 0.2);
   --prefix-shadow-shadow-2: inset -5px -4px 5px 8px rgba(0, 0, 0, 0.2);
 
