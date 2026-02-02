@@ -107,7 +107,7 @@ The following color settings can be be disabled by setting them to `false` in th
 
 This option falls under the styles entry and is not an ideal candidate for the component library. I feel this is better done in CSS against an element like the body tag and gain greater control over the implementation. Examples of implementation via the `Site Editor` are as follows.
 
-**Tile size option**
+### Tile
 
 ```json
 {
@@ -126,7 +126,7 @@ This option falls under the styles entry and is not an ideal candidate for the c
 }
 ```
 
-**Contain size option with repeat enabled**
+### Contain
 
 ```json
 {
@@ -146,7 +146,7 @@ This option falls under the styles entry and is not an ideal candidate for the c
 }
 ```
 
-**Cover size option**
+### Cover
 
 ```json
 {
@@ -199,6 +199,8 @@ The following color settings can be be disabled by setting them to `false` in th
 }
 ```
 
+----
+
 ## Layout
 
 The primary layout settings relate to the custom content widths. These are already handled in our `stb.config` and are being output as both entries in the generated `theme.json` file, but also as tokens for usage in CSS.
@@ -238,19 +240,7 @@ These style should be factored into the `stb.config` and exported as tokens and 
 
 ## Typography
 
-All typography elements fall under a typography entry.
-
-```json
-{
-	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
-	"version": 3,
-	"settings": {
-		"typography": {
-			// Add settings here
-		}
-	},
-}
-```
+### Font Face
 
 This is an example of how a font face is referenced in a `theme.json` file:
 
@@ -289,6 +279,8 @@ This is an example of how a font face is referenced in a `theme.json` file:
 	},
 }
 ```
+
+### Default Font Sizes
 
 We can override default font size, and apply fuid typography. There are 4 default sizes, as shown in the example below. In order to replace the defaults and use fluid typography we must use `"defaultFontSizes": false,` and `"fluid": true,`.
 
@@ -345,7 +337,9 @@ By default our stb.config should set the 4 default sizes and set `"defaultFontSi
 }
 ```
 
-WWe do not have to replace defaults, we can add new ones, as shown below. There are 4 default sizes. In order to use fluid typography we must set `"fluid": true,`.
+### Add Font Sizes
+
+We do not have to replace defaults, we can add new ones, as shown below. There are 4 default sizes. In order to use fluid typography we must set `"fluid": true,`.
 
 Note: by adding `"defaultFontSizes": false,` in this configuration only our custom sizes would be available.
 
@@ -368,6 +362,104 @@ Note: by adding `"defaultFontSizes": false,` in this configuration only our cust
 					"slug": "custom-1"
 				}
 			]
+		}
+	},
+}
+```
+
+----
+
+## Spacing
+
+### Default Spacing Sizes
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "spacingSizes": [
+                {
+                    "name": "2X-Small",
+                    "slug": "20",
+                    "size": "clamp(0.33rem, 0.25rem + 0.25vw, 0.44rem)"
+                },
+                {
+                    "name": "X-Small",
+                    "slug": "30",
+                    "size": "clamp(0.5rem, 0.4rem + 0.5vw, 0.67rem)"
+                },
+                {
+                    "name": "Small",
+                    "slug": "40",
+                    "size": "clamp(0.8rem, 0.7rem + 0.5vw, 1rem)"
+                },
+                {
+                    "name": "Medium",
+                    "slug": "50",
+                    "size": "clamp(1.2rem, 1rem + 1vw, 1.5rem)"
+                },
+                {
+                    "name": "Large",
+                    "slug": "60",
+                    "size": "clamp(1.6rem, 1rem + 2vw, 2.25rem)"
+                },
+                {
+                    "name": "X-Large",
+                    "slug": "70",
+                    "size": "clamp(2.2rem, 1.5rem + 3vw, 3.38rem)"
+                },
+                {
+                    "name": "2X-Large",
+                    "slug": "80",
+                    "size": "clamp(3rem, 2rem + 4vw, 5.06rem)"
+                }
+            ]
+		}
+	},
+}
+```
+
+### Add Spacing Sizes
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "spacingSizes": [
+                {
+                    "name": "Sub-Heading",
+                    "slug": "20",
+                    "size": "clamp(0.33rem, 0.25rem + 0.25vw, 0.44rem)"
+                },
+                {
+                    "name": "Footnote",
+                    "slug": "30",
+                    "size": "clamp(0.5rem, 0.4rem + 0.5vw, 0.67rem)"
+                }
+            ]
+		}
+	},
+}
+```
+
+### Additional Config
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "defaultSpacingSizes": true,
+            "customSpacingSize": true,
+            "spacingSizes": []
 		}
 	},
 }
