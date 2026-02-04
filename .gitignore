@@ -2,7 +2,7 @@
 node_modules/
 
 # Build outputs
-#dist/
+dist/
 storybook-static/
 story-to-block/dist/
 story-to-block/node_modules/
