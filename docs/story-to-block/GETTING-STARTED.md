@@ -224,28 +224,33 @@ After running the generator, `src/styles/tokens.css` contains all your CSS varia
 }
 ```
 
-Your Storybook preview imports this file as normal:
+Your Storybook preview imports these files:
 
 ```ts
 // .storybook/preview.ts
 import '../src/styles/tokens.css';
 import '../src/styles/fonts.css';
-import '../src/styles/reset.css';
+import '../src/styles/reset.scss';
 ```
 
-Component CSS files reference the variables directly:
+Component SCSS files reference the generated CSS variables and can use shared mixins:
 
-```css
-/* Card.css */
+```scss
+/* Card.scss */
+@use '../../styles/mixins' as *;
+
 .starter-card {
   background-color: var(--starter-color-background);
   border: 1px solid var(--starter-color-border);
   border-radius: var(--starter-radius-lg);
   padding: var(--starter-spacing-md);
+
+  @include focus-ring;
+  @include transition(background-color, border-color);
 }
 ```
 
-Nothing about how you write component CSS changes. The only difference is that `tokens.css` is generated from the config instead of written by hand.
+The design tokens (`tokens.css`) are generated from the config, while component styles are authored in SCSS for better organization.
 
 ## Updating Tokens
 
@@ -308,13 +313,20 @@ node_modules/your-component-library/
 ├── dist/
 │   ├── index.js              # React components (ES module)
 │   ├── index.d.ts            # TypeScript declarations
+│   ├── components/
+│   │   ├── Button/
+│   │   │   ├── Button.js     # Component module
+│   │   │   ├── Button.d.ts   # TypeScript declarations
+│   │   │   └── Button.css    # Compiled component CSS
+│   │   └── Card/
+│   │       ├── Card.js
+│   │       ├── Card.d.ts
+│   │       └── Card.css
 │   ├── styles.css            # Bundled CSS (all components + tokens)
 │   ├── css/
 │   │   ├── tokens.css        # CSS vars with hardcoded values
 │   │   ├── fonts.css         # @font-face declarations
-│   │   ├── reset.css         # Base styles (optional)
-│   │   ├── Card.css          # Individual component CSS
-│   │   └── Button.css
+│   │   └── reset.css         # Compiled base styles
 │   └── wp/
 │       ├── theme.json        # WordPress theme.json base layer
 │       ├── tokens.wp.css     # CSS vars mapped to --wp--preset--*

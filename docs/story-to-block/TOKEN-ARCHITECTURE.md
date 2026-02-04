@@ -197,14 +197,18 @@ Every token becomes a CSS custom property using the configured prefix:
 }
 ```
 
-Component CSS files reference these variables and are not affected by the generation process:
+Component SCSS files reference these variables and use shared mixins for common patterns:
 
-```css
-/* Card.css — unchanged, always references --starter-* */
+```scss
+/* Card.scss — always references --starter-* */
+@use '../../styles/mixins' as *;
+
 .starter-card {
   background-color: var(--starter-color-background);
   border: 1px solid var(--starter-color-border);
   border-radius: var(--starter-radius-lg);
+
+  @include transition(background-color, border-color);
 }
 ```
 
@@ -332,13 +336,13 @@ add_filter( 'wp_theme_json_data_default', function ( $theme_json ) {
 
 ### Storybook (Development)
 
-No changes to the development workflow. Storybook loads the generated CSS via the preview config:
+No changes to the development workflow. Storybook loads the generated CSS and SCSS via the preview config:
 
 ```ts
 // .storybook/preview.ts
 import '../src/styles/tokens.css';
 import '../src/styles/fonts.css';
-import '../src/styles/reset.css';
+import '../src/styles/reset.scss';
 ```
 
 ### React / Next.js
@@ -395,13 +399,20 @@ Given these layers:
 dist/
 ├── index.js             # ES module (React components)
 ├── index.d.ts           # TypeScript declarations
+├── components/
+│   ├── Button/
+│   │   ├── Button.js    # Component module
+│   │   ├── Button.d.ts  # TypeScript declarations
+│   │   └── Button.css   # Compiled component CSS
+│   └── Card/
+│       ├── Card.js
+│       ├── Card.d.ts
+│       └── Card.css
 ├── styles.css           # Bundled CSS (tokens + all components)
 ├── css/
 │   ├── tokens.css       # CSS vars — hardcoded values (React/Next.js)
 │   ├── fonts.css        # @font-face declarations
-│   ├── reset.css        # Base styles
-│   ├── Card.css         # Card component
-│   └── Button.css       # Button component
+│   └── reset.css        # Compiled base styles
 └── wp/
     ├── theme.json       # WordPress theme.json base layer
     ├── integrate.php    # WordPress filter hook
