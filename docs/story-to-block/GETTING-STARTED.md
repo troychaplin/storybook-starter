@@ -13,12 +13,14 @@ your-project/
 │   npx story-to-block generate
 │
 ├── src/styles/
-│   └── tokens.css                   (generated — CSS vars for Storybook dev)
+│   ├── tokens.css                   (generated — CSS vars for Storybook dev)
+│   └── fonts.css                    (generated — @font-face declarations)
 │
 └── dist/wp/
     ├── theme.json                   (generated — base theme.json layer)
     ├── tokens.wp.css                (generated — CSS vars mapped to --wp--preset--*)
-    └── integrate.php                (generated — PHP filter hook)
+    ├── integrate.php                (generated — PHP filter hook)
+    └── assets/fonts/                (generated — copied font files)
 ```
 
 `tokens.css` is generated from the config, ensuring your Storybook components, published React package, and WordPress assets all share the same values.
@@ -31,70 +33,75 @@ npm install story-to-block --save-dev
 
 ## Creating the Config
 
-Create `stb.config.json` in your project root. This file defines every design token your components use:
+Create `stb.config.json` in your project root. Categories are defined at the top level — no wrapper needed:
 
 ```json
 {
-  "prefix": "prefix",
+  "prefix": "starter",
   "tokensPath": "src/styles/tokens.css",
   "outDir": "dist/wp",
-  "tokens": {
-    "color": {
-      "primary": {
-        "value": "#0073aa",
-        "name": "Primary",
-        "slug": "primary"
-      },
-      "primary-hover": {
-        "value": "#005a87"
-      },
-      "secondary": {
-        "value": "#23282d",
-        "name": "Secondary",
-        "slug": "secondary"
-      }
+
+  "layout": {
+    "content-size": "768px",
+    "wide-size": "1280px"
+  },
+
+  "color": {
+    "primary": "#0073aa",
+    "primary-hover": "#005a87",
+    "secondary": "#23282d"
+  },
+
+  "spacing": {
+    "xs": { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
+    "sm": { "value": "0.5rem",  "slug": "30", "name": "Small" },
+    "md": { "value": "1rem",    "slug": "40", "name": "Medium" }
+  },
+
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+      ]
     },
-    "spacing": {
-      "xs":  { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
-      "sm":  { "value": "0.5rem",  "slug": "30", "name": "Small" },
-      "md":  { "value": "1rem",    "slug": "40", "name": "Medium" }
-    },
-    "fontFamily": {
-      "base": {
-        "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
-        "name": "System Sans",
-        "slug": "body"
-      }
-    },
-    "fontSize": {
-      "sm":   { "value": "0.875rem", "slug": "small", "name": "Small" },
-      "base": { "value": "1rem",     "slug": "medium", "name": "Medium" }
-    },
-    "fontWeight": {
-      "normal": { "value": "400" },
-      "bold":   { "value": "700" }
-    },
-    "lineHeight": {
-      "tight":  { "value": "1.25" },
-      "normal": { "value": "1.5" }
-    },
-    "radius": {
-      "sm": { "value": "2px" },
-      "md": { "value": "4px" },
-      "lg": { "value": "8px" }
-    },
-    "shadow": {
-      "sm": { "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
-      "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" }
-    },
-    "transition": {
-      "fast":   { "value": "150ms ease" },
-      "normal": { "value": "200ms ease" }
-    },
-    "zIndex": {
-      "dropdown": { "value": "100" },
-      "modal":    { "value": "300" }
-    }
+    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+  },
+
+  "fontSize": {
+    "small":  { "value": "1rem",     "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "value": "1.125rem", "fluid": { "min": "1rem", "max": "1.125rem" } }
+  },
+
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  },
+
+  "lineHeight": {
+    "tight": "1.25",
+    "normal": "1.5"
+  },
+
+  "radius": {
+    "sm": "2px",
+    "md": "4px",
+    "lg": "8px"
+  },
+
+  "shadow": {
+    "sm": "0 1px 2px 0 rgb(0 0 0 / 0.05)",
+    "md": "0 4px 6px -1px rgb(0 0 0 / 0.1)"
+  },
+
+  "transition": {
+    "fast": "150ms ease",
+    "normal": "200ms ease"
+  },
+
+  "zIndex": {
+    "dropdown": "100",
+    "modal": "300"
   }
 }
 ```
@@ -103,27 +110,80 @@ Create `stb.config.json` in your project root. This file defines every design to
 
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `prefix` | Yes | — | CSS variable prefix (e.g. `prefix` produces `--prefix-*`) |
-| `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file for local development |
-| `outDir` | No | `dist/wp` | Output directory for WordPress-specific generated files |
-| `tokens` | Yes | — | Token definitions grouped by category |
+| `prefix` | Yes | — | CSS variable prefix (e.g. `starter` produces `--starter-*`) |
+| `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file |
+| `fontsPath` | No | `public/fonts` | Source directory for font files |
+| `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
+
+### Token Syntax
+
+#### String Shorthand
+
+For simple tokens, use a string value directly:
+
+```json
+{
+  "color": {
+    "primary": "#0073aa",
+    "secondary": "#23282d"
+  },
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  }
+}
+```
+
+#### Object Syntax
+
+For tokens needing additional properties:
+
+```json
+{
+  "fontSize": {
+    "small": {
+      "value": "1rem",
+      "fluid": { "min": "0.875rem", "max": "1rem" }
+    }
+  },
+  "gradient": {
+    "sunset": {
+      "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
+      "slug": "custom-gradient-1"
+    }
+  }
+}
+```
+
+### Auto-derived Fields
+
+The `slug` and `name` are automatically derived from the token key:
+
+- **slug**: Uses the key directly (e.g., `"primary"` → slug `"primary"`)
+- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
+
+Override when needed:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" }
+  },
+  "spacing": {
+    "md": { "value": "1rem", "slug": "40", "name": "Medium" }
+  }
+}
+```
 
 ### Token Properties
-
-Each token requires a `value`. The optional `name` and `slug` fields control whether a token is visible in the WordPress editor UI.
 
 | Property | Required | Description |
 |----------|----------|-------------|
 | `value` | Yes | The CSS value (color hex, rem, font stack, etc.) |
-| `name` | No | Human-readable label shown in the WordPress editor UI |
-| `slug` | No | WordPress preset slug. Required alongside `name` for theme.json output |
-
-Tokens with `name` + `slug` are included in theme.json and mapped to `--wp--preset--*` variables. Tokens without them exist only as CSS variables with hardcoded values.
-
-**Examples:**
-
-- `"primary": { "value": "#0073aa", "name": "Primary", "slug": "primary" }` — appears in the WordPress editor color picker, generates a CSS variable, and maps to `--wp--preset--color--primary` in `tokens.wp.css`
-- `"primary-hover": { "value": "#005a87" }` — generates a CSS variable only, not visible in the WordPress editor
+| `name` | No | Human-readable label (auto-derived from key if not provided) |
+| `slug` | No | WordPress preset slug (auto-derived from key if not provided) |
+| `fluid` | No | Fluid typography settings for fontSize (`{ min, max }`) |
+| `fontFace` | No | Font file definitions for fontFamily |
 
 ## Running the Generator
 
@@ -135,10 +195,12 @@ This reads `stb.config.json` and produces:
 
 | Generated File | Location | Purpose |
 |----------------|----------|---------|
-| `tokens.css` | `src/styles/tokens.css` | CSS variables with hardcoded values, used by Storybook during development |
-| `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer with colors, spacing, fonts, and custom values |
-| `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapping `--prefix-*` to `--wp--preset--*` with hardcoded fallbacks |
-| `integrate.php` | `dist/wp/integrate.php` | PHP filter that loads theme.json via `wp_theme_json_data_default` |
+| `tokens.css` | `src/styles/tokens.css` | CSS variables with hardcoded values |
+| `fonts.css` | `src/styles/fonts.css` | @font-face declarations (if fontFace defined) |
+| `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer |
+| `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapped to `--wp--preset--*` |
+| `integrate.php` | `dist/wp/integrate.php` | PHP filter for wp_theme_json_data_default |
+| Font files | `dist/wp/assets/fonts/` | Copied from `fontsPath` |
 
 ## Using Generated Tokens in Components
 
@@ -149,15 +211,15 @@ After running the generator, `src/styles/tokens.css` contains all your CSS varia
 
 :root {
   /* Colors */
-  --prefix-color-primary: #0073aa;
-  --prefix-color-primary-hover: #005a87;
-  --prefix-color-secondary: #23282d;
+  --starter-color-primary: #0073aa;
+  --starter-color-primary-hover: #005a87;
+  --starter-color-secondary: #23282d;
   /* ... */
 
   /* Spacing */
-  --prefix-spacing-xs: 0.25rem;
-  --prefix-spacing-sm: 0.5rem;
-  --prefix-spacing-md: 1rem;
+  --starter-spacing-xs: 0.25rem;
+  --starter-spacing-sm: 0.5rem;
+  --starter-spacing-md: 1rem;
   /* ... */
 }
 ```
@@ -167,6 +229,7 @@ Your Storybook preview imports this file as normal:
 ```ts
 // .storybook/preview.ts
 import '../src/styles/tokens.css';
+import '../src/styles/fonts.css';
 import '../src/styles/reset.css';
 ```
 
@@ -174,11 +237,11 @@ Component CSS files reference the variables directly:
 
 ```css
 /* Card.css */
-.prefix-card {
-  background-color: var(--prefix-color-background);
-  border: 1px solid var(--prefix-color-border);
-  border-radius: var(--prefix-radius-lg);
-  padding: var(--prefix-spacing-md);
+.starter-card {
+  background-color: var(--starter-color-background);
+  border: 1px solid var(--starter-color-border);
+  border-radius: var(--starter-radius-lg);
+  padding: var(--starter-spacing-md);
 }
 ```
 
@@ -192,13 +255,13 @@ To change a design token value:
 2. Run `npx story-to-block generate`
 3. All outputs update — `tokens.css`, `tokens.wp.css`, `theme.json`
 
-To add a new token, add it to the appropriate category in the config and run the generator. Then reference `--prefix-{category}-{key}` in your component CSS.
+To add a new token, add it to the appropriate category in the config and run the generator. Then reference `--starter-{category}-{key}` in your component CSS.
 
 ## Changing the Prefix
 
 Update `prefix` in `stb.config.json` and run the generator. This updates all CSS variable names in the generated files.
 
-Component CSS files and class names (e.g. `.prefix-card`) are not affected by the generator — those require a manual find-and-replace. The prefix in the config controls CSS variable names only.
+Component CSS files and class names (e.g. `.starter-card`) are not affected by the generator — those require a manual find-and-replace. The prefix in the config controls CSS variable names only.
 
 ## Build Scripts
 
@@ -248,13 +311,15 @@ node_modules/your-component-library/
 │   ├── styles.css            # Bundled CSS (all components + tokens)
 │   ├── css/
 │   │   ├── tokens.css        # CSS vars with hardcoded values
+│   │   ├── fonts.css         # @font-face declarations
 │   │   ├── reset.css         # Base styles (optional)
 │   │   ├── Card.css          # Individual component CSS
 │   │   └── Button.css
 │   └── wp/
 │       ├── theme.json        # WordPress theme.json base layer
 │       ├── tokens.wp.css     # CSS vars mapped to --wp--preset--*
-│       └── integrate.php     # PHP filter hook
+│       ├── integrate.php     # PHP filter hook
+│       └── assets/fonts/     # Font files
 ```
 
 ## CLI Reference

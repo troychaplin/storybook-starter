@@ -9,7 +9,7 @@
   },
 
   "color": {
-    "primary": "#0073aa",
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" },
     "primary-hover": "#005a87",
     "secondary": "#23282d",
     "secondary-hover": "#1a1e21",

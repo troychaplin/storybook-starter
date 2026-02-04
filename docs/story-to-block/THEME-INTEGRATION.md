@@ -23,9 +23,11 @@ node_modules/your-component-library/dist/
 ├── wp/
 │   ├── theme.json        # Generated theme.json base layer
 │   ├── integrate.php     # WordPress filter hook
-│   └── tokens.wp.css     # CSS vars — mapped to --wp--preset--*
+│   ├── tokens.wp.css     # CSS vars — mapped to --wp--preset--*
+│   └── assets/fonts/     # Font files (if fontFace defined)
 └── css/
-    └── tokens.css        # CSS vars — hardcoded values (not used in WordPress)
+    ├── tokens.css        # CSS vars — hardcoded values (not used in WordPress)
+    └── fonts.css         # @font-face declarations (not used in WordPress)
 ```
 
 Files in `dist/wp/` must be **copied into your theme** — `node_modules` does not exist on production servers.
