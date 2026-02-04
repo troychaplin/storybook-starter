@@ -464,3 +464,154 @@ Add
 	},
 }
 ```
+
+----
+
+## stb.config.json Format
+
+The `stb.config.json` file uses a simplified format that generates both CSS tokens for the component library and WordPress theme.json presets.
+
+### Config Structure
+
+Categories are defined at the top level (no `tokens` wrapper needed):
+
+```json
+{
+  "prefix": "starter",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
+
+  "color": { ... },
+  "gradient": { ... },
+  "fontFamily": { ... },
+  "fontSize": { ... },
+  "shadow": { ... },
+  "spacing": { ... },
+  "layout": { ... },
+  "fontWeight": { ... },
+  "lineHeight": { ... },
+  "radius": { ... },
+  "transition": { ... },
+  "zIndex": { ... }
+}
+```
+
+### Auto-derived Fields
+
+The config automatically derives `slug` and `name` from the token key:
+
+- **slug**: Uses the token key directly (e.g., `"primary"` → slug `"primary"`)
+- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
+
+You can override either when needed:
+
+```json
+"color": {
+  "primary": "#0073aa",
+  "primary-hover": { "value": "#005a87", "name": "Primary Hover State" }
+}
+```
+
+### String Shorthand
+
+For simple tokens, use a string value directly instead of `{ "value": "..." }`:
+
+```json
+"fontWeight": {
+  "normal": "400",
+  "bold": "700"
+}
+
+"color": {
+  "primary": "#0073aa",
+  "secondary": "#23282d"
+}
+```
+
+### Category Mapping
+
+| Config Key   | Internal Category  | theme.json Path                |
+|--------------|-------------------|--------------------------------|
+| `color`      | `colorPalette`    | `settings.color.palette`       |
+| `gradient`   | `colorGradient`   | `settings.color.gradients`     |
+| `fontFamily` | `fontFamily`      | `settings.typography.fontFamilies` |
+| `fontSize`   | `fontSize`        | `settings.typography.fontSizes` |
+| `shadow`     | `shadow`          | `settings.shadow.presets`      |
+| `spacing`    | `spacing`         | `settings.spacing.spacingSizes` |
+| `layout`     | `layout`          | `settings.layout`              |
+| `fontWeight` | `fontWeight`      | `settings.custom.fontWeight`   |
+| `lineHeight` | `lineHeight`      | `settings.custom.lineHeight`   |
+| `radius`     | `radius`          | `settings.custom.radius`       |
+| `transition` | `transition`      | `settings.custom.transition`   |
+| `zIndex`     | `zIndex`          | *(excluded from theme.json)*   |
+
+### Complete Example
+
+```json
+{
+  "prefix": "starter",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
+
+  "layout": {
+    "content-size": "768px",
+    "wide-size": "1280px"
+  },
+
+  "color": {
+    "primary": "#0073aa",
+    "primary-hover": "#005a87",
+    "secondary": "#23282d",
+    "success": "#00a32a",
+    "warning": "#dba617",
+    "error": "#d63638"
+  },
+
+  "gradient": {
+    "gradient-1": {
+      "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
+      "slug": "custom-gradient-1"
+    }
+  },
+
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" },
+        { "weight": "700", "style": "normal", "src": "inter-700-normal.woff2" }
+      ]
+    },
+    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+  },
+
+  "fontSize": {
+    "small":  { "value": "1rem",   "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "value": "1.125rem", "fluid": { "min": "1rem", "max": "1.125rem" } },
+    "large":  { "value": "1.25rem",  "fluid": { "min": "1.125rem", "max": "1.25rem" } }
+  },
+
+  "shadow": {
+    "natural": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+    "deep": "12px 12px 50px rgba(0, 0, 0, 0.4)"
+  },
+
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  }
+}
+```
+
+### Generated Output
+
+Running `npm run generate` produces:
+
+| File | Description |
+|------|-------------|
+| `src/styles/tokens.css` | CSS custom properties for Storybook/local dev |
+| `src/styles/fonts.css` | @font-face declarations (if fontFace defined) |
+| `dist/wp/tokens.wp.css` | CSS with WordPress preset fallbacks |
+| `dist/wp/theme.json` | WordPress theme.json presets |
+| `dist/wp/integrate.php` | PHP filter for plugin integration |
+| `dist/wp/assets/fonts/` | Font files copied from `public/fonts/` |

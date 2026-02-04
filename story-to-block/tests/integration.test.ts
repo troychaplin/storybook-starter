@@ -1,31 +1,28 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
-import { mkdirSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { generate } from '../src/index.js';
 
 const TEST_DIR = resolve(import.meta.dirname ?? '.', '__test-output__');
 const CONFIG_PATH = resolve(TEST_DIR, 'stb.config.json');
 
+// New simplified config format: no "tokens" wrapper, auto-derived slug/name
 const testConfig = {
   prefix: 'inttest',
   tokensPath: 'src/tokens.css',
   outDir: 'out/wp',
-  tokens: {
-    color: {
-      palette: {
-        primary: { value: '#ff0000', name: 'Primary', slug: 'primary' },
-        muted: { value: '#999999' },
-      },
-    },
-    spacing: {
-      md: { value: '1rem', slug: '40', name: 'Medium' },
-    },
-    fontWeight: {
-      bold: { value: '700' },
-    },
-    zIndex: {
-      modal: { value: '300' },
-    },
+  color: {
+    primary: { value: '#ff0000', name: 'Primary' },
+    muted: '#999999',
+  },
+  spacing: {
+    md: { value: '1rem', slug: '40', name: 'Medium' },
+  },
+  fontWeight: {
+    bold: '700',
+  },
+  zIndex: {
+    modal: '300',
   },
 };
 
@@ -62,23 +59,30 @@ describe('integration: generate()', () => {
 
   it('writes tokens.wp.css with var() mappings for slugged tokens', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/tokens.wp.css'), 'utf-8');
+    // "primary" slug is auto-derived from key
     expect(content).toContain(
       '--inttest-color-primary: var(--wp--preset--color--primary, #ff0000);',
     );
-    expect(content).toContain('--inttest-color-muted: #999999;');
+    // "muted" also gets auto-derived slug
+    expect(content).toContain(
+      '--inttest-color-muted: var(--wp--preset--color--muted, #999999);',
+    );
+    // spacing slug is explicitly set to "40"
     expect(content).toContain(
       '--inttest-spacing-md: var(--wp--preset--spacing--40, 1rem);',
     );
     expect(content).toContain('--inttest-font-weight-bold: 700;');
   });
 
-  it('writes theme.json with only named tokens', () => {
+  it('writes theme.json with auto-derived names', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/theme.json'), 'utf-8');
     const parsed = JSON.parse(content);
 
     expect(parsed.version).toBe(3);
+    // All colors now have auto-derived slug/name and appear in palette
     expect(parsed.settings.color.palette).toEqual([
       { slug: 'primary', color: '#ff0000', name: 'Primary' },
+      { slug: 'muted', color: '#999999', name: 'Muted' },
     ]);
     expect(parsed.settings.custom.fontWeight).toEqual({ bold: '700' });
     expect(parsed.settings.custom).not.toHaveProperty('zIndex');

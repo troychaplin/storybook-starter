@@ -1,13 +1,16 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { StbConfig, StbConfigInput, TokenCategory, TokenGroup } from './types.js';
-import { CATEGORY_REGISTRY, NESTED_CATEGORIES, VALID_CATEGORIES } from './types.js';
+import type { StbConfig, StbConfigInput, TokenCategory, TokenEntry, TokenEntryInput, TokenGroup, TokenGroupInput } from './types.js';
+import { CATEGORY_REGISTRY, INPUT_CATEGORY_MAP, VALID_CATEGORIES, kebabToTitle } from './types.js';
 
 const DEFAULTS = {
   tokensPath: 'src/styles/tokens.css',
   fontsPath: 'public/fonts',
   outDir: 'dist/wp',
 } as const;
+
+/** Reserved config keys that are not token categories */
+const CONFIG_KEYS = ['prefix', 'tokensPath', 'fontsPath', 'outDir'] as const;
 
 export function loadConfig(configPath?: string): StbConfig {
   const resolvedPath = resolve(configPath ?? 'stb.config.json');
@@ -30,52 +33,82 @@ export function loadConfig(configPath?: string): StbConfig {
 }
 
 /**
- * Check if an object looks like a TokenGroup (has entries with "value" keys)
- * vs a nested category container (has entries that are sub-groups).
+ * Expand a token entry input (string or object) into a full TokenEntry.
+ * - String "value" becomes { value: "value" }
+ * - Auto-derive slug from key
+ * - Auto-derive name from key (title-case) if not provided
  */
-function isTokenGroup(obj: unknown): obj is TokenGroup {
-  if (!obj || typeof obj !== 'object') return false;
-  const firstValue = Object.values(obj)[0];
-  return firstValue && typeof firstValue === 'object' && 'value' in firstValue;
+function expandTokenEntry(key: string, input: TokenEntryInput, isDirectMap?: boolean): TokenEntry {
+  // String shorthand expands to { value: string }
+  const entry: TokenEntry = typeof input === 'string'
+    ? { value: input }
+    : { ...input };
+
+  // Direct-map categories (layout) don't use name/slug
+  if (isDirectMap) {
+    return entry;
+  }
+
+  // Auto-derive slug from key if not explicitly provided
+  if (!entry.slug) {
+    entry.slug = key;
+  }
+
+  // Auto-derive name from key if not provided
+  if (!entry.name) {
+    entry.name = kebabToTitle(key);
+  }
+
+  return entry;
 }
 
 /**
- * Normalize the user-facing config into flat internal categories.
- * e.g. { color: { palette: {...}, gradient: {...} } } becomes
- *      { colorPalette: {...}, colorGradient: {...} }
+ * Normalize a token group, expanding string shorthand and auto-deriving slug/name.
  */
-function normalizeTokens(
-  tokens: Record<string, TokenGroup | Record<string, TokenGroup>>,
-): Partial<Record<TokenCategory, TokenGroup>> {
-  const flat: Partial<Record<TokenCategory, TokenGroup>> = {};
-  const validFlat = VALID_CATEGORIES as readonly string[];
+function normalizeTokenGroup(group: TokenGroupInput, isDirectMap?: boolean): TokenGroup {
+  const normalized: TokenGroup = {};
+  for (const [key, input] of Object.entries(group)) {
+    normalized[key] = expandTokenEntry(key, input, isDirectMap);
+  }
+  return normalized;
+}
 
-  for (const [key, value] of Object.entries(tokens)) {
-    // Check if this is a nested category (like "color")
-    if (key in NESTED_CATEGORIES && !isTokenGroup(value)) {
-      const subMap = NESTED_CATEGORIES[key];
-      for (const [subKey, subGroup] of Object.entries(value as Record<string, TokenGroup>)) {
-        const flatKey = subMap[subKey];
-        if (!flatKey) {
-          const validSubs = Object.keys(subMap).join(', ');
-          throw new Error(`Config error: Unknown sub-category "${key}.${subKey}". Valid sub-categories for "${key}": ${validSubs}`);
-        }
-        flat[flatKey as TokenCategory] = subGroup;
-      }
-    } else if (validFlat.includes(key)) {
-      // Flat category (spacing, fontSize, etc.)
-      flat[key as TokenCategory] = value as TokenGroup;
-    } else {
-      // Check if it's a known nested parent used incorrectly as flat
-      if (key in NESTED_CATEGORIES) {
-        const validSubs = Object.keys(NESTED_CATEGORIES[key]).join(', ');
-        throw new Error(`Config error: "${key}" must contain sub-categories: ${validSubs}`);
-      }
-      throw new Error(`Config error: Unknown token category "${key}". Valid categories: ${[...Object.keys(NESTED_CATEGORIES), ...VALID_CATEGORIES.filter(c => !Object.values(NESTED_CATEGORIES).some(m => Object.values(m).includes(c)))].join(', ')}`);
+/**
+ * Extract token categories from the flat config input.
+ * Maps user-facing category names to internal names (e.g. "color" → "colorPalette").
+ */
+function extractTokens(input: StbConfigInput): Partial<Record<TokenCategory, TokenGroup>> {
+  const tokens: Partial<Record<TokenCategory, TokenGroup>> = {};
+  const validInputCategories = [
+    ...Object.keys(INPUT_CATEGORY_MAP),
+    ...VALID_CATEGORIES,
+  ];
+
+  for (const [key, value] of Object.entries(input)) {
+    // Skip reserved config keys
+    if ((CONFIG_KEYS as readonly string[]).includes(key)) continue;
+
+    // Skip undefined values
+    if (value === undefined) continue;
+
+    // Must be an object (token group)
+    if (typeof value !== 'object') {
+      throw new Error(`Config error: "${key}" must be an object.`);
     }
+
+    // Map user-facing name to internal category name
+    const internalCategory = INPUT_CATEGORY_MAP[key] ?? key;
+
+    // Validate category name
+    if (!VALID_CATEGORIES.includes(internalCategory as TokenCategory)) {
+      throw new Error(`Config error: Unknown token category "${key}". Valid categories: ${validInputCategories.filter(c => VALID_CATEGORIES.includes((INPUT_CATEGORY_MAP[c] ?? c) as TokenCategory)).join(', ')}`);
+    }
+
+    const def = CATEGORY_REGISTRY[internalCategory];
+    tokens[internalCategory as TokenCategory] = normalizeTokenGroup(value as TokenGroupInput, def.directMap);
   }
 
-  return flat;
+  return tokens;
 }
 
 export function validateConfig(input: StbConfigInput): StbConfig {
@@ -83,16 +116,11 @@ export function validateConfig(input: StbConfigInput): StbConfig {
     throw new Error('Config error: "prefix" is required and must be a string.');
   }
 
-  if (!input.tokens || typeof input.tokens !== 'object') {
-    throw new Error('Config error: "tokens" is required and must be an object.');
-  }
+  const tokens = extractTokens(input);
 
-  const tokens = normalizeTokens(input.tokens);
-
-  // Validate each flat category
+  // Validate each category
   for (const [category, group] of Object.entries(tokens)) {
-    const def = CATEGORY_REGISTRY[category];
-    validateTokenGroup(category, group as TokenGroup, def.directMap);
+    validateTokenGroup(category, group as TokenGroup);
   }
 
   return {
@@ -104,7 +132,7 @@ export function validateConfig(input: StbConfigInput): StbConfig {
   };
 }
 
-function validateTokenGroup(category: string, group: TokenGroup, isDirectMap?: boolean): void {
+function validateTokenGroup(category: string, group: TokenGroup): void {
   for (const [key, entry] of Object.entries(group)) {
     if (!entry.value && entry.value !== '0') {
       throw new Error(`Config error: Token "${category}.${key}" is missing a "value".`);
@@ -114,24 +142,8 @@ function validateTokenGroup(category: string, group: TokenGroup, isDirectMap?: b
       throw new Error(`Config error: Token "${category}.${key}.value" must be a string.`);
     }
 
-    // Direct-map categories (layout) don't use name/slug
-    if (isDirectMap) continue;
-
-    const hasName = entry.name !== undefined;
-    const hasSlug = entry.slug !== undefined;
-
-    if (hasName && !hasSlug) {
-      throw new Error(`Config error: Token "${category}.${key}" has "name" but no "slug". Both are required together.`);
-    }
-
-    if (hasSlug && !hasName) {
-      throw new Error(`Config error: Token "${category}.${key}" has "slug" but no "name". Both are required together.`);
-    }
-
+    // Validate fontFace entries if present
     if (entry.fontFace) {
-      if (!hasName || !hasSlug) {
-        throw new Error(`Config error: Token "${category}.${key}" has "fontFace" but requires "name" and "slug".`);
-      }
       for (const [i, face] of entry.fontFace.entries()) {
         if (!face.weight || !face.style || !face.src) {
           throw new Error(`Config error: Token "${category}.${key}.fontFace[${i}]" must have "weight", "style", and "src".`);
