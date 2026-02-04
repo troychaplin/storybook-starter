@@ -6,29 +6,20 @@
  * within existing WordPress themes or React apps.
  */
 
-/* Box sizing for all elements */
+// Box sizing for all elements
 *,
 *::before,
 *::after {
   box-sizing: border-box;
 }
 
-/* Remove default margins from common elements */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-p,
-figure,
-blockquote,
-dl,
-dd {
+// Remove default margins from common elements
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd {
   margin: 0;
 }
 
-/* Set core body defaults (when used standalone) */
+// Set core body defaults (when used standalone)
 body {
   min-height: 100vh;
   line-height: var(--prefix-line-height-normal, 1.5);
@@ -37,39 +28,31 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Remove list styles on ul, ol elements */
-ul,
-ol {
+// Remove list styles
+ul, ol {
   list-style: none;
   margin: 0;
   padding: 0;
 }
 
-/* Anchor elements */
+// Anchor elements
 a {
   color: inherit;
   text-decoration: inherit;
 }
 
-/* Make images easier to work with */
-img,
-picture,
-video,
-canvas,
-svg {
+// Make images easier to work with
+img, picture, video, canvas, svg {
   display: block;
   max-width: 100%;
 }
 
-/* Inherit fonts for inputs and buttons */
-input,
-button,
-textarea,
-select {
+// Inherit fonts for inputs and buttons
+input, button, textarea, select {
   font: inherit;
 }
 
-/* Remove default button styles */
+// Remove default button styles
 button {
   background: none;
   border: none;
@@ -77,18 +60,12 @@ button {
   cursor: pointer;
 }
 
-/* Avoid text overflows */
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+// Avoid text overflows
+p, h1, h2, h3, h4, h5, h6 {
   overflow-wrap: break-word;
 }
 
-/* Remove animations for people who prefer not to see them */
+// Remove animations for people who prefer not to see them
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

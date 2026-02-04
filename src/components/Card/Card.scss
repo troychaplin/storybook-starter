@@ -1,0 +1,58 @@
+/**
+ * Card Component Styles
+ *
+ * Requires: tokens.css (CSS variables)
+ */
+
+.prefix-card {
+  background-color: var(--prefix-color-background);
+  border: 1px solid var(--prefix-color-border);
+  border-radius: var(--prefix-radius-lg);
+  box-shadow: var(--prefix-shadow-sm);
+  overflow: hidden;
+  transition: box-shadow var(--prefix-transition-normal);
+
+  &:hover {
+    box-shadow: var(--prefix-shadow-md);
+  }
+
+  // Header
+  &__header {
+    padding: var(--prefix-spacing-md) var(--prefix-spacing-lg);
+    border-bottom: 1px solid var(--prefix-color-border-light);
+  }
+
+  &__title {
+    font-size: var(--prefix-font-size-lg);
+    font-weight: var(--prefix-font-weight-semibold);
+    line-height: var(--prefix-line-height-tight);
+    color: var(--prefix-color-text);
+  }
+
+  // Content
+  &__content {
+    padding: var(--prefix-spacing-lg);
+    color: var(--prefix-color-text);
+    font-size: var(--prefix-font-size-base);
+    line-height: var(--prefix-line-height-normal);
+
+    p + p {
+      margin-top: var(--prefix-spacing-md);
+    }
+  }
+
+  // Featured variant
+  &--featured {
+    border-color: var(--prefix-color-primary);
+    border-width: 2px;
+
+    .prefix-card__header {
+      background-color: var(--prefix-color-primary-light);
+      border-bottom-color: var(--prefix-color-primary);
+    }
+
+    .prefix-card__title {
+      color: var(--prefix-color-primary);
+    }
+  }
+}

@@ -11,11 +11,15 @@ const dirname = typeof __dirname !== 'undefined' ? __dirname : path.dirname(file
 
 // More info at: https://storybook.js.org/docs/next/writing-tests/integrations/vitest-addon
 export default defineConfig({
-  plugins: [react(), dts({
-    include: ['src'],
-    exclude: ['**/*.stories.tsx', '**/*.test.tsx'],
-    rollupTypes: true
-  })],
+  plugins: [
+    react(),
+    dts({
+      include: ['src'],
+      exclude: ['**/*.stories.tsx', '**/*.test.tsx'],
+      // Keep individual .d.ts files per module for selective imports
+      rollupTypes: false,
+    }),
+  ],
   resolve: {
     alias: {
       '@': resolve(__dirname, 'src')
@@ -23,27 +27,23 @@ export default defineConfig({
   },
   build: {
     lib: {
+      // Main entry re-exports everything for convenience
       entry: resolve(__dirname, 'src/index.ts'),
       formats: ['es'],
-      fileName: 'index'
     },
     rollupOptions: {
       external: ['react', 'react-dom', 'react/jsx-runtime'],
       output: {
-        preserveModules: false,
-        assetFileNames: assetInfo => {
-          // Output CSS to css/ subdirectory
-          if (assetInfo.name?.endsWith('.css')) {
-            return 'css/[name][extname]';
-          }
-          return '[name][extname]';
-        }
-      }
+        // Preserve module structure for selective imports
+        preserveModules: true,
+        preserveModulesRoot: 'src',
+        entryFileNames: '[name].js',
+      },
     },
-    cssCodeSplit: false,
-    // Bundle all CSS into one file initially
+    // CSS handled separately by build-css.js
+    cssCodeSplit: true,
     outDir: 'dist',
-    emptyDirBeforeWrite: true
+    emptyDirBeforeWrite: true,
   },
   test: {
     projects: [{

@@ -11,6 +11,14 @@
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
     },
+    "./components/Button": {
+      "import": "./dist/components/Button/Button.js",
+      "types": "./dist/components/Button/index.d.ts"
+    },
+    "./components/Card": {
+      "import": "./dist/components/Card/Card.js",
+      "types": "./dist/components/Card/index.d.ts"
+    },
     "./styles.css": "./dist/styles.css",
     "./css/*": "./dist/css/*",
     "./wp/*": "./dist/wp/*"
@@ -52,15 +60,16 @@
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.2",
+    "@vitest/browser-playwright": "^4.0.18",
+    "@vitest/coverage-v8": "^4.0.18",
+    "playwright": "^1.58.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "sass": "^1.97.3",
     "storybook": "^10.2.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
-    "vitest": "^4.0.18",
-    "playwright": "^1.58.0",
-    "@vitest/browser-playwright": "^4.0.18",
-    "@vitest/coverage-v8": "^4.0.18"
+    "vitest": "^4.0.18"
   }
 }

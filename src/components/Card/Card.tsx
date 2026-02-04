@@ -1,4 +1,4 @@
-import './Card.css';
+import './Card.scss';
 
 export interface CardProps {
   /** Card title displayed in the header */

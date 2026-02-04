@@ -1,0 +1,55 @@
+/**
+ * Shared SCSS Mixins
+ *
+ * Reusable patterns for component styles.
+ * Import with: @use '../styles/mixins' as *;
+ */
+
+@use 'sass:list';
+
+/// Focus ring for interactive elements
+/// Uses the primary color from tokens
+@mixin focus-ring {
+  &:focus-visible {
+    outline: 2px solid var(--prefix-color-primary);
+    outline-offset: 2px;
+  }
+}
+
+/// Disabled state styling
+@mixin disabled {
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+/// Smooth transitions for interactive elements
+/// @param {List} $properties - CSS properties to transition
+@mixin transition($properties...) {
+  $transitions: ();
+  @each $prop in $properties {
+    $transitions: list.append($transitions, $prop var(--prefix-transition-fast), comma);
+  }
+  transition: $transitions;
+}
+
+/// Truncate text with ellipsis
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/// Visually hidden but accessible to screen readers
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
