@@ -119,8 +119,7 @@
           }
         }
       ],
-      "fluid": true,
-      "defaultFontSizes": false
+      "fluid": true
     },
     "shadow": {
       "presets": [

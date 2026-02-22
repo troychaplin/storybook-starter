@@ -270,7 +270,6 @@ Generated to `dist/wp/theme.json`. All tokens are included with auto-derived slu
     },
     "typography": {
       "fluid": true,
-      "defaultFontSizes": false,
       "fontFamilies": [
         {
           "slug": "inter",
@@ -315,7 +314,7 @@ Generated to `dist/wp/theme.json`. All tokens are included with auto-derived slu
 ```
 
 **Notes:**
-- When `fontSize` tokens exist, `typography.fluid: true` and `typography.defaultFontSizes: false` are automatically set
+- When `fontSize` tokens exist, `typography.fluid: true` is automatically set
 - Token categories without native theme.json support go under `settings.custom`
 - WordPress generates CSS variables for custom values as `--wp--custom--*`
 - `zIndex` is omitted from theme.json entirely

@@ -282,9 +282,9 @@ This is an example of how a font face is referenced in a `theme.json` file:
 
 ### Default Font Sizes
 
-We can override default font size, and apply fuid typography. There are 4 default sizes, as shown in the example below. In order to replace the defaults and use fluid typography we must use `"defaultFontSizes": false,` and `"fluid": true,`.
+We can override default font size, and apply fluid typography. There are 4 default sizes, as shown in the example below. In order to use fluid typography we must set `"fluid": true,`. Optionally, use `"defaultFontSizes": false,` to hide WordPress's default sizes.
 
-By default our stb.config should set the 4 default sizes and set `"defaultFontSizes": false,`. These will be needed for font sizes in components, as well as block themes.
+When fontSize tokens are defined, story-to-block automatically sets `"fluid": true` in the generated theme.json. The `defaultFontSizes` option is left to the theme developer to configure manually if needed.
 
 ```json
 {
@@ -292,7 +292,6 @@ By default our stb.config should set the 4 default sizes and set `"defaultFontSi
 	"version": 3,
 	"settings": {
 		"typography": {
-            "defaultFontSizes": false,
             "fluid": true,
 			"fontSizes": [
 				{

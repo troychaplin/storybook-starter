@@ -53,11 +53,9 @@ export function generateThemeJson(config: StbConfig): string {
   }
 
   // When custom font sizes are defined, enable fluid typography
-  // and disable WP default font sizes so only ours appear
   if (config.tokens.fontSize) {
     if (!settings.typography) settings.typography = {};
     settings.typography.fluid = true;
-    settings.typography.defaultFontSizes = false;
   }
 
   // Merge custom values into settings

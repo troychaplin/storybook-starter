@@ -199,7 +199,7 @@ describe('generateThemeJson — fluid font sizes', () => {
 });
 
 describe('generateThemeJson — typography flags', () => {
-  it('sets fluid and defaultFontSizes when fontSize tokens exist', () => {
+  it('sets fluid when fontSize tokens exist', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
@@ -213,10 +213,9 @@ describe('generateThemeJson — typography flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.typography.fluid).toBe(true);
-    expect(parsed.settings.typography.defaultFontSizes).toBe(false);
   });
 
-  it('does not set typography flags when no fontSize tokens', () => {
+  it('does not set typography.fluid when no fontSize tokens', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
@@ -230,7 +229,6 @@ describe('generateThemeJson — typography flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.typography.fluid).toBeUndefined();
-    expect(parsed.settings.typography.defaultFontSizes).toBeUndefined();
   });
 });
 
