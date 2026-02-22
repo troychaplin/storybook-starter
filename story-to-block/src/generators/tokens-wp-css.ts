@@ -1,5 +1,6 @@
 import type { StbConfig } from '../types.js';
 import { CATEGORY_REGISTRY, CATEGORY_ORDER } from '../types.js';
+import { buildFluidClamp } from './fluid.js';
 
 export function generateTokensWpCss(config: StbConfig): string {
   const lines: string[] = [
@@ -25,11 +26,12 @@ export function generateTokensWpCss(config: StbConfig): string {
 
     for (const [key, entry] of Object.entries(group)) {
       const varName = `--${config.prefix}-${def.cssSegment}-${key}`;
+      const fallback = entry.fluid ? buildFluidClamp(entry) ?? entry.value : entry.value;
 
       if (def.wpPreset && entry.slug) {
-        lines.push(`  ${varName}: var(${def.wpPreset}--${entry.slug}, ${entry.value});`);
+        lines.push(`  ${varName}: var(${def.wpPreset}--${entry.slug}, ${fallback});`);
       } else {
-        lines.push(`  ${varName}: ${entry.value};`);
+        lines.push(`  ${varName}: ${fallback};`);
       }
     }
   }

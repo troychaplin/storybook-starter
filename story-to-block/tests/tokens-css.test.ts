@@ -97,3 +97,50 @@ describe('generateTokensCss — layout tokens', () => {
     expect(output).toContain('/* Layout */');
   });
 });
+
+describe('generateTokensCss — fluid font sizes', () => {
+  const fluidConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    tokens: {
+      fontSize: {
+        medium: {
+          value: '1.125rem',
+          slug: 'medium',
+          name: 'Medium',
+          fluid: { min: '0.875rem', max: '1.125rem' },
+        },
+        large: {
+          value: '1.75rem',
+          slug: 'large',
+          name: 'Large',
+          fluid: { min: '1.25rem', max: '1.75rem' },
+        },
+        static: {
+          value: '0.75rem',
+          slug: 'static',
+          name: 'Static',
+        },
+      },
+    },
+  };
+
+  const output = generateTokensCss(fluidConfig);
+
+  it('generates clamp() for fluid font sizes', () => {
+    expect(output).toContain(
+      '--test-font-size-medium: clamp(0.875rem, 0.875rem + ((0.25) * ((100vw - 320px) / 1280)), 1.125rem);'
+    );
+  });
+
+  it('uses correct range for larger fluid sizes', () => {
+    expect(output).toContain(
+      '--test-font-size-large: clamp(1.25rem, 1.25rem + ((0.5) * ((100vw - 320px) / 1280)), 1.75rem);'
+    );
+  });
+
+  it('uses static value when no fluid is defined', () => {
+    expect(output).toContain('--test-font-size-static: 0.75rem;');
+  });
+});

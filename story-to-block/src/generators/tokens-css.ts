@@ -1,5 +1,6 @@
 import type { StbConfig } from '../types.js';
 import { CATEGORY_REGISTRY, CATEGORY_ORDER } from '../types.js';
+import { buildFluidClamp } from './fluid.js';
 
 export function generateTokensCss(config: StbConfig): string {
   const lines: string[] = [
@@ -24,7 +25,9 @@ export function generateTokensCss(config: StbConfig): string {
     lines.push(`  /* ${def.label} */`);
 
     for (const [key, entry] of Object.entries(group)) {
-      lines.push(`  --${config.prefix}-${def.cssSegment}-${key}: ${entry.value};`);
+      const varName = `--${config.prefix}-${def.cssSegment}-${key}`;
+      const clampValue = entry.fluid ? buildFluidClamp(entry) : null;
+      lines.push(`  ${varName}: ${clampValue ?? entry.value};`);
     }
   }
 

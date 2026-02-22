@@ -21,10 +21,10 @@
   --starter-font-family-system: -apple-system, BlinkMacSystemFont, sans-serif;
 
   /* Font Sizes */
-  --starter-font-size-small: 1rem;
-  --starter-font-size-medium: 1.125rem;
-  --starter-font-size-large: 1.25rem;
-  --starter-font-size-x-large: 1.5rem;
+  --starter-font-size-small: clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem);
+  --starter-font-size-medium: clamp(1rem, 1rem + ((0.125) * ((100vw - 320px) / 1280)), 1.125rem);
+  --starter-font-size-large: clamp(1.125rem, 1.125rem + ((0.125) * ((100vw - 320px) / 1280)), 1.25rem);
+  --starter-font-size-x-large: clamp(1.25rem, 1.25rem + ((0.25) * ((100vw - 320px) / 1280)), 1.5rem);
 
   /* Shadows */
   --starter-shadow-natural: 6px 6px 9px rgba(0, 0, 0, 0.2);
