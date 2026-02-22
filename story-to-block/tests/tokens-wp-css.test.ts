@@ -39,48 +39,48 @@ describe('generateTokensWpCss', () => {
 
   it('maps color tokens with slug to --wp--preset--color--{slug}', () => {
     expect(output).toContain(
-      '--test-color-primary: var(--wp--preset--color--primary, #0073aa);',
+      '--test--color-primary: var(--wp--preset--color--primary, #0073aa);',
     );
   });
 
   it('uses hardcoded value for color tokens without slug', () => {
-    expect(output).toContain('--test-color-primary-hover: #005a87;');
+    expect(output).toContain('--test--color-primary-hover: #005a87;');
   });
 
   it('maps spacing tokens to --wp--preset--spacing--{slug}', () => {
     expect(output).toContain(
-      '--test-spacing-md: var(--wp--preset--spacing--40, 1rem);',
+      '--test--spacing-md: var(--wp--preset--spacing--40, 1rem);',
     );
   });
 
   it('maps fontFamily tokens to --wp--preset--font-family--{slug}', () => {
     expect(output).toContain(
-      '--test-font-family-base: var(--wp--preset--font-family--body, sans-serif);',
+      '--test--font-family-base: var(--wp--preset--font-family--body, sans-serif);',
     );
   });
 
   it('maps fontSize tokens with slug to --wp--preset--font-size--{slug}', () => {
     expect(output).toContain(
-      '--test-font-size-sm: var(--wp--preset--font-size--small, 0.875rem);',
+      '--test--font-size-sm: var(--wp--preset--font-size--small, 0.875rem);',
     );
   });
 
   it('uses hardcoded value for fontSize tokens without slug', () => {
-    expect(output).toContain('--test-font-size-xs: 0.75rem;');
+    expect(output).toContain('--test--font-size-xs: 0.75rem;');
   });
 
   it('always uses hardcoded values for fontWeight (no wp preset)', () => {
-    expect(output).toContain('--test-font-weight-bold: 700;');
+    expect(output).toContain('--test--font-weight-bold: 700;');
     expect(output).not.toContain('--wp--preset--font-weight');
   });
 
   it('always uses hardcoded values for radius (no wp preset)', () => {
-    expect(output).toContain('--test-radius-md: 4px;');
+    expect(output).toContain('--test--radius-md: 4px;');
     expect(output).not.toContain('--wp--preset--radius');
   });
 
   it('always uses hardcoded values for zIndex (no wp preset)', () => {
-    expect(output).toContain('--test-z-modal: 300;');
+    expect(output).toContain('--test--z-modal: 300;');
     expect(output).not.toContain('--wp--preset--z');
   });
 });
@@ -103,12 +103,12 @@ describe('generateTokensWpCss — shadow presets', () => {
 
   it('maps shadow tokens with slug to --wp--preset--shadow--{slug}', () => {
     expect(output).toContain(
-      '--test-shadow-sm: var(--wp--preset--shadow--sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));',
+      '--test--shadow-sm: var(--wp--preset--shadow--sm, 0 1px 2px 0 rgb(0 0 0 / 0.05));',
     );
   });
 
   it('uses hardcoded value for shadow tokens without slug', () => {
-    expect(output).toContain('--test-shadow-custom: 0 0 0 2px rgb(0 0 0 / 0.2);');
+    expect(output).toContain('--test--shadow-custom: 0 0 0 2px rgb(0 0 0 / 0.2);');
   });
 });
 
@@ -129,8 +129,8 @@ describe('generateTokensWpCss — layout tokens', () => {
   const output = generateTokensWpCss(layoutConfig);
 
   it('uses hardcoded values for layout (no wp preset)', () => {
-    expect(output).toContain('--test-layout-content-size: 645px;');
-    expect(output).toContain('--test-layout-wide-size: 1340px;');
+    expect(output).toContain('--test--layout-content-size: 645px;');
+    expect(output).toContain('--test--layout-wide-size: 1340px;');
     expect(output).not.toContain('--wp--preset--layout');
   });
 });
@@ -161,13 +161,13 @@ describe('generateTokensWpCss — fluid font size fallbacks', () => {
 
   it('uses clamp() as fallback for fluid font sizes', () => {
     expect(output).toContain(
-      '--test-font-size-medium: var(--wp--preset--font-size--medium, clamp(0.875rem, 0.875rem + ((0.25) * ((100vw - 320px) / 1280)), 1.125rem));'
+      '--test--font-size-medium: var(--wp--preset--font-size--medium, clamp(0.875rem, 0.875rem + ((0.25) * ((100vw - 320px) / 1280)), 1.125rem));'
     );
   });
 
   it('uses static fallback for non-fluid font sizes', () => {
     expect(output).toContain(
-      '--test-font-size-static: var(--wp--preset--font-size--static, 0.75rem);'
+      '--test--font-size-static: var(--wp--preset--font-size--static, 0.75rem);'
     );
   });
 });

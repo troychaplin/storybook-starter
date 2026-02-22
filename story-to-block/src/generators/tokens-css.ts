@@ -25,7 +25,7 @@ export function generateTokensCss(config: StbConfig): string {
     lines.push(`  /* ${def.label} */`);
 
     for (const [key, entry] of Object.entries(group)) {
-      const varName = `--${config.prefix}-${def.cssSegment}-${key}`;
+      const varName = `--${config.prefix}--${def.cssSegment}-${key}`;
       const clampValue = entry.fluid ? buildFluidClamp(entry) : null;
       lines.push(`  ${varName}: ${clampValue ?? entry.value};`);
     }

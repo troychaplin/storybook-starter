@@ -36,25 +36,25 @@ describe('generateTokensCss', () => {
   });
 
   it('generates correct color variables', () => {
-    expect(output).toContain('--test-color-primary: #0073aa;');
-    expect(output).toContain('--test-color-primary-hover: #005a87;');
+    expect(output).toContain('--test--color-primary: #0073aa;');
+    expect(output).toContain('--test--color-primary-hover: #005a87;');
   });
 
   it('generates correct spacing variables', () => {
-    expect(output).toContain('--test-spacing-md: 1rem;');
+    expect(output).toContain('--test--spacing-md: 1rem;');
   });
 
   it('generates correct font-family variables', () => {
-    expect(output).toContain('--test-font-family-base: sans-serif;');
+    expect(output).toContain('--test--font-family-base: sans-serif;');
   });
 
   it('generates correct font-size variables', () => {
-    expect(output).toContain('--test-font-size-sm: 0.875rem;');
-    expect(output).toContain('--test-font-size-xs: 0.75rem;');
+    expect(output).toContain('--test--font-size-sm: 0.875rem;');
+    expect(output).toContain('--test--font-size-xs: 0.75rem;');
   });
 
   it('generates correct z-index variables', () => {
-    expect(output).toContain('--test-z-modal: 300;');
+    expect(output).toContain('--test--z-modal: 300;');
   });
 
   it('groups tokens by category with comments', () => {
@@ -89,8 +89,8 @@ describe('generateTokensCss — layout tokens', () => {
   const output = generateTokensCss(layoutConfig);
 
   it('generates layout CSS variables', () => {
-    expect(output).toContain('--test-layout-content-size: 645px;');
-    expect(output).toContain('--test-layout-wide-size: 1340px;');
+    expect(output).toContain('--test--layout-content-size: 645px;');
+    expect(output).toContain('--test--layout-wide-size: 1340px;');
   });
 
   it('groups layout tokens with a comment', () => {
@@ -130,17 +130,17 @@ describe('generateTokensCss — fluid font sizes', () => {
 
   it('generates clamp() for fluid font sizes', () => {
     expect(output).toContain(
-      '--test-font-size-medium: clamp(0.875rem, 0.875rem + ((0.25) * ((100vw - 320px) / 1280)), 1.125rem);'
+      '--test--font-size-medium: clamp(0.875rem, 0.875rem + ((0.25) * ((100vw - 320px) / 1280)), 1.125rem);'
     );
   });
 
   it('uses correct range for larger fluid sizes', () => {
     expect(output).toContain(
-      '--test-font-size-large: clamp(1.25rem, 1.25rem + ((0.5) * ((100vw - 320px) / 1280)), 1.75rem);'
+      '--test--font-size-large: clamp(1.25rem, 1.25rem + ((0.5) * ((100vw - 320px) / 1280)), 1.75rem);'
     );
   });
 
   it('uses static value when no fluid is defined', () => {
-    expect(output).toContain('--test-font-size-static: 0.75rem;');
+    expect(output).toContain('--test--font-size-static: 0.75rem;');
   });
 });

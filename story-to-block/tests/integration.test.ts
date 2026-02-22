@@ -50,28 +50,28 @@ describe('integration: generate()', () => {
 
   it('writes tokens.css with correct content', () => {
     const content = readFileSync(resolve(TEST_DIR, 'src/tokens.css'), 'utf-8');
-    expect(content).toContain('--inttest-color-primary: #ff0000;');
-    expect(content).toContain('--inttest-color-muted: #999999;');
-    expect(content).toContain('--inttest-spacing-md: 1rem;');
-    expect(content).toContain('--inttest-font-weight-bold: 700;');
-    expect(content).toContain('--inttest-z-modal: 300;');
+    expect(content).toContain('--inttest--color-primary: #ff0000;');
+    expect(content).toContain('--inttest--color-muted: #999999;');
+    expect(content).toContain('--inttest--spacing-md: 1rem;');
+    expect(content).toContain('--inttest--font-weight-bold: 700;');
+    expect(content).toContain('--inttest--z-modal: 300;');
   });
 
   it('writes tokens.wp.css with var() mappings for slugged tokens', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/tokens.wp.css'), 'utf-8');
     // "primary" slug is auto-derived from key
     expect(content).toContain(
-      '--inttest-color-primary: var(--wp--preset--color--primary, #ff0000);',
+      '--inttest--color-primary: var(--wp--preset--color--primary, #ff0000);',
     );
     // "muted" also gets auto-derived slug
     expect(content).toContain(
-      '--inttest-color-muted: var(--wp--preset--color--muted, #999999);',
+      '--inttest--color-muted: var(--wp--preset--color--muted, #999999);',
     );
     // spacing slug is explicitly set to "40"
     expect(content).toContain(
-      '--inttest-spacing-md: var(--wp--preset--spacing--40, 1rem);',
+      '--inttest--spacing-md: var(--wp--preset--spacing--40, 1rem);',
     );
-    expect(content).toContain('--inttest-font-weight-bold: 700;');
+    expect(content).toContain('--inttest--font-weight-bold: 700;');
   });
 
   it('writes theme.json with auto-derived names', () => {

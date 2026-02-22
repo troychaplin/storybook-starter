@@ -1,5 +1,5 @@
 {
-  "prefix": "starter",
+  "prefix": "design-system",
   "tokensPath": "src/styles/tokens.css",
   "outDir": "dist/wp",
 

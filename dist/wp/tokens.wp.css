@@ -2,37 +2,37 @@
 
 :root {
   /* Colors */
-  --starter-color-primary: var(--wp--preset--color--primary, #0073aa);
-  --starter-color-primary-hover: var(--wp--preset--color--primary-hover, #005a87);
-  --starter-color-secondary: var(--wp--preset--color--secondary, #23282d);
-  --starter-color-secondary-hover: var(--wp--preset--color--secondary-hover, #1a1e21);
-  --starter-color-success: var(--wp--preset--color--success, #00a32a);
-  --starter-color-warning: var(--wp--preset--color--warning, #dba617);
-  --starter-color-error: var(--wp--preset--color--error, #d63638);
-  --starter-color-info: var(--wp--preset--color--info, #72aee6);
+  --design-system--color-primary: var(--wp--preset--color--primary, #0073aa);
+  --design-system--color-primary-hover: var(--wp--preset--color--primary-hover, #005a87);
+  --design-system--color-secondary: var(--wp--preset--color--secondary, #23282d);
+  --design-system--color-secondary-hover: var(--wp--preset--color--secondary-hover, #1a1e21);
+  --design-system--color-success: var(--wp--preset--color--success, #00a32a);
+  --design-system--color-warning: var(--wp--preset--color--warning, #dba617);
+  --design-system--color-error: var(--wp--preset--color--error, #d63638);
+  --design-system--color-info: var(--wp--preset--color--info, #72aee6);
 
   /* Gradients */
-  --starter-gradient-gradient-1: var(--wp--preset--gradient--custom-gradient-1, linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%));
-  --starter-gradient-gradient-2: var(--wp--preset--gradient--custom-gradient-2, linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%));
+  --design-system--gradient-gradient-1: var(--wp--preset--gradient--custom-gradient-1, linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%));
+  --design-system--gradient-gradient-2: var(--wp--preset--gradient--custom-gradient-2, linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%));
 
   /* Font Families */
-  --starter-font-family-inter: var(--wp--preset--font-family--inter, Inter, sans-serif);
-  --starter-font-family-system: var(--wp--preset--font-family--system, -apple-system, BlinkMacSystemFont, sans-serif);
+  --design-system--font-family-inter: var(--wp--preset--font-family--inter, Inter, sans-serif);
+  --design-system--font-family-system: var(--wp--preset--font-family--system, -apple-system, BlinkMacSystemFont, sans-serif);
 
   /* Font Sizes */
-  --starter-font-size-small: var(--wp--preset--font-size--small, clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem));
-  --starter-font-size-medium: var(--wp--preset--font-size--medium, clamp(1rem, 1rem + ((0.125) * ((100vw - 320px) / 1280)), 1.125rem));
-  --starter-font-size-large: var(--wp--preset--font-size--large, clamp(1.125rem, 1.125rem + ((0.125) * ((100vw - 320px) / 1280)), 1.25rem));
-  --starter-font-size-x-large: var(--wp--preset--font-size--x-large, clamp(1.25rem, 1.25rem + ((0.25) * ((100vw - 320px) / 1280)), 1.5rem));
+  --design-system--font-size-small: var(--wp--preset--font-size--small, clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem));
+  --design-system--font-size-medium: var(--wp--preset--font-size--medium, clamp(1rem, 1rem + ((0.125) * ((100vw - 320px) / 1280)), 1.125rem));
+  --design-system--font-size-large: var(--wp--preset--font-size--large, clamp(1.125rem, 1.125rem + ((0.125) * ((100vw - 320px) / 1280)), 1.25rem));
+  --design-system--font-size-x-large: var(--wp--preset--font-size--x-large, clamp(1.25rem, 1.25rem + ((0.25) * ((100vw - 320px) / 1280)), 1.5rem));
 
   /* Shadows */
-  --starter-shadow-natural: var(--wp--preset--shadow--natural, 6px 6px 9px rgba(0, 0, 0, 0.2));
-  --starter-shadow-deep: var(--wp--preset--shadow--deep, 12px 12px 50px rgba(0, 0, 0, 0.4));
-  --starter-shadow-sharp: var(--wp--preset--shadow--sharp, 6px 6px 0px rgba(0, 0, 0, 0.2));
-  --starter-shadow-outlined: var(--wp--preset--shadow--outlined, 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0));
-  --starter-shadow-crisp: var(--wp--preset--shadow--crisp, 6px 6px 0px rgb(0, 0, 0));
+  --design-system--shadow-natural: var(--wp--preset--shadow--natural, 6px 6px 9px rgba(0, 0, 0, 0.2));
+  --design-system--shadow-deep: var(--wp--preset--shadow--deep, 12px 12px 50px rgba(0, 0, 0, 0.4));
+  --design-system--shadow-sharp: var(--wp--preset--shadow--sharp, 6px 6px 0px rgba(0, 0, 0, 0.2));
+  --design-system--shadow-outlined: var(--wp--preset--shadow--outlined, 6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0));
+  --design-system--shadow-crisp: var(--wp--preset--shadow--crisp, 6px 6px 0px rgb(0, 0, 0));
 
   /* Layout */
-  --starter-layout-content-size: 768px;
-  --starter-layout-wide-size: 1280px;
+  --design-system--layout-content-size: 768px;
+  --design-system--layout-wide-size: 1280px;
 }

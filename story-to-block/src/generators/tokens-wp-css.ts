@@ -25,7 +25,7 @@ export function generateTokensWpCss(config: StbConfig): string {
     lines.push(`  /* ${def.label} */`);
 
     for (const [key, entry] of Object.entries(group)) {
-      const varName = `--${config.prefix}-${def.cssSegment}-${key}`;
+      const varName = `--${config.prefix}--${def.cssSegment}-${key}`;
       const fallback = entry.fluid ? buildFluidClamp(entry) ?? entry.value : entry.value;
 
       if (def.wpPreset && entry.slug) {
