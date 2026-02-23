@@ -207,6 +207,24 @@ describe('validateConfig — fluid value auto-derive', () => {
   });
 });
 
+describe('validateConfig — wpThemeable flag', () => {
+  it('defaults wpThemeable to false when omitted', () => {
+    const result = validateConfig({ prefix: 'test', color: { primary: { value: '#000' } } });
+    expect(result.wpThemeable).toBe(false);
+  });
+
+  it('sets wpThemeable to true when explicitly true', () => {
+    const result = validateConfig({ prefix: 'test', wpThemeable: true, color: { primary: { value: '#000' } } });
+    expect(result.wpThemeable).toBe(true);
+  });
+
+  it('does not treat wpThemeable as a token category', () => {
+    const result = validateConfig({ prefix: 'test', wpThemeable: true, color: { primary: { value: '#000' } } });
+    expect(result.wpThemeable).toBe(true);
+    expect(result.tokens).not.toHaveProperty('wpThemeable');
+  });
+});
+
 describe('validateConfig — cssOnly flag', () => {
   it('skips slug/name auto-derive when cssOnly is true', () => {
     const result = validateConfig({

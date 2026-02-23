@@ -162,6 +162,7 @@ export interface StbConfig {
   tokensPath: string;
   fontsPath: string;
   outDir: string;
+  wpThemeable: boolean;
   tokens: Partial<Record<TokenCategory, TokenGroup>>;
 }
 
@@ -186,7 +187,8 @@ export interface StbConfigInput {
   tokensPath?: string;
   fontsPath?: string;
   outDir?: string;
-  [category: string]: string | TokenGroupInput | undefined;
+  wpThemeable?: boolean;
+  [category: string]: string | boolean | TokenGroupInput | undefined;
 }
 
 /**

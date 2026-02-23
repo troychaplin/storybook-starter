@@ -13,7 +13,7 @@ stb.config.json                       (single source of truth)
     │
     ├──► src/styles/tokens.css        (CSS vars for Storybook dev)
     ├──► src/styles/fonts.css         (@font-face declarations)
-    ├──► dist/wp/tokens.wp.css        (CSS vars mapped to --wp--preset--*)
+    ├──► dist/wp/tokens.wp.css        (if wpThemeable: true)
     ├──► dist/wp/theme.json           (WordPress theme.json base layer)
     ├──► dist/wp/integrate.php        (WordPress filter hook)
     └──► dist/wp/assets/fonts/        (copied font files)
@@ -236,7 +236,9 @@ Generated to `src/styles/fonts.css` when fontFamily tokens have `fontFace` defin
 
 ### tokens.wp.css — WordPress Preset Mapping (Themeable)
 
-Generated to `dist/wp/tokens.wp.css`. **Object entries** (without `cssOnly`) map to WordPress preset variables, making them overridable via the Site Editor. **CSS-only tokens** (string shorthand or `cssOnly: true`) get hardcoded values:
+**Opt-in:** This file is only generated when `"wpThemeable": true` is set in the config. By default, all tokens use hardcoded values via `tokens.css`.
+
+When enabled, `tokens.wp.css` is generated to `dist/wp/tokens.wp.css`. **Object entries** (without `cssOnly`) map to WordPress preset variables, making them overridable via the Site Editor. **CSS-only tokens** (string shorthand or `cssOnly: true`) get hardcoded values:
 
 ```css
 :root {
@@ -261,11 +263,11 @@ When a content editor changes "Primary" in the Site Editor, the `--wp--preset--c
 
 ### Which CSS File to Use
 
-| Scenario | File | Behavior |
-|----------|------|----------|
-| Storybook / React app | `tokens.css` | All values hardcoded |
-| WordPress — locked design system | `tokens.css` | Components ignore Site Editor changes |
-| WordPress — themeable | `tokens.wp.css` | Preset tokens follow Site Editor; CSS-only tokens stay locked |
+| Scenario | Config | File | Behavior |
+|----------|--------|------|----------|
+| Storybook / React app | default | `tokens.css` | All values hardcoded |
+| WordPress — locked design system | default | `tokens.css` | Components ignore Site Editor changes |
+| WordPress — themeable | `wpThemeable: true` | `tokens.wp.css` | Preset tokens follow Site Editor; CSS-only tokens stay locked |
 
 ### theme.json
 

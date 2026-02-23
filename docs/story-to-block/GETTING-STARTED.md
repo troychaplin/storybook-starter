@@ -18,7 +18,7 @@ your-project/
 │
 └── dist/wp/
     ├── theme.json                   (generated — base theme.json layer)
-    ├── tokens.wp.css                (generated — CSS vars mapped to --wp--preset--*)
+    ├── tokens.wp.css                (generated — if wpThemeable: true)
     ├── integrate.php                (generated — PHP filter hook)
     └── assets/fonts/                (generated — copied font files)
 ```
@@ -115,6 +115,7 @@ Create `stb.config.json` in your project root. Categories are defined at the top
 | `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file |
 | `fontsPath` | No | `public/fonts` | Source directory for font files |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
+| `wpThemeable` | No | `false` | When `true`, generates `tokens.wp.css` with `--wp--preset--*` variable mappings |
 
 ### Token Syntax
 
@@ -233,9 +234,11 @@ This reads `stb.config.json` and produces:
 | `tokens.css` | `src/styles/tokens.css` | CSS variables with hardcoded values |
 | `fonts.css` | `src/styles/fonts.css` | @font-face declarations (if fontFace defined) |
 | `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer |
-| `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapped to `--wp--preset--*` |
+| `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapped to `--wp--preset--*` (if `wpThemeable: true`) |
 | `integrate.php` | `dist/wp/integrate.php` | PHP filter for wp_theme_json_data_default |
 | Font files | `dist/wp/assets/fonts/` | Copied from `fontsPath` |
+
+By default, all tokens use hardcoded values (locked design system). To allow WordPress theme overrides via the Site Editor, add `"wpThemeable": true` to your config. This generates an additional `tokens.wp.css` file that maps preset tokens to `--wp--preset--*` variables.
 
 ## Using Generated Tokens in Components
 

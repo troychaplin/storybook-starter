@@ -10,7 +10,7 @@ const DEFAULTS = {
 } as const;
 
 /** Reserved config keys that are not token categories */
-const CONFIG_KEYS = ['prefix', 'tokensPath', 'fontsPath', 'outDir'] as const;
+const CONFIG_KEYS = ['prefix', 'tokensPath', 'fontsPath', 'outDir', 'wpThemeable'] as const;
 
 export function loadConfig(configPath?: string): StbConfig {
   const resolvedPath = resolve(configPath ?? 'stb.config.json');
@@ -141,6 +141,7 @@ export function validateConfig(input: StbConfigInput): StbConfig {
     tokensPath: input.tokensPath ?? DEFAULTS.tokensPath,
     fontsPath: input.fontsPath ?? DEFAULTS.fontsPath,
     outDir: input.outDir ?? DEFAULTS.outDir,
+    wpThemeable: input.wpThemeable === true,
     tokens,
   };
 }

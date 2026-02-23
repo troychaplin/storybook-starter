@@ -42,7 +42,9 @@ export function generate(configPath?: string, cwd?: string): GenerateResult {
   }
 
   // Generate WordPress assets
-  write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
+  if (config.wpThemeable) {
+    write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
+  }
   write(`${config.outDir}/theme.json`, generateThemeJson(config));
   write(`${config.outDir}/integrate.php`, generateIntegratePhp());
 

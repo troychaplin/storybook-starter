@@ -9,33 +9,14 @@
     },
 
     "color": {
-        "primary": {
-            "value": "#0073aa",
-            "name": "Primary Brand Color"
-        },
-        "primary-hover": {
-            "value": "#005a87",
-            "cssOnly": true
-        },
-        "secondary": {
-            "value": "#23282d"
-        },
-        "secondary-hover": {
-            "value": "#1a1e21",
-            "cssOnly": true
-        },
-        "success": {
-            "value": "#00a32a"
-        },
-        "warning": {
-            "value": "#dba617"
-        },
-        "error": {
-            "value": "#d63638"
-        },
-        "info": {
-            "value": "#72aee6"
-        }
+        "primary": { "value": "#0073aa", "name": "Primary Brand Color" },
+        "primary-hover": { "value": "#005a87", "cssOnly": true },
+        "secondary": { "value": "#23282d" },
+        "secondary-hover": { "value": "#1a1e21", "cssOnly": true },
+        "success": { "value": "#00a32a" },
+        "warning": { "value": "#dba617" },
+        "error": { "value": "#d63638" },
+        "info": { "value": "#72aee6" }
     },
 
     "gradient": {
