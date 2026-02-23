@@ -30,12 +30,12 @@
     // Content
     &__content {
         color: black;
-        font-size: var(--design-system--font-size-medium);
-        line-height: 1.5;
+        // font-size: var(--design-system--font-size-medium);
+        // line-height: 1.5;
 
-        p + p {
-            margin-top: var(--design-system--spacing-2x-small);
-        }
+        // p + p {
+        //     margin-top: var(--design-system--spacing-2x-small);
+        // }
     }
 
     // Featured variant
