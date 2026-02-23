@@ -91,6 +91,36 @@
         }
       ]
     },
+    "shadow": {
+      "defaultPresets": false,
+      "presets": [
+        {
+          "slug": "natural",
+          "shadow": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+          "name": "Natural"
+        },
+        {
+          "slug": "deep",
+          "shadow": "12px 12px 50px rgba(0, 0, 0, 0.4)",
+          "name": "Deep"
+        },
+        {
+          "slug": "sharp",
+          "shadow": "6px 6px 0px rgba(0, 0, 0, 0.2)",
+          "name": "Sharp"
+        },
+        {
+          "slug": "outlined",
+          "shadow": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
+          "name": "Outlined"
+        },
+        {
+          "slug": "crisp",
+          "shadow": "6px 6px 0px rgb(0, 0, 0)",
+          "name": "Crisp"
+        }
+      ]
+    },
     "typography": {
       "fontFamilies": [
         {
@@ -152,15 +182,6 @@
     "layout": {
       "contentSize": "768px",
       "wideSize": "1280px"
-    },
-    "custom": {
-      "shadow": {
-        "natural": "6px 6px 9px rgba(0, 0, 0, 0.2)",
-        "deep": "12px 12px 50px rgba(0, 0, 0, 0.4)",
-        "sharp": "6px 6px 0px rgba(0, 0, 0, 0.2)",
-        "outlined": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
-        "crisp": "6px 6px 0px rgb(0, 0, 0)"
-      }
     },
     "useRootPaddingAwareAlignments": true
   }

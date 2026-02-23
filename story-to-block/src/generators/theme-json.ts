@@ -23,6 +23,12 @@ export function generateThemeJson(config: StbConfig): string {
     };
   }
 
+  if (config.tokens.shadow) {
+    settings.shadow = {
+      defaultPresets: config.wpThemeable,
+    };
+  }
+
   for (const category of CATEGORY_ORDER) {
     const group = config.tokens[category];
     if (!group) continue;

@@ -164,6 +164,10 @@ describe('generateThemeJson — shadow presets', () => {
   const output = generateThemeJson(shadowConfig);
   const parsed = JSON.parse(output);
 
+  it('disables WordPress default shadow presets when not wpThemeable', () => {
+    expect(parsed.settings.shadow.defaultPresets).toBe(false);
+  });
+
   it('places named shadows in settings.shadow.presets', () => {
     expect(parsed.settings.shadow.presets).toEqual([
       { slug: 'sm', shadow: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small' },
@@ -342,6 +346,42 @@ describe('generateThemeJson — WordPress default preset flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.spacing).toBeUndefined();
+  });
+
+  it('disables shadow defaults when wpThemeable is false', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        shadow: { sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow.defaultPresets).toBe(false);
+  });
+
+  it('enables shadow defaults when wpThemeable is true', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        shadow: { sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow.defaultPresets).toBe(true);
+  });
+
+  it('does not set shadow defaults when no shadow tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow).toBeUndefined();
   });
 });
 
