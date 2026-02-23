@@ -47,6 +47,16 @@
         "x-large": { "fluid": { "min": "1.25rem", "max": "1.5rem" } }
     },
 
+    "spacing": {
+        "2x-small": { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
+        "x-small":  { "value": "0.5rem",  "slug": "30", "name": "X-Small" },
+        "small":    { "value": "min(0.75rem, 1vw)",  "slug": "40", "name": "Small" },
+        "medium":   { "value": "min(1.5rem, 2vw)",   "slug": "50", "name": "Medium" },
+        "large":    { "value": "min(2.25rem, 3vw)",   "slug": "60", "name": "Large" },
+        "x-large":  { "value": "min(3rem, 4vw)",      "slug": "70", "name": "X-Large" },
+        "2x-large": { "value": "min(4.5rem, 6vw)",    "slug": "80", "name": "2X-Large" }
+    },
+
     "shadow": {
         "natural":  "6px 6px 9px rgba(0, 0, 0, 0.2)",
         "deep":     "12px 12px 50px rgba(0, 0, 0, 0.4)",

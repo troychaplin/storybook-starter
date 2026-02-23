@@ -205,6 +205,7 @@ describe('generateThemeJson — typography flags', () => {
       tokensPath: 'src/styles/tokens.css',
       fontsPath: 'public/fonts',
       outDir: 'dist/wp',
+      wpThemeable: false,
       tokens: {
         fontSize: {
           small: { value: '1rem', name: 'Small', slug: 'small' },
@@ -221,6 +222,7 @@ describe('generateThemeJson — typography flags', () => {
       tokensPath: 'src/styles/tokens.css',
       fontsPath: 'public/fonts',
       outDir: 'dist/wp',
+      wpThemeable: false,
       tokens: {
         fontFamily: {
           base: { value: 'sans-serif', name: 'Sans', slug: 'body' },
@@ -229,6 +231,42 @@ describe('generateThemeJson — typography flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.typography.fluid).toBeUndefined();
+  });
+});
+
+describe('generateThemeJson — spacing flags', () => {
+  it('sets defaultSpacingSizes to false when spacing tokens exist', () => {
+    const cfg: StbConfig = {
+      prefix: 'test',
+      tokensPath: 'src/styles/tokens.css',
+      fontsPath: 'public/fonts',
+      outDir: 'dist/wp',
+      wpThemeable: false,
+      tokens: {
+        spacing: {
+          md: { value: '1rem', slug: '40', name: 'Medium' },
+        },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(false);
+  });
+
+  it('does not set spacing.defaultSpacingSizes when no spacing tokens', () => {
+    const cfg: StbConfig = {
+      prefix: 'test',
+      tokensPath: 'src/styles/tokens.css',
+      fontsPath: 'public/fonts',
+      outDir: 'dist/wp',
+      wpThemeable: false,
+      tokens: {
+        colorPalette: {
+          primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+        },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing).toBeUndefined();
   });
 });
 

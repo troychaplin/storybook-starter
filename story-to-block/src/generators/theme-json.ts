@@ -58,6 +58,12 @@ export function generateThemeJson(config: StbConfig): string {
     settings.typography.fluid = true;
   }
 
+  // When custom spacing sizes are defined, disable WordPress defaults
+  if (config.tokens.spacing) {
+    if (!settings.spacing) settings.spacing = {};
+    settings.spacing.defaultSpacingSizes = false;
+  }
+
   // Merge custom values into settings
   if (Object.keys(custom).length > 0) {
     settings.custom = custom;

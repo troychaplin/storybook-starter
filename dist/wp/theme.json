@@ -48,6 +48,46 @@
         }
       ]
     },
+    "spacing": {
+      "spacingSizes": [
+        {
+          "slug": "20",
+          "size": "0.25rem",
+          "name": "2X-Small"
+        },
+        {
+          "slug": "30",
+          "size": "0.5rem",
+          "name": "X-Small"
+        },
+        {
+          "slug": "40",
+          "size": "min(0.75rem, 1vw)",
+          "name": "Small"
+        },
+        {
+          "slug": "50",
+          "size": "min(1.5rem, 2vw)",
+          "name": "Medium"
+        },
+        {
+          "slug": "60",
+          "size": "min(2.25rem, 3vw)",
+          "name": "Large"
+        },
+        {
+          "slug": "70",
+          "size": "min(3rem, 4vw)",
+          "name": "X-Large"
+        },
+        {
+          "slug": "80",
+          "size": "min(4.5rem, 6vw)",
+          "name": "2X-Large"
+        }
+      ],
+      "defaultSpacingSizes": false
+    },
     "typography": {
       "fontFamilies": [
         {

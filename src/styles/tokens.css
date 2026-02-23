@@ -15,6 +15,15 @@
   --design-system--gradient-gradient-1: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
   --design-system--gradient-gradient-2: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
 
+  /* Spacing */
+  --design-system--spacing-2x-small: 0.25rem;
+  --design-system--spacing-x-small: 0.5rem;
+  --design-system--spacing-small: min(0.75rem, 1vw);
+  --design-system--spacing-medium: min(1.5rem, 2vw);
+  --design-system--spacing-large: min(2.25rem, 3vw);
+  --design-system--spacing-x-large: min(3rem, 4vw);
+  --design-system--spacing-2x-large: min(4.5rem, 6vw);
+
   /* Font Families */
   --design-system--font-family-inter: Inter, sans-serif;
   --design-system--font-family-system: -apple-system, BlinkMacSystemFont, sans-serif;
