@@ -4,55 +4,48 @@
  * Requires: tokens.css (CSS variables)
  */
 
-.prefix-card {
-  background-color: var(--prefix-color-background);
-  border: 1px solid var(--prefix-color-border);
-  border-radius: var(--prefix-radius-lg);
-  box-shadow: var(--prefix-shadow-sm);
-  overflow: hidden;
-  transition: box-shadow var(--prefix-transition-normal);
+.example-card {
+    overflow: hidden;
+    background-color: white;
+    padding: var(--design-system--spacing-medium) var(--design-system--spacing-large);
+    border: 2px solid var(--design-system--color-primary);
+    border-radius: 4px;
+    box-shadow: var(--design-system--shadow-sharp);
 
-  &:hover {
-    box-shadow: var(--prefix-shadow-md);
-  }
-
-  // Header
-  &__header {
-    padding: var(--prefix-spacing-md) var(--prefix-spacing-lg);
-    border-bottom: 1px solid var(--prefix-color-border-light);
-  }
-
-  &__title {
-    font-size: var(--prefix-font-size-lg);
-    font-weight: var(--prefix-font-weight-semibold);
-    line-height: var(--prefix-line-height-tight);
-    color: var(--prefix-color-text);
-  }
-
-  // Content
-  &__content {
-    padding: var(--prefix-spacing-lg);
-    color: var(--prefix-color-text);
-    font-size: var(--prefix-font-size-base);
-    line-height: var(--prefix-line-height-normal);
-
-    p + p {
-      margin-top: var(--prefix-spacing-md);
-    }
-  }
-
-  // Featured variant
-  &--featured {
-    border-color: var(--prefix-color-primary);
-    border-width: 2px;
-
-    .prefix-card__header {
-      background-color: var(--prefix-color-primary-light);
-      border-bottom-color: var(--prefix-color-primary);
+    &:hover {
+        box-shadow: var(--design-system--shadow-crisp);
     }
 
-    .prefix-card__title {
-      color: var(--prefix-color-primary);
+    &__header {
+        margin-bottom: var(--design-system--spacing-2x-small);
     }
-  }
+
+    &__title {
+        font-size: var(--design-system--font-size-x-large);
+        font-weight: 700;
+        color: var(--design-system--color-primary);
+        line-height: 1.5;
+    }
+
+    // Content
+    &__content {
+        color: black;
+        font-size: var(--design-system--font-size-medium);
+        line-height: 1.5;
+
+        p + p {
+            margin-top: var(--design-system--spacing-2x-small);
+        }
+    }
+
+    // Featured variant
+    &--featured {
+        box-shadow: var(--design-system--shadow-outlined);
+        border-color: var(--design-system--color-error);
+        border-width: 2px;
+
+        .prefix-card__title {
+            color: var(--design-system--color-secondary);
+        }
+    }
 }
