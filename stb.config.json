@@ -64,5 +64,24 @@
         "sharp":    { "value": "6px 6px 0px rgba(0, 0, 0, 0.2)" },
         "outlined": { "value": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)" },
         "crisp":    { "value": "6px 6px 0px rgb(0, 0, 0)" }
+    },
+
+    "baseStyles": {
+        "body": {
+            "fontFamily": "inter",
+            "fontSize": "medium",
+            "fontWeight": "400",
+            "lineHeight": "1.6"
+        },
+        "heading": {
+            "fontFamily": "inter"
+        },
+        "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
+        "h2": { "fontSize": "3rem", "fontWeight": "500" },
+        "h3": { "fontSize": "2.5rem", "fontWeight": "500" },
+        "h4": { "fontSize": "2rem", "fontWeight": "500" },
+        "h5": { "fontSize": "1.5rem", "fontWeight": "500" },
+        "h6": { "fontSize": "1.45rem", "fontWeight": "500", "fontStyle": "italic" },
+        "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
     }
 }

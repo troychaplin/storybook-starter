@@ -77,6 +77,99 @@ describe('integration: generate() — default (locked)', () => {
   });
 });
 
+describe('integration: generate() — baseStyles', () => {
+  const BS_TEST_DIR = resolve(import.meta.dirname ?? '.', '__test-output-bs__');
+  const BS_CONFIG_PATH = resolve(BS_TEST_DIR, 'stb.config.json');
+
+  const baseStylesConfig = {
+    ...testConfig,
+    fontFamily: {
+      inter: { value: 'Inter, sans-serif', name: 'Inter' },
+    },
+    fontSize: {
+      medium: { value: '1.125rem', name: 'Medium' },
+      small: { value: '1rem', name: 'Small' },
+    },
+    baseStyles: {
+      body: {
+        fontFamily: 'inter',
+        fontSize: 'medium',
+        fontWeight: '400',
+        lineHeight: '1.6',
+      },
+      heading: { fontFamily: 'inter' },
+      h1: { fontSize: '4.5rem', fontWeight: '500' },
+      h2: { fontSize: '3rem', fontWeight: '500' },
+      caption: { fontSize: 'small', fontStyle: 'italic', fontWeight: '300' },
+    },
+  };
+
+  beforeAll(() => {
+    mkdirSync(BS_TEST_DIR, { recursive: true });
+    writeFileSync(BS_CONFIG_PATH, JSON.stringify(baseStylesConfig, null, 2));
+  });
+
+  afterAll(() => {
+    rmSync(BS_TEST_DIR, { recursive: true, force: true });
+  });
+
+  it('file count includes _content-generated.scss', () => {
+    const result = generate(BS_CONFIG_PATH, BS_TEST_DIR);
+
+    const paths = result.files.map((f) => f.path);
+    expect(paths).toContain('src/_content-generated.scss');
+    // base files: tokens.css, theme.json, integrate.php + _content-generated.scss = 4
+    expect(result.files.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('_content-generated.scss has :where() selectors', () => {
+    generate(BS_CONFIG_PATH, BS_TEST_DIR);
+    const content = readFileSync(
+      resolve(BS_TEST_DIR, 'src/_content-generated.scss'),
+      'utf-8',
+    );
+
+    expect(content).toContain(':where(h1, h2, h3, h4, h5, h6) {');
+    expect(content).toContain(':where(h1) {');
+    expect(content).toContain(':where(h2) {');
+    expect(content).toContain(':where(figcaption) {');
+    expect(content).toContain('var(--inttest--font-family-inter)');
+    expect(content).toContain('var(--inttest--font-size-medium)');
+  });
+
+  it('theme.json includes styles block', () => {
+    generate(BS_CONFIG_PATH, BS_TEST_DIR);
+    const content = readFileSync(
+      resolve(BS_TEST_DIR, 'out/wp/theme.json'),
+      'utf-8',
+    );
+    const parsed = JSON.parse(content);
+
+    expect(parsed.styles).toBeDefined();
+    expect(parsed.styles.typography).toBeDefined();
+    expect(parsed.styles.typography.fontFamily).toContain('--wp--preset--font-family--inter');
+    expect(parsed.styles.elements).toBeDefined();
+    expect(parsed.styles.elements.heading).toBeDefined();
+    expect(parsed.styles.elements.h1).toBeDefined();
+    expect(parsed.styles.elements.caption).toBeDefined();
+  });
+
+  it('settings remain unchanged when baseStyles is added', () => {
+    generate(BS_CONFIG_PATH, BS_TEST_DIR);
+    const content = readFileSync(
+      resolve(BS_TEST_DIR, 'out/wp/theme.json'),
+      'utf-8',
+    );
+    const parsed = JSON.parse(content);
+
+    expect(parsed.version).toBe(3);
+    expect(parsed.settings).toBeDefined();
+    expect(parsed.settings.color.palette).toEqual([
+      { slug: 'primary', color: '#ff0000', name: 'Primary' },
+    ]);
+  });
+});
+
 describe('integration: generate() — wpThemeable', () => {
   const WP_TEST_DIR = resolve(import.meta.dirname ?? '.', '__test-output-wp__');
   const WP_CONFIG_PATH = resolve(WP_TEST_DIR, 'stb.config.json');

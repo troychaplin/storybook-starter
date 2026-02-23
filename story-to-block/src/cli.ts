@@ -36,6 +36,7 @@ try {
     const { generateThemeJson } = await import('./generators/theme-json.js');
     const { generateIntegratePhp } = await import('./generators/integrate-php.js');
     const { generateFontsCss } = await import('./generators/fonts-css.js');
+    const { generateContentScss } = await import('./generators/content-scss.js');
 
     const config = loadConfig(configPath);
 
@@ -45,6 +46,11 @@ try {
     if (fontsCss) {
       console.log('=== fonts.css ===');
       console.log(fontsCss);
+    }
+    const contentScss = generateContentScss(config);
+    if (contentScss) {
+      console.log('=== _content-generated.scss ===');
+      console.log(contentScss);
     }
     if (config.wpThemeable) {
       console.log('=== tokens.wp.css ===');

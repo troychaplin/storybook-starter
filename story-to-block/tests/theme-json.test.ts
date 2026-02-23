@@ -431,3 +431,76 @@ describe('generateThemeJson — fontFace', () => {
     expect(system.fontFace).toBeUndefined();
   });
 });
+
+describe('generateThemeJson — baseStyles', () => {
+  const baseStylesConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      fontFamily: {
+        inter: { value: 'Inter, sans-serif', name: 'Inter', slug: 'inter' },
+      },
+      fontSize: {
+        small: { value: '1rem', name: 'Small', slug: 'small' },
+        medium: { value: '1.125rem', name: 'Medium', slug: 'medium' },
+      },
+    },
+    baseStyles: {
+      body: {
+        fontFamily: 'inter',
+        fontSize: 'medium',
+        fontWeight: '400',
+        lineHeight: '1.6',
+      },
+      heading: { fontFamily: 'inter' },
+      h1: { fontSize: '4.5rem', fontWeight: '500' },
+      h6: { fontSize: '1.45rem', fontWeight: '500', fontStyle: 'italic' },
+      caption: { fontSize: 'small', fontStyle: 'italic', fontWeight: '300' },
+    },
+  };
+
+  const parsed = JSON.parse(generateThemeJson(baseStylesConfig));
+
+  it('does not include styles block when baseStyles absent', () => {
+    const noBaseStyles = JSON.parse(generateThemeJson({ ...baseStylesConfig, baseStyles: undefined }));
+    expect(noBaseStyles.styles).toBeUndefined();
+  });
+
+  it('maps body to styles.typography with resolved token refs', () => {
+    expect(parsed.styles.typography.fontFamily).toBe('var(--wp--preset--font-family--inter)');
+    expect(parsed.styles.typography.fontSize).toBe('var(--wp--preset--font-size--medium)');
+  });
+
+  it('passes raw body values through', () => {
+    expect(parsed.styles.typography.fontWeight).toBe('400');
+    expect(parsed.styles.typography.lineHeight).toBe('1.6');
+  });
+
+  it('maps heading to styles.elements.heading', () => {
+    expect(parsed.styles.elements.heading.typography.fontFamily).toBe('var(--wp--preset--font-family--inter)');
+  });
+
+  it('maps h1 to styles.elements.h1 with fontStyle normal default', () => {
+    expect(parsed.styles.elements.h1.typography.fontSize).toBe('4.5rem');
+    expect(parsed.styles.elements.h1.typography.fontWeight).toBe('500');
+    expect(parsed.styles.elements.h1.typography.fontStyle).toBe('normal');
+  });
+
+  it('includes explicit fontStyle on h6', () => {
+    expect(parsed.styles.elements.h6.typography.fontStyle).toBe('italic');
+  });
+
+  it('maps caption to styles.elements.caption with resolved token ref', () => {
+    expect(parsed.styles.elements.caption.typography.fontSize).toBe('var(--wp--preset--font-size--small)');
+    expect(parsed.styles.elements.caption.typography.fontStyle).toBe('italic');
+    expect(parsed.styles.elements.caption.typography.fontWeight).toBe('300');
+  });
+
+  it('does not affect existing settings block', () => {
+    expect(parsed.settings.typography.fontFamilies).toBeDefined();
+    expect(parsed.settings.typography.fontSizes).toBeDefined();
+    expect(parsed.version).toBe(3);
+  });
+});

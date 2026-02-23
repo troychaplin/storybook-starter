@@ -1,5 +1,6 @@
-import type { StbConfig, TokenCategory, TokenGroup } from '../types.js';
+import type { StbConfig, TokenCategory, TokenGroup, BaseStylesConfig, BaseStyleElementDef } from '../types.js';
 import { CATEGORY_REGISTRY, CATEGORY_ORDER, kebabToCamel } from '../types.js';
+import { resolveForThemeJson, ensureFontStyle } from '../config.js';
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 type AnySettings = Record<string, any>;
@@ -86,11 +87,19 @@ export function generateThemeJson(config: StbConfig): string {
 
   settings.useRootPaddingAwareAlignments = true;
 
-  const themeJson = {
+  const themeJson: Record<string, unknown> = {
     $schema: 'https://schemas.wp.org/trunk/theme.json',
     version: 3,
     settings,
   };
+
+  // Build styles block from baseStyles config
+  if (config.baseStyles) {
+    const styles = buildStylesBlock(config.baseStyles, config.tokens);
+    if (styles) {
+      themeJson.styles = styles;
+    }
+  }
 
   return JSON.stringify(themeJson, null, 2) + '\n';
 }
@@ -139,4 +148,75 @@ function setNestedValue(obj: AnySettings, path: string, value: unknown): void {
     current = current[parts[i]];
   }
   current[parts[parts.length - 1]] = value;
+}
+
+/**
+ * Build the theme.json styles block from baseStyles config.
+ */
+function buildStylesBlock(
+  baseStyles: BaseStylesConfig,
+  tokens: StbConfig['tokens'],
+): Record<string, unknown> | null {
+  const styles: Record<string, unknown> = {};
+
+  // Body typography → styles.typography
+  if (baseStyles.body) {
+    const bodyTypo = buildTypographyObject(baseStyles.body, tokens);
+    if (Object.keys(bodyTypo).length > 0) {
+      styles.typography = bodyTypo;
+    }
+  }
+
+  // Elements → styles.elements
+  const elements: Record<string, unknown> = {};
+  const elementKeys = ['heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'caption'] as const;
+
+  for (const element of elementKeys) {
+    const def = baseStyles[element];
+    if (!def) continue;
+
+    // Individual headings get fontStyle: normal default
+    const isIndividualHeading = /^h[1-6]$/.test(element);
+    const withDefaults = isIndividualHeading ? ensureFontStyle(def) : def;
+
+    const typo = buildTypographyObject(withDefaults, tokens);
+    if (Object.keys(typo).length > 0) {
+      elements[element] = { typography: typo };
+    }
+  }
+
+  if (Object.keys(elements).length > 0) {
+    styles.elements = elements;
+  }
+
+  return Object.keys(styles).length > 0 ? styles : null;
+}
+
+/**
+ * Build a theme.json typography object from a BaseStyleElementDef.
+ * Values are resolved through resolveForThemeJson.
+ */
+function buildTypographyObject(
+  def: BaseStyleElementDef,
+  tokens: StbConfig['tokens'],
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  if (def.fontFamily !== undefined) {
+    result.fontFamily = resolveForThemeJson(def.fontFamily, tokens);
+  }
+  if (def.fontSize !== undefined) {
+    result.fontSize = resolveForThemeJson(def.fontSize, tokens);
+  }
+  if (def.fontStyle !== undefined) {
+    result.fontStyle = def.fontStyle;
+  }
+  if (def.fontWeight !== undefined) {
+    result.fontWeight = def.fontWeight;
+  }
+  if (def.lineHeight !== undefined) {
+    result.lineHeight = def.lineHeight;
+  }
+
+  return result;
 }
