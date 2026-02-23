@@ -8,6 +8,7 @@ export interface TokenEntry {
   value: string;
   name?: string;
   slug?: string;
+  cssOnly?: boolean;
   fluid?: { min: string; max: string };
   fontFace?: FontFaceEntry[];
 }

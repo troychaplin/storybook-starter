@@ -47,9 +47,10 @@ Create `stb.config.json` in your project root. Categories are defined at the top
   },
 
   "color": {
-    "primary": "#0073aa",
+    "primary": { "value": "#0073aa", "name": "Primary" },
     "primary-hover": "#005a87",
-    "secondary": "#23282d"
+    "secondary": { "value": "#23282d" },
+    "secondary-hover": "#1a1e21"
   },
 
   "spacing": {
@@ -69,8 +70,8 @@ Create `stb.config.json` in your project root. Categories are defined at the top
   },
 
   "fontSize": {
-    "small":  { "value": "1rem",     "fluid": { "min": "0.875rem", "max": "1rem" } },
-    "medium": { "value": "1.125rem", "fluid": { "min": "1rem", "max": "1.125rem" } }
+    "small":  { "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "fluid": { "min": "1rem", "max": "1.125rem" } }
   },
 
   "fontWeight": {
@@ -110,22 +111,72 @@ Create `stb.config.json` in your project root. Categories are defined at the top
 
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `prefix` | Yes | — | CSS variable prefix (e.g. `starter` produces `--starter-*`) |
+| `prefix` | Yes | — | CSS variable prefix (e.g. `starter` produces `--starter--*`) |
 | `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file |
 | `fontsPath` | No | `public/fonts` | Source directory for font files |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
 
 ### Token Syntax
 
-#### String Shorthand
+Every token produces a CSS custom property. The format you choose determines whether it also registers as a WordPress preset (visible in the Site Editor):
 
-For simple tokens, use a string value directly:
+#### Object Syntax — Preset Registration (default)
+
+Object entries auto-derive `slug` and `name` from the key. They register as WordPress presets, appear in the Site Editor, and can be overridden by the active theme:
 
 ```json
 {
   "color": {
-    "primary": "#0073aa",
-    "secondary": "#23282d"
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" },
+    "secondary": { "value": "#23282d" }
+  },
+  "fontSize": {
+    "small": { "fluid": { "min": "0.875rem", "max": "1rem" } }
+  }
+}
+```
+
+#### CSS-Only Tokens
+
+Tokens that should produce a CSS variable but **not** appear in the Site Editor can be marked in two ways:
+
+**Explicit flag** — use `"cssOnly": true` on an object entry. This is the clearest approach and keeps related tokens grouped together:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary" },
+    "primary-hover": { "value": "#005a87", "cssOnly": true },
+    "secondary": { "value": "#23282d" },
+    "secondary-hover": { "value": "#1a1e21", "cssOnly": true }
+  }
+}
+```
+
+**String shorthand** — a string value is always CSS-only. Use this for categories where no tokens need preset registration:
+
+```json
+{
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  }
+}
+```
+
+#### Recommended Pattern
+
+Use `cssOnly` for colors and other preset categories where some tokens are implementation details. Use string shorthand for categories that are entirely CSS-only (fontWeight, lineHeight, radius, transition, zIndex):
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary" },
+    "primary-hover": { "value": "#005a87", "cssOnly": true },
+    "secondary": { "value": "#23282d" },
+    "secondary-hover": { "value": "#1a1e21", "cssOnly": true },
+    "success": { "value": "#00a32a" },
+    "error": { "value": "#d63638" }
   },
   "fontWeight": {
     "normal": "400",
@@ -134,33 +185,16 @@ For simple tokens, use a string value directly:
 }
 ```
 
-#### Object Syntax
-
-For tokens needing additional properties:
-
-```json
-{
-  "fontSize": {
-    "small": {
-      "value": "1rem",
-      "fluid": { "min": "0.875rem", "max": "1rem" }
-    }
-  },
-  "gradient": {
-    "sunset": {
-      "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
-      "slug": "custom-gradient-1"
-    }
-  }
-}
-```
+Here, `primary`, `secondary`, `success`, and `error` appear in the Site Editor palette. `primary-hover` and `secondary-hover` are CSS variables only.
 
 ### Auto-derived Fields
 
-The `slug` and `name` are automatically derived from the token key:
+For object entries (without `cssOnly`), `slug` and `name` are automatically derived from the token key:
 
 - **slug**: Uses the key directly (e.g., `"primary"` → slug `"primary"`)
-- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
+- **name**: Title-cases the key (e.g., `"x-large"` → name `"X Large"`)
+
+For `fontSize` tokens with `fluid`, the `value` is auto-derived from `fluid.max` if not provided.
 
 Override when needed:
 
@@ -179,9 +213,10 @@ Override when needed:
 
 | Property | Required | Description |
 |----------|----------|-------------|
-| `value` | Yes | The CSS value (color hex, rem, font stack, etc.) |
-| `name` | No | Human-readable label (auto-derived from key if not provided) |
-| `slug` | No | WordPress preset slug (auto-derived from key if not provided) |
+| `value` | Yes* | The CSS value. *Auto-derived from `fluid.max` for fluid font sizes |
+| `name` | No | Human-readable label (auto-derived from key for object entries) |
+| `slug` | No | WordPress preset slug (auto-derived from key for object entries) |
+| `cssOnly` | No | When `true`, produces a CSS variable but skips WordPress preset registration |
 | `fluid` | No | Fluid typography settings for fontSize (`{ min, max }`) |
 | `fontFace` | No | Font file definitions for fontFamily |
 
@@ -204,23 +239,19 @@ This reads `stb.config.json` and produces:
 
 ## Using Generated Tokens in Components
 
-After running the generator, `src/styles/tokens.css` contains all your CSS variables:
+After running the generator, `src/styles/tokens.css` contains all your CSS variables. Fluid font sizes use `clamp()` for responsive scaling:
 
 ```css
 /* Auto-generated by story-to-block — do not edit manually */
 
 :root {
   /* Colors */
-  --starter-color-primary: #0073aa;
-  --starter-color-primary-hover: #005a87;
-  --starter-color-secondary: #23282d;
-  /* ... */
+  --starter--color-primary: #0073aa;
+  --starter--color-primary-hover: #005a87;
 
-  /* Spacing */
-  --starter-spacing-xs: 0.25rem;
-  --starter-spacing-sm: 0.5rem;
-  --starter-spacing-md: 1rem;
-  /* ... */
+  /* Font Sizes */
+  --starter--font-size-small: clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem);
+  --starter--font-size-large: clamp(1.25rem, 1.25rem + ((0.5) * ((100vw - 320px) / 1280)), 1.75rem);
 }
 ```
 
@@ -260,7 +291,49 @@ To change a design token value:
 2. Run `npx story-to-block generate`
 3. All outputs update — `tokens.css`, `tokens.wp.css`, `theme.json`
 
-To add a new token, add it to the appropriate category in the config and run the generator. Then reference `--starter-{category}-{key}` in your component CSS.
+To add a new token, add it to the appropriate category in the config and run the generator. Then reference `--starter--{category}-{key}` in your component CSS.
+
+## CSS Output: tokens.css vs tokens.wp.css
+
+The generator produces two CSS token files with different behaviors:
+
+### tokens.css — Hardcoded Values (Locked)
+
+Contains CSS variables with static values. Use this in Storybook, React apps, or WordPress themes where you want **locked** tokens that cannot be changed from the Site Editor.
+
+```css
+--starter--color-primary: #0073aa;
+--starter--font-size-small: clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem);
+```
+
+Every token gets the same treatment — all values are hardcoded.
+
+### tokens.wp.css — WordPress Preset Mapping (Themeable)
+
+Contains CSS variables that reference WordPress preset variables for **object entries** (preset-registered tokens), with the original value as a fallback. **String shorthand** entries get hardcoded values identical to `tokens.css`.
+
+```css
+/* Object entry — maps to WP preset, overridable via Site Editor */
+--starter--color-primary: var(--wp--preset--color--primary, #0073aa);
+
+/* String shorthand — hardcoded, not overridable */
+--starter--color-primary-hover: #005a87;
+
+/* Fluid font sizes use clamp() as fallback */
+--starter--font-size-small: var(--wp--preset--font-size--small, clamp(0.875rem, ...));
+```
+
+When a content editor changes "Primary" in the Site Editor, the `--wp--preset--color--primary` variable updates, and that flows into your component CSS via `--starter--color-primary`. String shorthand tokens like hover states remain stable.
+
+### Which File to Use
+
+| Scenario | File | Behavior |
+|----------|------|----------|
+| Storybook / React app | `tokens.css` | All values hardcoded |
+| WordPress — locked design system | `tokens.css` | Components ignore Site Editor changes |
+| WordPress — themeable | `tokens.wp.css` | Object tokens follow Site Editor; shorthand tokens stay locked |
+
+For most WordPress integrations, `tokens.wp.css` is the right choice. It gives content editors control over the tokens you've explicitly exposed (object entries) while keeping implementation details (string shorthand) stable.
 
 ## Changing the Prefix
 
@@ -351,5 +424,5 @@ npx story-to-block generate --dry-run
 
 - It does not modify your component TSX or CSS files
 - It does not scaffold blocks, `block.json`, or PHP render templates
-- It does not change how components reference CSS variables — they use `--prefix-*` everywhere
+- It does not change how components reference CSS variables — they use `--prefix--*` everywhere
 - It does not require WordPress to build or develop components

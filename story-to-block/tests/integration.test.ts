@@ -57,16 +57,15 @@ describe('integration: generate()', () => {
     expect(content).toContain('--inttest--z-modal: 300;');
   });
 
-  it('writes tokens.wp.css with var() mappings for slugged tokens', () => {
+  it('writes tokens.wp.css with var() mappings for object tokens only', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/tokens.wp.css'), 'utf-8');
-    // "primary" slug is auto-derived from key
+    // "primary" is an object entry — gets slug, mapped to WP preset
     expect(content).toContain(
       '--inttest--color-primary: var(--wp--preset--color--primary, #ff0000);',
     );
-    // "muted" also gets auto-derived slug
-    expect(content).toContain(
-      '--inttest--color-muted: var(--wp--preset--color--muted, #999999);',
-    );
+    // "muted" is string shorthand — CSS-only, no WP preset mapping
+    expect(content).toContain('--inttest--color-muted: #999999;');
+    expect(content).not.toContain('--wp--preset--color--muted');
     // spacing slug is explicitly set to "40"
     expect(content).toContain(
       '--inttest--spacing-md: var(--wp--preset--spacing--40, 1rem);',
@@ -74,15 +73,14 @@ describe('integration: generate()', () => {
     expect(content).toContain('--inttest--font-weight-bold: 700;');
   });
 
-  it('writes theme.json with auto-derived names', () => {
+  it('writes theme.json — only object tokens appear in presets', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/theme.json'), 'utf-8');
     const parsed = JSON.parse(content);
 
     expect(parsed.version).toBe(3);
-    // All colors now have auto-derived slug/name and appear in palette
+    // Only "primary" (object entry) appears in palette — "muted" is string shorthand
     expect(parsed.settings.color.palette).toEqual([
       { slug: 'primary', color: '#ff0000', name: 'Primary' },
-      { slug: 'muted', color: '#999999', name: 'Muted' },
     ]);
     expect(parsed.settings.custom.fontWeight).toEqual({ bold: '700' });
     expect(parsed.settings.custom).not.toHaveProperty('zIndex');

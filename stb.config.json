@@ -1,57 +1,76 @@
 {
-  "prefix": "design-system",
-  "tokensPath": "src/styles/tokens.css",
-  "outDir": "dist/wp",
+    "prefix": "design-system",
+    "tokensPath": "src/styles/tokens.css",
+    "outDir": "dist/wp",
 
-  "layout": {
-    "content-size": "768px",
-    "wide-size": "1280px"
-  },
-
-  "color": {
-    "primary": { "value": "#0073aa", "name": "Primary Brand Color" },
-    "primary-hover": "#005a87",
-    "secondary": "#23282d",
-    "secondary-hover": "#1a1e21",
-    "success": "#00a32a",
-    "warning": "#dba617",
-    "error": "#d63638",
-    "info": "#72aee6"
-  },
-
-  "gradient": {
-    "gradient-1": {
-      "value": "linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%)",
-      "slug": "custom-gradient-1"
+    "layout": {
+        "content-size": "768px",
+        "wide-size": "1280px"
     },
-    "gradient-2": {
-      "value": "linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%)",
-      "slug": "custom-gradient-2"
+
+    "color": {
+        "primary": {
+            "value": "#0073aa",
+            "name": "Primary Brand Color"
+        },
+        "primary-hover": {
+            "value": "#005a87",
+            "cssOnly": true
+        },
+        "secondary": {
+            "value": "#23282d"
+        },
+        "secondary-hover": {
+            "value": "#1a1e21",
+            "cssOnly": true
+        },
+        "success": {
+            "value": "#00a32a"
+        },
+        "warning": {
+            "value": "#dba617"
+        },
+        "error": {
+            "value": "#d63638"
+        },
+        "info": {
+            "value": "#72aee6"
+        }
+    },
+
+    "gradient": {
+        "gradient-1": {
+        "value": "linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%)",
+        "slug": "custom-gradient-1"
+        },
+        "gradient-2": {
+        "value": "linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%)",
+        "slug": "custom-gradient-2"
+        }
+    },
+
+    "fontFamily": {
+        "inter": {
+        "value": "Inter, sans-serif",
+        "fontFace": [
+            { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+        ]
+        },
+        "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+    },
+
+    "fontSize": {
+        "small":   { "fluid": { "min": "0.875rem", "max": "1rem" } },
+        "medium":  { "fluid": { "min": "1rem", "max": "1.125rem" } },
+        "large":   { "fluid": { "min": "1.125rem", "max": "1.25rem" } },
+        "x-large": { "fluid": { "min": "1.25rem", "max": "1.5rem" } }
+    },
+
+    "shadow": {
+        "natural":  "6px 6px 9px rgba(0, 0, 0, 0.2)",
+        "deep":     "12px 12px 50px rgba(0, 0, 0, 0.4)",
+        "sharp":    "6px 6px 0px rgba(0, 0, 0, 0.2)",
+        "outlined": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
+        "crisp":    "6px 6px 0px rgb(0, 0, 0)"
     }
-  },
-
-  "fontFamily": {
-    "inter": {
-      "value": "Inter, sans-serif",
-      "fontFace": [
-        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
-      ]
-    },
-    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
-  },
-
-  "fontSize": {
-    "small":   { "value": "1rem",     "fluid": { "min": "0.875rem", "max": "1rem" } },
-    "medium":  { "value": "1.125rem", "fluid": { "min": "1rem", "max": "1.125rem" } },
-    "large":   { "value": "1.25rem",  "fluid": { "min": "1.125rem", "max": "1.25rem" } },
-    "x-large": { "value": "1.5rem",   "fluid": { "min": "1.25rem", "max": "1.5rem" } }
-  },
-
-  "shadow": {
-    "natural":  "6px 6px 9px rgba(0, 0, 0, 0.2)",
-    "deep":     "12px 12px 50px rgba(0, 0, 0, 0.4)",
-    "sharp":    "6px 6px 0px rgba(0, 0, 0, 0.2)",
-    "outlined": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
-    "crisp":    "6px 6px 0px rgb(0, 0, 0)"
-  }
 }

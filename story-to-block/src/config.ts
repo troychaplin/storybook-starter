@@ -34,13 +34,18 @@ export function loadConfig(configPath?: string): StbConfig {
 
 /**
  * Expand a token entry input (string or object) into a full TokenEntry.
- * - String "value" becomes { value: "value" }
- * - Auto-derive slug from key
- * - Auto-derive name from key (title-case) if not provided
+ *
+ * CSS-only tokens (no preset registration) are created by either:
+ * - String shorthand: "bold": "700"
+ * - Explicit flag: { "value": "#005a87", "cssOnly": true }
+ *
+ * All other object entries auto-derive slug/name and register as presets.
  */
 function expandTokenEntry(key: string, input: TokenEntryInput, isDirectMap?: boolean): TokenEntry {
+  const isShorthand = typeof input === 'string';
+
   // String shorthand expands to { value: string }
-  const entry: TokenEntry = typeof input === 'string'
+  const entry: TokenEntry = isShorthand
     ? { value: input }
     : { ...input };
 
@@ -49,14 +54,22 @@ function expandTokenEntry(key: string, input: TokenEntryInput, isDirectMap?: boo
     return entry;
   }
 
-  // Auto-derive slug from key if not explicitly provided
-  if (!entry.slug) {
-    entry.slug = key;
+  // Auto-derive value from fluid.max when fluid is set but value is missing
+  if (!entry.value && entry.fluid?.max) {
+    entry.value = entry.fluid.max;
   }
 
-  // Auto-derive name from key if not provided
-  if (!entry.name) {
-    entry.name = kebabToTitle(key);
+  // CSS-only tokens: string shorthand or explicit cssOnly flag
+  // These produce a CSS variable but skip preset registration
+  const isCssOnly = isShorthand || entry.cssOnly === true;
+
+  if (!isCssOnly) {
+    if (!entry.slug) {
+      entry.slug = key;
+    }
+    if (!entry.name) {
+      entry.name = kebabToTitle(key);
+    }
   }
 
   return entry;
