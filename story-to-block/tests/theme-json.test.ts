@@ -7,6 +7,7 @@ const config: StbConfig = {
   tokensPath: 'src/styles/tokens.css',
   fontsPath: 'public/fonts',
   outDir: 'dist/wp',
+  wpThemeable: false,
   tokens: {
     colorPalette: {
       primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
@@ -63,10 +64,20 @@ describe('generateThemeJson', () => {
     expect(slugs).not.toContain('primary-hover');
   });
 
+  it('disables WordPress default color presets when not wpThemeable', () => {
+    expect(parsed.settings.color.defaultDuotone).toBe(false);
+    expect(parsed.settings.color.defaultPalette).toBe(false);
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
   it('includes spacing sizes', () => {
     expect(parsed.settings.spacing.spacingSizes).toEqual([
       { slug: '40', size: '1rem', name: 'Medium' },
     ]);
+  });
+
+  it('disables WordPress default spacing sizes when not wpThemeable', () => {
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(false);
   });
 
   it('includes font families', () => {
@@ -114,6 +125,7 @@ describe('generateThemeJson — layout tokens', () => {
     tokensPath: 'src/styles/tokens.css',
     fontsPath: 'public/fonts',
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       layout: {
         'content-size': { value: '645px' },
@@ -139,6 +151,7 @@ describe('generateThemeJson — shadow presets', () => {
     tokensPath: 'src/styles/tokens.css',
     fontsPath: 'public/fonts',
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       shadow: {
         sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' },
@@ -176,6 +189,7 @@ describe('generateThemeJson — fluid font sizes', () => {
     tokensPath: 'src/styles/tokens.css',
     fontsPath: 'public/fonts',
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       fontSize: {
         small: { value: '1rem', name: 'Small', slug: 'small', fluid: { min: '0.875rem', max: '1rem' } },
@@ -234,35 +248,96 @@ describe('generateThemeJson — typography flags', () => {
   });
 });
 
-describe('generateThemeJson — spacing flags', () => {
-  it('sets defaultSpacingSizes to false when spacing tokens exist', () => {
+describe('generateThemeJson — WordPress default preset flags', () => {
+  const baseConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    fontsPath: 'public/fonts',
+    outDir: 'dist/wp',
+  };
+
+  it('disables color defaults when wpThemeable is false', () => {
     const cfg: StbConfig = {
-      prefix: 'test',
-      tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
-      outDir: 'dist/wp',
+      ...baseConfig,
       wpThemeable: false,
       tokens: {
-        spacing: {
-          md: { value: '1rem', slug: '40', name: 'Medium' },
-        },
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultDuotone).toBe(false);
+    expect(parsed.settings.color.defaultPalette).toBe(false);
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
+  it('enables color defaults when wpThemeable is true', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultDuotone).toBe(true);
+    expect(parsed.settings.color.defaultPalette).toBe(true);
+    expect(parsed.settings.color.defaultGradients).toBe(true);
+  });
+
+  it('sets color defaults when gradient tokens exist', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorGradient: { sunset: { value: 'linear-gradient(#ff6b6b, #feca57)', name: 'Sunset', slug: 'sunset' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
+  it('does not set color defaults when no color or gradient tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        fontWeight: { bold: { value: '700' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color).toBeUndefined();
+  });
+
+  it('disables spacing defaults when wpThemeable is false', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        spacing: { md: { value: '1rem', slug: '40', name: 'Medium' } },
       },
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.spacing.defaultSpacingSizes).toBe(false);
   });
 
-  it('does not set spacing.defaultSpacingSizes when no spacing tokens', () => {
+  it('enables spacing defaults when wpThemeable is true', () => {
     const cfg: StbConfig = {
-      prefix: 'test',
-      tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
-      outDir: 'dist/wp',
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        spacing: { md: { value: '1rem', slug: '40', name: 'Medium' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(true);
+  });
+
+  it('does not set spacing defaults when no spacing tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
       wpThemeable: false,
       tokens: {
-        colorPalette: {
-          primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
-        },
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
       },
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
@@ -276,6 +351,7 @@ describe('generateThemeJson — fontFace', () => {
     tokensPath: 'src/styles/tokens.css',
     fontsPath: 'public/fonts',
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       fontFamily: {
         inter: {

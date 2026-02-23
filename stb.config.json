@@ -2,6 +2,7 @@
     "prefix": "design-system",
     "tokensPath": "src/styles/tokens.css",
     "outDir": "dist/wp",
+    "wpThemeable": false,
 
     "layout": {
         "content-size": "768px",

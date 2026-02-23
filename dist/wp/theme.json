@@ -3,6 +3,9 @@
   "version": 3,
   "settings": {
     "color": {
+      "defaultDuotone": false,
+      "defaultPalette": false,
+      "defaultGradients": false,
       "palette": [
         {
           "slug": "primary",
@@ -49,6 +52,7 @@
       ]
     },
     "spacing": {
+      "defaultSpacingSizes": false,
       "spacingSizes": [
         {
           "slug": "20",
@@ -85,8 +89,7 @@
           "size": "min(4.5rem, 6vw)",
           "name": "2X-Large"
         }
-      ],
-      "defaultSpacingSizes": false
+      ]
     },
     "typography": {
       "fontFamilies": [
@@ -158,6 +161,7 @@
         "outlined": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
         "crisp": "6px 6px 0px rgb(0, 0, 0)"
       }
-    }
+    },
+    "useRootPaddingAwareAlignments": true
   }
 }
