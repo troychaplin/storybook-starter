@@ -30,14 +30,14 @@
     "**/*.css"
   ],
   "scripts": {
-    "generate": "node story-to-block/dist/cli.js generate",
-    "dev": "npm run generate && storybook dev -p 6006",
-    "build": "npm run generate && npm run build:lib && npm run build:css && npm run build:wp",
-    "build:wp": "node story-to-block/dist/cli.js generate",
-    "build:lib": "vite build",
-    "build:css": "node scripts/build-css.js",
-    "build-storybook": "storybook build",
-    "typecheck": "tsc --noEmit"
+      "dev": "npm run generate && storybook dev -p 6006",
+      "build": "npm run generate && npm run build:lib && npm run build:css && npm run build:wp",
+      "build:wp": "node story-to-block/dist/cli.js generate",
+      "build:lib": "vite build",
+      "build:css": "node scripts/build-css.js",
+      "build-storybook": "storybook build",
+      "generate": "node story-to-block/dist/cli.js generate",
+      "typecheck": "tsc --noEmit"
   },
   "keywords": [
     "storybook",

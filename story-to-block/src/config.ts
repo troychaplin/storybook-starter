@@ -5,12 +5,11 @@ import { CATEGORY_REGISTRY, INPUT_CATEGORY_MAP, VALID_CATEGORIES, kebabToTitle }
 
 const DEFAULTS = {
   tokensPath: 'src/styles/tokens.css',
-  fontsPath: 'public/fonts',
   outDir: 'dist/wp',
 } as const;
 
 /** Reserved config keys that are not token categories */
-const CONFIG_KEYS = ['prefix', 'tokensPath', 'fontsPath', 'outDir', 'wpThemeable'] as const;
+const CONFIG_KEYS = ['prefix', 'tokensPath', 'outDir', 'wpThemeable'] as const;
 
 export function loadConfig(configPath?: string): StbConfig {
   const resolvedPath = resolve(configPath ?? 'stb.config.json');
@@ -139,7 +138,6 @@ export function validateConfig(input: StbConfigInput): StbConfig {
   return {
     prefix: input.prefix,
     tokensPath: input.tokensPath ?? DEFAULTS.tokensPath,
-    fontsPath: input.fontsPath ?? DEFAULTS.fontsPath,
     outDir: input.outDir ?? DEFAULTS.outDir,
     wpThemeable: input.wpThemeable === true,
     tokens,

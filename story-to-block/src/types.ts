@@ -160,7 +160,6 @@ export const CATEGORY_ORDER = [...VALID_CATEGORIES].sort(
 export interface StbConfig {
   prefix: string;
   tokensPath: string;
-  fontsPath: string;
   outDir: string;
   wpThemeable: boolean;
   tokens: Partial<Record<TokenCategory, TokenGroup>>;
@@ -185,7 +184,6 @@ export type TokenGroupInput = Record<string, TokenEntryInput>;
 export interface StbConfigInput {
   prefix: string;
   tokensPath?: string;
-  fontsPath?: string;
   outDir?: string;
   wpThemeable?: boolean;
   [category: string]: string | boolean | TokenGroupInput | undefined;

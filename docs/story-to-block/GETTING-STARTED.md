@@ -19,8 +19,7 @@ your-project/
 └── dist/wp/
     ├── theme.json                   (generated — base theme.json layer)
     ├── tokens.wp.css                (generated — if wpThemeable: true)
-    ├── integrate.php                (generated — PHP filter hook)
-    └── assets/fonts/                (generated — copied font files)
+    └── integrate.php                (generated — PHP filter hook)
 ```
 
 `tokens.css` is generated from the config, ensuring your Storybook components, published React package, and WordPress assets all share the same values.
@@ -113,7 +112,6 @@ Create `stb.config.json` in your project root. Categories are defined at the top
 |-------|----------|---------|-------------|
 | `prefix` | Yes | — | CSS variable prefix (e.g. `starter` produces `--starter--*`) |
 | `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file |
-| `fontsPath` | No | `public/fonts` | Source directory for font files |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
 | `wpThemeable` | No | `false` | When `true`, generates `tokens.wp.css` with `--wp--preset--*` variable mappings |
 
@@ -236,7 +234,6 @@ This reads `stb.config.json` and produces:
 | `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer |
 | `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapped to `--wp--preset--*` (if `wpThemeable: true`) |
 | `integrate.php` | `dist/wp/integrate.php` | PHP filter for wp_theme_json_data_default |
-| Font files | `dist/wp/assets/fonts/` | Copied from `fontsPath` |
 
 By default, all tokens use hardcoded values (locked design system). To allow WordPress theme overrides via the Site Editor, add `"wpThemeable": true` to your config. This generates an additional `tokens.wp.css` file that maps preset tokens to `--wp--preset--*` variables.
 
@@ -406,8 +403,7 @@ node_modules/your-component-library/
 │   └── wp/
 │       ├── theme.json        # WordPress theme.json base layer
 │       ├── tokens.wp.css     # CSS vars mapped to --wp--preset--*
-│       ├── integrate.php     # PHP filter hook
-│       └── assets/fonts/     # Font files
+│       └── integrate.php     # PHP filter hook
 ```
 
 ## CLI Reference

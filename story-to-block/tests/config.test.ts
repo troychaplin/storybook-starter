@@ -71,16 +71,6 @@ describe('validateConfig', () => {
     expect(result.tokens.colorGradient!.sunset.value).toContain('linear-gradient');
   });
 
-  it('defaults fontsPath to public/fonts', () => {
-    const result = validateConfig(minimalConfig);
-    expect(result.fontsPath).toBe('public/fonts');
-  });
-
-  it('accepts custom fontsPath', () => {
-    const result = validateConfig({ ...minimalConfig, fontsPath: 'assets/fonts' });
-    expect(result.fontsPath).toBe('assets/fonts');
-  });
-
   it('accepts fontFace on fontFamily tokens', () => {
     const result = validateConfig({
       prefix: 'test',

@@ -85,7 +85,6 @@ npx story-to-block generate
 |-------|----------|---------|-------------|
 | `prefix` | Yes | — | CSS variable prefix (e.g. `mylib` produces `--mylib-*`) |
 | `tokensPath` | No | `src/styles/tokens.css` | Output path for the development tokens CSS file |
-| `fontsPath` | No | `public/fonts` | Source directory for font files |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
 
 ### Token Categories
@@ -190,7 +189,7 @@ Define font families with `fontFace` to generate @font-face CSS and theme.json e
 }
 ```
 
-Font files should be placed at `{fontsPath}/{slug}/{filename}` (e.g., `public/fonts/inter/inter-400-normal.woff2`). The generator copies them to `{outDir}/assets/fonts/`.
+Font files should be placed at `public/fonts/{slug}/{filename}` (e.g., `public/fonts/inter/inter-400-normal.woff2`). For WordPress themes, copy the font files into `assets/fonts/{slug}/` alongside `theme.json`.
 
 ## CLI
 

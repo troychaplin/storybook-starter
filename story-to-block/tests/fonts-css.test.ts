@@ -5,7 +5,7 @@ import type { StbConfig } from '../src/types.js';
 const config: StbConfig = {
   prefix: 'test',
   tokensPath: 'src/styles/tokens.css',
-  fontsPath: 'public/fonts',
+
   outDir: 'dist/wp',
   tokens: {
     fontFamily: {

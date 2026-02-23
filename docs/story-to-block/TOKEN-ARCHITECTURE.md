@@ -15,8 +15,7 @@ stb.config.json                       (single source of truth)
     ├──► src/styles/fonts.css         (@font-face declarations)
     ├──► dist/wp/tokens.wp.css        (if wpThemeable: true)
     ├──► dist/wp/theme.json           (WordPress theme.json base layer)
-    ├──► dist/wp/integrate.php        (WordPress filter hook)
-    └──► dist/wp/assets/fonts/        (copied font files)
+    └──► dist/wp/integrate.php        (WordPress filter hook)
 ```
 
 ## The Config File
@@ -234,6 +233,8 @@ Generated to `src/styles/fonts.css` when fontFamily tokens have `fontFace` defin
 }
 ```
 
+Font files referenced in `fontFace` entries are **not** copied by the generator. Place your font files in `public/fonts/{slug}/` so they are served during development and included in your build output. For WordPress themes, copy the font files into `assets/fonts/{slug}/` alongside `theme.json` to match the `file:./assets/fonts/` paths in the generated theme.json.
+
 ### tokens.wp.css — WordPress Preset Mapping (Themeable)
 
 **Opt-in:** This file is only generated when `"wpThemeable": true` is set in the config. By default, all tokens use hardcoded values via `tokens.css`.
@@ -440,8 +441,7 @@ dist/
 └── wp/
     ├── theme.json       # WordPress theme.json base layer
     ├── integrate.php    # WordPress filter hook
-    ├── tokens.wp.css    # CSS vars — mapped to --wp--preset--* (WordPress)
-    └── assets/fonts/    # Font files
+    └── tokens.wp.css    # CSS vars — mapped to --wp--preset--* (WordPress)
 ```
 
 ## Package Exports

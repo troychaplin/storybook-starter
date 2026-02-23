@@ -5,7 +5,7 @@ import type { StbConfig } from '../src/types.js';
 const config: StbConfig = {
   prefix: 'test',
   tokensPath: 'src/styles/tokens.css',
-  fontsPath: 'public/fonts',
+
   outDir: 'dist/wp',
   wpThemeable: false,
   tokens: {
@@ -123,7 +123,7 @@ describe('generateThemeJson — layout tokens', () => {
   const layoutConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
     wpThemeable: false,
     tokens: {
@@ -149,7 +149,7 @@ describe('generateThemeJson — shadow presets', () => {
   const shadowConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
     wpThemeable: false,
     tokens: {
@@ -191,7 +191,7 @@ describe('generateThemeJson — fluid font sizes', () => {
   const fluidConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
     wpThemeable: false,
     tokens: {
@@ -221,7 +221,7 @@ describe('generateThemeJson — typography flags', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
+    
       outDir: 'dist/wp',
       wpThemeable: false,
       tokens: {
@@ -238,7 +238,7 @@ describe('generateThemeJson — typography flags', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
+    
       outDir: 'dist/wp',
       wpThemeable: false,
       tokens: {
@@ -256,7 +256,7 @@ describe('generateThemeJson — WordPress default preset flags', () => {
   const baseConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
   };
 
@@ -389,7 +389,7 @@ describe('generateThemeJson — fontFace', () => {
   const fontConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
     wpThemeable: false,
     tokens: {
