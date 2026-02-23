@@ -46,43 +46,94 @@ ul, ol {
 
 ### Layer 2: Content Scope
 
-`src/styles/content.scss` applies base typography inside an opt-in wrapper class. Everything inside uses `:where()` for zero specificity:
+Content styles are split into two files — a generated partial for element typography and an authored file for behavioral rules:
+
+#### Generated: `_content-generated.scss`
+
+The generator reads the `baseStyles` section from `stb.config.json` and produces `_content-generated.scss`. This partial contains `:where()` rules for each element defined in the config:
 
 ```scss
-// content.scss — opt-in prose typography
+// _content-generated.scss — do not edit manually
+
+font-family: var(--design-system--font-family-inter);
+font-size: var(--design-system--font-size-medium);
+font-weight: 400;
+line-height: 1.6;
+
+:where(h1, h2, h3, h4, h5, h6) {
+  font-family: var(--design-system--font-family-inter);
+}
+
+:where(h1) {
+  font-size: 4.5rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:where(h2) {
+  font-size: 3rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:where(h3) {
+  font-size: 2.5rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:where(h4) {
+  font-size: 2rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:where(h5) {
+  font-size: 1.5rem;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:where(h6) {
+  font-size: 1.45rem;
+  font-style: italic;
+  font-weight: 500;
+}
+
+:where(figcaption) {
+  font-size: var(--design-system--font-size-small);
+  font-style: italic;
+  font-weight: 300;
+}
+```
+
+This partial outputs bare declarations and `:where()` rules without a wrapping selector — it's designed to be included inside the content scope class in `content.scss`.
+
+#### Authored: `content.scss`
+
+You own this file. It imports the generated partial and adds behavioral rules that don't belong in a config — vertical rhythm, list styles, link styles, and anything else specific to prose content:
+
+```scss
+// content.scss — you own this file
 
 .example-content {
-  :where(h1) {
-    font-size: var(--design-system--font-size-2x-large);
-    font-weight: 700;
-    line-height: 1.2;
-  }
+  // Generated element typography from stb.config.json
+  @use 'content-generated';
 
-  :where(h2) {
-    font-size: var(--design-system--font-size-x-large);
-    font-weight: 700;
-    line-height: 1.3;
-  }
-
-  :where(h3) {
-    font-size: var(--design-system--font-size-large);
-    font-weight: 600;
-    line-height: 1.4;
-  }
-
-  :where(p) {
-    font-size: var(--design-system--font-size-medium);
-    line-height: 1.5;
-  }
-
+  // List styles
   :where(ul, ol) {
     list-style: revert;
     padding-left: 1.25em;
   }
 
+  // Link styles
   :where(a) {
     color: var(--design-system--color-primary);
     text-decoration: underline;
+
+    &:hover {
+      color: var(--design-system--color-primary-hover);
+    }
   }
 
   // Vertical rhythm between block elements
@@ -98,6 +149,49 @@ ul, ol {
   }
 }
 ```
+
+When the generator runs, only `_content-generated.scss` changes. Your authored rules in `content.scss` are untouched.
+
+### The Config
+
+The `baseStyles` section in `stb.config.json` defines element-level typography. Values that match a token key (like `"inter"` or `"medium"`) resolve to the corresponding CSS variable. Raw values (like `"3rem"`) pass through as-is:
+
+```json
+{
+  "baseStyles": {
+    "body": {
+      "fontFamily": "inter",
+      "fontSize": "medium",
+      "fontWeight": "400",
+      "lineHeight": "1.6"
+    },
+    "heading": {
+      "fontFamily": "inter"
+    },
+    "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
+    "h2": { "fontSize": "3rem", "fontWeight": "500" },
+    "h3": { "fontSize": "2.5rem", "fontWeight": "500" },
+    "h4": { "fontSize": "2rem", "fontWeight": "500" },
+    "h5": { "fontSize": "1.5rem", "fontWeight": "500" },
+    "h6": { "fontSize": "1.45rem", "fontWeight": "500", "fontStyle": "italic" },
+    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
+  }
+}
+```
+
+From this single config, the generator produces:
+
+- `_content-generated.scss` — `:where()` rules referencing design system CSS variables
+- `styles` block in theme.json — referencing `--wp--preset--*` variables
+
+The token key resolution works differently per output:
+
+| Config value | `_content-generated.scss` | theme.json `styles` |
+|--------------|---------------------------|---------------------|
+| `"inter"` (token key) | `var(--design-system--font-family-inter)` | `var(--wp--preset--font-family--inter)` |
+| `"medium"` (token key) | `var(--design-system--font-size-medium)` | `var(--wp--preset--font-size--medium)` |
+| `"3rem"` (raw value) | `3rem` | `3rem` |
+| `"500"` (raw value) | `500` | `500` |
 
 ## Why `:where()` Matters
 
@@ -185,7 +279,7 @@ Components used outside a content wrapper get no base typography applied — the
 
 ### WordPress
 
-In WordPress, the content scope class maps naturally to a block theme's post content area. However, WordPress already applies base typography through theme.json — so you may not need the content class at all.
+In WordPress, the content scope class is not needed. The `styles` block in theme.json handles base typography for the post content area natively. WordPress applies those styles through its own cascade — no extra class required.
 
 If the library is used as a plugin (not a theme), the class can be applied to the content wrapper to provide consistent typography without relying on theme.json:
 
@@ -226,12 +320,15 @@ The Card works identically whether it's inside `.example-content` or not. The co
 
 ```
 src/styles/
-├── tokens.css       (generated — design token values)
-├── fonts.css        (generated — @font-face declarations)
-├── reset.scss       (structural reset — no typography)
-├── content.scss     (opt-in prose typography via .example-content)
-└── _mixins.scss     (shared component utilities)
+├── tokens.css                (generated — design token values)
+├── fonts.css                 (generated — @font-face declarations)
+├── _content-generated.scss   (generated — element typography from config)
+├── content.scss              (authored — imports generated partial + behavioral rules)
+├── reset.scss                (authored — structural reset, no typography)
+└── _mixins.scss              (authored — shared component utilities)
 ```
+
+The generator only writes files prefixed with `_content-generated` or without the underscore convention for CSS/tokens. Authored files (`content.scss`, `reset.scss`, `_mixins.scss`) are never touched by the generator.
 
 ## Relationship to WordPress theme.json
 
@@ -337,26 +434,19 @@ This is the WordPress equivalent of the content scope. It defines base typograph
 
 ### Two Sides of the Same Coin
 
-The content scope (`.example-content` with `:where()` rules) and theme.json `styles` serve the same purpose for different consumers:
+The content scope (`.example-content` with `:where()` rules) and theme.json `styles` serve the same purpose for different consumers. Both are generated from the same `baseStyles` config:
 
 | Concern | Storybook / React | WordPress |
 |---------|-------------------|-----------|
-| Body default font | `content.scss` — body-level rules | `styles.typography` |
-| Heading scale | `content.scss` — `:where(h1)` etc. | `styles.elements.h1` etc. |
-| Shared heading font | `content.scss` — `:where(h1, h2, ...)` | `styles.elements.heading` |
-| Caption styling | `content.scss` — `:where(figcaption)` | `styles.elements.caption` |
-| Prose spacing | `content.scss` — margin rules | Block gap / theme.json spacing |
+| Body default font | `_content-generated.scss` — body-level rules | `styles.typography` |
+| Heading scale | `_content-generated.scss` — `:where(h1)` etc. | `styles.elements.h1` etc. |
+| Shared heading font | `_content-generated.scss` — `:where(h1, h2, ...)` | `styles.elements.heading` |
+| Caption styling | `_content-generated.scss` — `:where(figcaption)` | `styles.elements.caption` |
+| Prose spacing | `content.scss` — authored margin rules | Block gap / theme.json spacing |
+| List styles | `content.scss` — authored `:where(ul, ol)` | Not in theme.json |
+| Link styles | `content.scss` — authored `:where(a)` | Not in theme.json |
 
 Note that WordPress heading sizes in `styles.elements` can use hardcoded values (like `3rem`) or reference presets (like `var(--wp--preset--font-size--x-large)`). Hardcoded values mean the heading scale stays fixed even if a theme changes the font size presets. Referencing presets makes individual heading sizes themeable via the Site Editor.
-
-### Future: One Config, Both Outputs
-
-Long term, a `baseStyles` or `typography` section in `stb.config.json` could define the heading scale, body defaults, and element-level overrides once. The generator would produce:
-
-- `content.scss` — with `:where()` rules for Storybook and React consumers
-- `styles` block in theme.json — for WordPress consumers
-
-This keeps the same single-source-of-truth pattern already established for design tokens. The config declares *what the typography should be*, and the generator produces the right output format for each target.
 
 ## Relationship to WordPress Blocks
 
