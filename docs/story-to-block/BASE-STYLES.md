@@ -233,8 +233,133 @@ src/styles/
 └── _mixins.scss     (shared component utilities)
 ```
 
+## Relationship to WordPress theme.json
+
+WordPress theme.json has two top-level sections that map to different parts of this system:
+
+### `settings` — What's Available
+
+This is what `story-to-block` generates today. It declares the palette, font size scale, spacing scale, shadows, and other presets. These appear in the Site Editor controls and generate `--wp--preset--*` CSS variables:
+
+```json
+{
+  "settings": {
+    "color": {
+      "palette": [
+        { "slug": "primary", "color": "#0073aa", "name": "Primary" }
+      ]
+    },
+    "typography": {
+      "fontFamilies": [
+        { "slug": "inter", "fontFamily": "Inter, sans-serif", "name": "Inter" }
+      ],
+      "fontSizes": [
+        { "slug": "medium", "size": "1.125rem", "name": "Medium", "fluid": { "min": "1rem", "max": "1.125rem" } }
+      ]
+    }
+  }
+}
+```
+
+### `styles` — How Things Look by Default
+
+This is the WordPress equivalent of the content scope. It defines base typography for the body and individual elements. WordPress applies these styles to bare elements within the post content area:
+
+```json
+{
+  "styles": {
+    "typography": {
+      "fontFamily": "var(--wp--preset--font-family--inter)",
+      "fontSize": "var(--wp--preset--font-size--medium)",
+      "fontStyle": "normal",
+      "fontWeight": "400",
+      "lineHeight": "1.6"
+    },
+    "elements": {
+      "heading": {
+        "typography": {
+          "fontFamily": "var(--wp--preset--font-family--inter)"
+        }
+      },
+      "h1": {
+        "typography": {
+          "fontSize": "4.5rem",
+          "fontStyle": "normal",
+          "fontWeight": "500"
+        }
+      },
+      "h2": {
+        "typography": {
+          "fontSize": "3rem",
+          "fontStyle": "normal",
+          "fontWeight": "500"
+        }
+      },
+      "h3": {
+        "typography": {
+          "fontSize": "2.5rem",
+          "fontStyle": "normal",
+          "fontWeight": "500"
+        }
+      },
+      "h4": {
+        "typography": {
+          "fontSize": "2rem",
+          "fontStyle": "normal",
+          "fontWeight": "500"
+        }
+      },
+      "h5": {
+        "typography": {
+          "fontSize": "1.5rem",
+          "fontStyle": "normal",
+          "fontWeight": "500"
+        }
+      },
+      "h6": {
+        "typography": {
+          "fontSize": "1.45rem",
+          "fontStyle": "italic",
+          "fontWeight": "500"
+        }
+      },
+      "caption": {
+        "typography": {
+          "fontSize": "var(--wp--preset--font-size--small)",
+          "fontStyle": "italic",
+          "fontWeight": "300"
+        }
+      }
+    }
+  }
+}
+```
+
+### Two Sides of the Same Coin
+
+The content scope (`.example-content` with `:where()` rules) and theme.json `styles` serve the same purpose for different consumers:
+
+| Concern | Storybook / React | WordPress |
+|---------|-------------------|-----------|
+| Body default font | `content.scss` — body-level rules | `styles.typography` |
+| Heading scale | `content.scss` — `:where(h1)` etc. | `styles.elements.h1` etc. |
+| Shared heading font | `content.scss` — `:where(h1, h2, ...)` | `styles.elements.heading` |
+| Caption styling | `content.scss` — `:where(figcaption)` | `styles.elements.caption` |
+| Prose spacing | `content.scss` — margin rules | Block gap / theme.json spacing |
+
+Note that WordPress heading sizes in `styles.elements` can use hardcoded values (like `3rem`) or reference presets (like `var(--wp--preset--font-size--x-large)`). Hardcoded values mean the heading scale stays fixed even if a theme changes the font size presets. Referencing presets makes individual heading sizes themeable via the Site Editor.
+
+### Future: One Config, Both Outputs
+
+Long term, a `baseStyles` or `typography` section in `stb.config.json` could define the heading scale, body defaults, and element-level overrides once. The generator would produce:
+
+- `content.scss` — with `:where()` rules for Storybook and React consumers
+- `styles` block in theme.json — for WordPress consumers
+
+This keeps the same single-source-of-truth pattern already established for design tokens. The config declares *what the typography should be*, and the generator produces the right output format for each target.
+
 ## Relationship to WordPress Blocks
 
-Long term, when the generator produces PHP render templates and block.json files, each block carries its own styles. The content scope is not part of that — it exists for the areas *between* blocks where bare HTML content lives (post body, widget areas, etc.).
+Components (blocks) are self-contained. Each block carries its own styles via BEM classes and does not depend on content scope or theme.json `styles`.
 
-In block themes, theme.json handles that role. The content scope stylesheet exists for non-WordPress consumers (Storybook, React, Next.js) who don't have theme.json providing base typography.
+The content scope and `styles.elements` exist for the areas *between* blocks — bare HTML in post bodies, widget areas, and other prose content. When the generator eventually produces PHP render templates and `block.json` files, those block-level styles are separate from the base typography layer described here.
