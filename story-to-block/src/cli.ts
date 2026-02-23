@@ -46,8 +46,10 @@ try {
       console.log('=== fonts.css ===');
       console.log(fontsCss);
     }
-    console.log('=== tokens.wp.css ===');
-    console.log(generateTokensWpCss(config));
+    if (config.wpThemeable) {
+      console.log('=== tokens.wp.css ===');
+      console.log(generateTokensWpCss(config));
+    }
     console.log('=== theme.json ===');
     console.log(generateThemeJson(config));
     console.log('=== integrate.php ===');

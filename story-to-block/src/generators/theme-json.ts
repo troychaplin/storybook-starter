@@ -8,6 +8,27 @@ export function generateThemeJson(config: StbConfig): string {
   const settings: AnySettings = {};
   const custom: Record<string, Record<string, string>> = {};
 
+  // WordPress default preset flags — set first so they appear at the top of each section
+  if (config.tokens.colorPalette || config.tokens.colorGradient) {
+    settings.color = {
+      defaultDuotone: config.wpThemeable,
+      defaultPalette: config.wpThemeable,
+      defaultGradients: config.wpThemeable,
+    };
+  }
+
+  if (config.tokens.spacing) {
+    settings.spacing = {
+      defaultSpacingSizes: config.wpThemeable,
+    };
+  }
+
+  if (config.tokens.shadow) {
+    settings.shadow = {
+      defaultPresets: config.wpThemeable,
+    };
+  }
+
   for (const category of CATEGORY_ORDER) {
     const group = config.tokens[category];
     if (!group) continue;
@@ -53,17 +74,17 @@ export function generateThemeJson(config: StbConfig): string {
   }
 
   // When custom font sizes are defined, enable fluid typography
-  // and disable WP default font sizes so only ours appear
   if (config.tokens.fontSize) {
     if (!settings.typography) settings.typography = {};
     settings.typography.fluid = true;
-    settings.typography.defaultFontSizes = false;
   }
 
   // Merge custom values into settings
   if (Object.keys(custom).length > 0) {
     settings.custom = custom;
   }
+
+  settings.useRootPaddingAwareAlignments = true;
 
   const themeJson = {
     $schema: 'https://schemas.wp.org/trunk/theme.json',

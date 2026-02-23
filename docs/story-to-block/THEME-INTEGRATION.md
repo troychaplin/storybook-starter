@@ -23,9 +23,11 @@ node_modules/your-component-library/dist/
 ├── wp/
 │   ├── theme.json        # Generated theme.json base layer
 │   ├── integrate.php     # WordPress filter hook
-│   └── tokens.wp.css     # CSS vars — mapped to --wp--preset--*
+│   ├── tokens.wp.css     # CSS vars — mapped to --wp--preset--*
+│   └── assets/fonts/     # Font files (if fontFace defined)
 └── css/
-    └── tokens.css        # CSS vars — hardcoded values (not used in WordPress)
+    ├── tokens.css        # CSS vars — hardcoded values (not used in WordPress)
+    └── fonts.css         # @font-face declarations (not used in WordPress)
 ```
 
 Files in `dist/wp/` must be **copied into your theme** — `node_modules` does not exist on production servers.
@@ -36,11 +38,11 @@ Files in `dist/wp/` must be **copied into your theme** — `node_modules` does n
 
 ```bash
 # Create a directory for the library's PHP integration
-mkdir -p inc/story-to-block
+mkdir -p assets
 
 # Copy the PHP filter and generated theme.json
-cp node_modules/your-component-library/dist/wp/integrate.php inc/story-to-block/
-cp node_modules/your-component-library/dist/wp/theme.json inc/story-to-block/
+cp node_modules/your-component-library/dist/wp/integrate.php assets/
+cp node_modules/your-component-library/dist/wp/theme.json assets/
 
 # Copy the WordPress token stylesheet
 mkdir -p assets/css
@@ -72,7 +74,7 @@ In your theme's `functions.php`:
  * Injects default colors, spacing, fonts, and custom values via
  * wp_theme_json_data_default. Your theme's theme.json overrides these.
  */
-require_once get_template_directory() . '/inc/story-to-block/integrate.php';
+require_once get_template_directory() . '/assets/integrate.php';
 
 /**
  * Enqueue the component library's design tokens globally.

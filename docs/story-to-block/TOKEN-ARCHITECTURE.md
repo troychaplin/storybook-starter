@@ -12,7 +12,8 @@ stb.config.json                       (single source of truth)
     │   story-to-block generate       (build tool)
     │
     ├──► src/styles/tokens.css        (CSS vars for Storybook dev)
-    ├──► dist/wp/tokens.wp.css        (CSS vars mapped to --wp--preset--*)
+    ├──► src/styles/fonts.css         (@font-face declarations)
+    ├──► dist/wp/tokens.wp.css        (if wpThemeable: true)
     ├──► dist/wp/theme.json           (WordPress theme.json base layer)
     └──► dist/wp/integrate.php        (WordPress filter hook)
 ```
@@ -21,187 +22,328 @@ stb.config.json                       (single source of truth)
 
 ### Structure
 
+Token categories are defined at the top level — no `tokens` wrapper needed:
+
 ```json
 {
-    "prefix": "prefix",
+  "prefix": "starter",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
 
-    "color": {
-        "primary": {
-            "value": "#0073aa",
-            "name": "Primary",
-            "slug": "primary"
-        },
-        "primary-hover": {
-            "value": "#005a87"
-        }
-    },
+  "layout": {
+    "content-size": "768px",
+    "wide-size": "1280px"
+  },
 
-    "spacing": {
-        "xs":  { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
-        "sm":  { "value": "0.5rem",  "slug": "30", "name": "Small" },
-        "md":  { "value": "1rem",    "slug": "40", "name": "Medium" }
-    },
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary" },
+    "primary-hover": { "value": "#005a87", "cssOnly": true },
+    "secondary": { "value": "#23282d" },
+    "secondary-hover": "#1a1e21"
+  },
 
-    "fontFamily": {
-        "base": {
-            "value": "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, ...",
-            "name": "System Sans",
-            "slug": "body"
-        }
-    },
-
-    "fontSize": {
-        "xs":  { "value": "0.75rem" },
-        "sm":  { "value": "0.875rem", "slug": "small", "name": "Small" },
-        "base":{ "value": "1rem",     "slug": "medium", "name": "Medium" }
-    },
-
-    "fontWeight": {
-        "normal": { "value": "400" },
-        "bold":   { "value": "700" }
-    },
-
-    "lineHeight": {
-        "tight":  { "value": "1.25" },
-        "normal": { "value": "1.5" }
-    },
-
-    "radius": {
-        "sm": { "value": "2px" },
-        "md": { "value": "4px" },
-        "lg": { "value": "8px" }
-    },
-
-    "shadow": {
-        "sm": { "value": "0 1px 2px 0 rgb(0 0 0 / 0.05)" },
-        "md": { "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)" }
-    },
-
-    "transition": {
-        "fast":   { "value": "150ms ease" },
-        "normal": { "value": "200ms ease" }
-    },
-
-    "zIndex": {
-        "dropdown": { "value": "100" },
-        "modal":    { "value": "300" }
+  "gradient": {
+    "sunset": {
+      "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
+      "slug": "custom-gradient-1"
     }
+  },
+
+  "spacing": {
+    "xs": { "value": "0.25rem", "slug": "20", "name": "2X-Small" },
+    "sm": { "value": "0.5rem",  "slug": "30", "name": "Small" },
+    "md": { "value": "1rem",    "slug": "40", "name": "Medium" }
+  },
+
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+      ]
+    },
+    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+  },
+
+  "fontSize": {
+    "small":  { "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "fluid": { "min": "1rem", "max": "1.125rem" } }
+  },
+
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  },
+
+  "lineHeight": {
+    "tight": "1.25",
+    "normal": "1.5"
+  },
+
+  "radius": {
+    "sm": "2px",
+    "md": "4px",
+    "lg": "8px"
+  },
+
+  "shadow": {
+    "natural": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+    "deep": "12px 12px 50px rgba(0, 0, 0, 0.4)"
+  },
+
+  "transition": {
+    "fast": "150ms ease",
+    "normal": "200ms ease"
+  },
+
+  "zIndex": {
+    "dropdown": "100",
+    "modal": "300"
+  }
+}
+```
+
+### Token Syntax
+
+The format you use determines whether a token is registered as a WordPress preset (visible in the Site Editor) or exists as a CSS variable only:
+
+#### Object Syntax — Preset Registration (default)
+
+Object entries auto-derive `slug` and `name` from the key. They register as WordPress presets, appear in the Site Editor, and can be overridden by the active theme:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" },
+    "secondary": { "value": "#23282d" }
+  },
+  "fontSize": {
+    "small": { "fluid": { "min": "0.875rem", "max": "1rem" } }
+  }
+}
+```
+
+For `fontSize` tokens with `fluid`, the `value` is auto-derived from `fluid.max` if not provided.
+
+#### CSS-Only Tokens
+
+Tokens that should produce a CSS variable but **not** appear in the Site Editor can be marked in two ways:
+
+**Explicit flag** — use `"cssOnly": true` on an object entry. This is the clearest approach and keeps related tokens grouped together:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary" },
+    "primary-hover": { "value": "#005a87", "cssOnly": true },
+    "secondary": { "value": "#23282d" },
+    "secondary-hover": { "value": "#1a1e21", "cssOnly": true }
+  }
+}
+```
+
+**String shorthand** — a string value is always CSS-only. Use this for categories where no tokens need preset registration:
+
+```json
+{
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  }
+}
+```
+
+#### Recommended Pattern
+
+Use `cssOnly` for colors and other preset categories where some tokens are implementation details. Use string shorthand for categories that are entirely CSS-only (fontWeight, lineHeight, radius, transition, zIndex).
+
+### Auto-derived Fields
+
+For object entries (without `cssOnly`), `slug` and `name` are automatically derived from the token key. CSS-only tokens (string shorthand or `cssOnly: true`) do not receive slug or name.
+
+Override either when needed:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" }
+  },
+  "spacing": {
+    "md": { "value": "1rem", "slug": "40", "name": "Medium" }
+  }
 }
 ```
 
 ### Token Properties
 
-Each token has a `value` (required) and optional WordPress-specific fields:
-
 | Property | Required | Purpose |
 |----------|----------|---------|
-| `value` | Yes | The CSS value. Used in `tokens.css` and as the default in `theme.json` |
-| `name` | No | Human-readable label. Tokens with `name` appear in the WordPress editor UI |
-| `slug` | No | WordPress preset slug. Required alongside `name` for theme.json output |
-
-**Key rule:** Only tokens with both `name` and `slug` are included in the generated `theme.json`. All other tokens exist only in `tokens.css` as CSS custom properties.
-
-This means:
-
-- `primary` (has name + slug) → appears in the editor color picker AND as `--prefix-color-primary` in CSS
-- `primary-hover` (no name/slug) → exists only as `--prefix-color-primary-hover` in CSS
-
-This keeps the editor UI clean while giving components access to the full set of design values.
+| `value` | Yes* | The CSS value. *Auto-derived from `fluid.max` for fluid font sizes |
+| `name` | No | Human-readable label (auto-derived from key for object entries) |
+| `slug` | No | WordPress preset slug (auto-derived from key for object entries) |
+| `cssOnly` | No | When `true`, produces a CSS variable but skips WordPress preset registration |
+| `fluid` | No | Fluid typography settings (`{ min, max }`) for fontSize |
+| `fontFace` | No | Font file definitions for fontFamily |
 
 ## Generated Outputs
 
-### tokens.css
+### tokens.css — Hardcoded Values (Locked)
 
-Generated to both `src/styles/tokens.css` (for Storybook) and `dist/css/tokens.css` (for consumers).
-
-Every token becomes a CSS custom property using the configured prefix:
-
-```css
-/* Auto-generated by story-to-block — do not edit manually */
-
-:root {
-    /* Colors */
-    --prefix-color-primary: #0073aa;
-    --prefix-color-primary-hover: #005a87;
-    --prefix-color-secondary: #23282d;
-
-    /* Spacing */
-    --prefix-spacing-xs: 0.25rem;
-    --prefix-spacing-sm: 0.5rem;
-
-    /* Font Families */
-    --prefix-font-family-base: -apple-system, BlinkMacSystemFont, ...;
-}
-```
-
-Component CSS files reference these variables and are not affected by the generation process:
-
-```css
-/* Card.css — unchanged, always references --prefix-* */
-.prefix-card {
-    background-color: var(--prefix-color-background);
-    border: 1px solid var(--prefix-color-border);
-    border-radius: var(--prefix-radius-lg);
-}
-```
-
-### tokens.wp.css
-
-Generated to `dist/wp/tokens.wp.css`. Maps tokens with `name` + `slug` to WordPress preset variables with hardcoded fallbacks:
+Generated to `src/styles/tokens.css`. Every token becomes a CSS custom property with static values. Fluid font sizes output `clamp()` for responsive scaling:
 
 ```css
 :root {
-    /* Mapped to WordPress preset */
-    --prefix-color-primary: var(--wp--preset--color--primary, #0073aa);
-    --prefix-spacing-md: var(--wp--preset--spacing--40, 1rem);
+  /* Colors */
+  --starter--color-primary: #0073aa;
+  --starter--color-primary-hover: #005a87;
 
-    /* Hardcoded (no WordPress preset equivalent) */
-    --prefix-color-primary-hover: #005a87;
-    --prefix-font-weight-bold: 700;
+  /* Font Sizes */
+  --starter--font-size-small: clamp(0.875rem, 0.875rem + ((0.125) * ((100vw - 320px) / 1280)), 1rem);
+
+  /* Layout */
+  --starter--layout-content-size: 768px;
 }
 ```
 
-When a theme overrides a color in its `theme.json`, the `--wp--preset--color--primary` variable changes and components automatically pick up the new value through the `var()` mapping.
+Component SCSS files reference these variables and use shared mixins for common patterns:
 
-Tokens without a WordPress mapping (hover colors, borders, shadows, transitions, etc.) use hardcoded values with no `var()` wrapper.
+```scss
+/* Card.scss — always references --starter--* */
+@use '../../styles/mixins' as *;
+
+.starter-card {
+  background-color: var(--starter--color-background);
+  border: 1px solid var(--starter--color-border);
+  border-radius: var(--starter--radius-lg);
+
+  @include transition(background-color, border-color);
+}
+```
+
+### fonts.css
+
+Generated to `src/styles/fonts.css` when fontFamily tokens have `fontFace` definitions:
+
+```css
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  src: url('/fonts/inter/inter-400-normal.woff2') format('woff2');
+}
+```
+
+Font files referenced in `fontFace` entries are **not** copied by the generator. Place your font files in `public/fonts/{slug}/` so they are served during development and included in your build output. For WordPress themes, copy the font files into `assets/fonts/{slug}/` alongside `theme.json` to match the `file:./assets/fonts/` paths in the generated theme.json.
+
+### tokens.wp.css — WordPress Preset Mapping (Themeable)
+
+**Opt-in:** This file is only generated when `"wpThemeable": true` is set in the config. By default, all tokens use hardcoded values via `tokens.css`.
+
+When enabled, `tokens.wp.css` is generated to `dist/wp/tokens.wp.css`. **Object entries** (without `cssOnly`) map to WordPress preset variables, making them overridable via the Site Editor. **CSS-only tokens** (string shorthand or `cssOnly: true`) get hardcoded values:
+
+```css
+:root {
+  /* Object entry — mapped to WP preset, overridable via Site Editor */
+  --starter--color-primary: var(--wp--preset--color--primary, #0073aa);
+
+  /* cssOnly flag — hardcoded, not overridable */
+  --starter--color-primary-hover: #005a87;
+
+  /* String shorthand — also hardcoded */
+  --starter--color-secondary-hover: #1a1e21;
+
+  /* Fluid font sizes use clamp() as fallback */
+  --starter--font-size-small: var(--wp--preset--font-size--small, clamp(0.875rem, ...));
+
+  /* Custom categories — always hardcoded (no WordPress preset equivalent) */
+  --starter--font-weight-bold: 700;
+}
+```
+
+When a content editor changes "Primary" in the Site Editor, the `--wp--preset--color--primary` variable updates, and that flows into component CSS. CSS-only tokens remain stable.
+
+### Which CSS File to Use
+
+| Scenario | Config | File | Behavior |
+|----------|--------|------|----------|
+| Storybook / React app | default | `tokens.css` | All values hardcoded |
+| WordPress — locked design system | default | `tokens.css` | Components ignore Site Editor changes |
+| WordPress — themeable | `wpThemeable: true` | `tokens.wp.css` | Preset tokens follow Site Editor; CSS-only tokens stay locked |
 
 ### theme.json
 
-Generated to `dist/wp/theme.json`. Only includes tokens that have `name` and `slug` properties:
+Generated to `dist/wp/theme.json`. Only preset-registered tokens (object entries without `cssOnly`) are included. CSS-only tokens are omitted:
 
 ```json
 {
-    "$schema": "https://schemas.wp.org/trunk/theme.json",
-    "version": 3,
-    "settings": {
-        "color": {
-            "custom": false,
-            "customGradient": false,
-            "palette": [
-                { "slug": "primary", "color": "#0073aa", "name": "Primary" }
-            ]
-        },
-        "spacing": {
-            "spacingSizes": [
-                { "slug": "20", "size": "0.25rem", "name": "2X-Small" }
-            ]
-        },
-        "typography": {
-            "fontFamilies": [...],
-            "fontSizes": [...]
-        },
-        "custom": {
-            "fontWeight": { "normal": "400", "bold": "700" },
-            "lineHeight": { "tight": "1.25", "normal": "1.5" },
-            "radius": { "sm": "2px", "md": "4px", "lg": "8px" },
-            "shadow": { ... },
-            "transition": { ... }
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "settings": {
+    "color": {
+      "palette": [
+        { "slug": "primary", "color": "#0073aa", "name": "Primary" },
+        { "slug": "secondary", "color": "#23282d", "name": "Secondary" }
+      ],
+      "gradients": [
+        { "slug": "custom-gradient-1", "gradient": "...", "name": "Sunset" }
+      ]
+    },
+    "spacing": {
+      "spacingSizes": [
+        { "slug": "20", "size": "0.25rem", "name": "2X-Small" }
+      ]
+    },
+    "typography": {
+      "fluid": true,
+      "fontFamilies": [
+        {
+          "slug": "inter",
+          "fontFamily": "Inter, sans-serif",
+          "name": "Inter",
+          "fontFace": [
+            {
+              "fontFamily": "Inter",
+              "fontStyle": "normal",
+              "fontWeight": "400",
+              "src": ["file:./assets/fonts/inter/inter-400-normal.woff2"]
+            }
+          ]
         }
+      ],
+      "fontSizes": [
+        {
+          "slug": "small",
+          "size": "1rem",
+          "name": "Small",
+          "fluid": { "min": "0.875rem", "max": "1rem" }
+        }
+      ]
+    },
+    "shadow": {
+      "presets": [
+        { "slug": "natural", "shadow": "6px 6px 9px rgba(0, 0, 0, 0.2)", "name": "Natural" }
+      ]
+    },
+    "layout": {
+      "contentSize": "768px",
+      "wideSize": "1280px"
+    },
+    "custom": {
+      "fontWeight": { "normal": "400", "bold": "700" },
+      "lineHeight": { "tight": "1.25", "normal": "1.5" },
+      "radius": { "sm": "2px", "md": "4px", "lg": "8px" },
+      "transition": { "fast": "150ms ease", "normal": "200ms ease" }
     }
+  }
 }
 ```
 
-Token categories that don't have a native theme.json mapping (fontWeight, lineHeight, radius, shadow, transition) are placed under `settings.custom`. WordPress generates CSS variables for these as `--wp--custom--*`. Z-Index values are omitted entirely.
+**Notes:**
+- CSS-only tokens (string shorthand or `cssOnly: true`) are omitted from theme.json presets
+- When `fontSize` tokens exist, `typography.fluid: true` is automatically set
+- Token categories without native theme.json support go under `settings.custom`
+- WordPress generates CSS variables for custom values as `--wp--custom--*`
+- `zIndex` is omitted from theme.json entirely
 
 ### integrate.php
 
@@ -219,12 +361,13 @@ add_filter( 'wp_theme_json_data_default', function ( $theme_json ) {
 
 ### Storybook (Development)
 
-No changes to the development workflow. Storybook loads `src/styles/tokens.css` via the preview config:
+No changes to the development workflow. Storybook loads the generated CSS and SCSS via the preview config:
 
 ```ts
 // .storybook/preview.ts
 import '../src/styles/tokens.css';
-import '../src/styles/reset.css';
+import '../src/styles/fonts.css';
+import '../src/styles/reset.scss';
 ```
 
 ### React / Next.js
@@ -237,6 +380,7 @@ import 'your-component-library/styles.css';
 
 // Option B: Individual
 import 'your-component-library/css/tokens.css';
+import 'your-component-library/css/fonts.css';
 import 'your-component-library/css/Card.css';
 
 import { Card } from 'your-component-library';
@@ -272,7 +416,7 @@ Given these layers:
 { "slug": "primary", "color": "#e63946", "name": "Primary" }
 ```
 
-**Result:** Primary is `#e63946` in both the editor color picker and the `--wp--preset--color--primary` CSS variable. Because `tokens.wp.css` maps `--prefix-color-primary` to `var(--wp--preset--color--primary, #0073aa)`, components automatically pick up the theme's value.
+**Result:** Primary is `#e63946` in both the editor color picker and the `--wp--preset--color--primary` CSS variable. Because `tokens.wp.css` maps `--starter--color-primary` to `var(--wp--preset--color--primary, #0073aa)`, components automatically pick up the theme's value.
 
 ## Build Output
 
@@ -280,12 +424,20 @@ Given these layers:
 dist/
 ├── index.js             # ES module (React components)
 ├── index.d.ts           # TypeScript declarations
+├── components/
+│   ├── Button/
+│   │   ├── Button.js    # Component module
+│   │   ├── Button.d.ts  # TypeScript declarations
+│   │   └── Button.css   # Compiled component CSS
+│   └── Card/
+│       ├── Card.js
+│       ├── Card.d.ts
+│       └── Card.css
 ├── styles.css           # Bundled CSS (tokens + all components)
 ├── css/
 │   ├── tokens.css       # CSS vars — hardcoded values (React/Next.js)
-│   ├── reset.css        # Base styles
-│   ├── Card.css         # Card component
-│   └── Button.css       # Button component
+│   ├── fonts.css        # @font-face declarations
+│   └── reset.css        # Compiled base styles
 └── wp/
     ├── theme.json       # WordPress theme.json base layer
     ├── integrate.php    # WordPress filter hook
@@ -296,15 +448,15 @@ dist/
 
 ```json
 {
-    "exports": {
-        ".": {
-            "import": "./dist/index.js",
-            "types": "./dist/index.d.ts"
-        },
-        "./styles.css": "./dist/styles.css",
-        "./css/*": "./dist/css/*",
-        "./wp/*": "./dist/wp/*"
-    }
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./css/*": "./dist/css/*",
+    "./wp/*": "./dist/wp/*"
+  }
 }
 ```
 
@@ -312,14 +464,14 @@ dist/
 
 ```json
 {
-    "scripts": {
-        "generate": "story-to-block generate",
-        "dev": "npm run generate && storybook dev -p 6006",
-        "build": "npm run generate && npm run build:lib && npm run build:css && npm run build:wp",
-        "build:lib": "vite build",
-        "build:css": "node scripts/build-css.js",
-        "build:wp": "story-to-block generate"
-    }
+  "scripts": {
+    "generate": "story-to-block generate",
+    "dev": "npm run generate && storybook dev -p 6006",
+    "build": "npm run generate && npm run build:lib && npm run build:css && npm run build:wp",
+    "build:lib": "vite build",
+    "build:css": "node scripts/build-css.js",
+    "build:wp": "story-to-block generate"
+  }
 }
 ```
 
@@ -328,9 +480,9 @@ The `generate` step runs first, ensuring `tokens.css` exists before Storybook or
 ## Adding New Tokens
 
 1. Add the token to `stb.config.json`
-2. If it should appear in the WordPress editor UI, include `name` and `slug`
+2. Optionally override the auto-derived `name` or `slug`
 3. Run `npm run generate` (or it runs automatically on `dev`/`build`)
-4. Reference the new `--prefix-*` variable in component CSS
+4. Reference the new `--starter--*` variable in component CSS
 
 ## Changing the Prefix
 
@@ -338,29 +490,29 @@ Update the `prefix` value in `stb.config.json`:
 
 ```json
 {
-    "prefix": "mylib"
+  "prefix": "mylib"
 }
 ```
 
-Run `npm run generate`. The output changes to `--mylib-*` variables.
+Run `npm run generate`. The output changes to `--mylib--*` variables.
 
-Component CSS files and TSX class names still need a manual find-and-replace for the class prefix (e.g., `.prefix-card` to `.mylib-card`). The token generation handles CSS variable prefixes only.
+Component CSS files and TSX class names still need a manual find-and-replace for the class prefix (e.g., `.starter-card` to `.mylib-card`). The token generation handles CSS variable prefixes only.
 
 ## Token Categories and WordPress Mapping
 
 | Category | CSS Variable | theme.json Location | Editor UI |
 |----------|-------------|-------------------|-----------|
-| Color (with name) | `--prefix-color-*` | `settings.color.palette` | Color picker |
-| Color (no name) | `--prefix-color-*` | Not included | CSS only |
-| Spacing | `--prefix-spacing-*` | `settings.spacing.spacingSizes` | Spacing controls |
-| Font Family | `--prefix-font-family-*` | `settings.typography.fontFamilies` | Font picker |
-| Font Size (with name) | `--prefix-font-size-*` | `settings.typography.fontSizes` | Size picker |
-| Font Size (no name) | `--prefix-font-size-*` | Not included | CSS only |
-| Font Weight | `--prefix-font-weight-*` | `settings.custom.fontWeight` | CSS only |
-| Line Height | `--prefix-line-height-*` | `settings.custom.lineHeight` | CSS only |
-| Border Radius | `--prefix-radius-*` | `settings.custom.radius` | CSS only |
-| Shadow | `--prefix-shadow-*` | `settings.custom.shadow` | CSS only |
-| Transition | `--prefix-transition-*` | `settings.custom.transition` | CSS only |
-| Z-Index | `--prefix-z-*` | Not included | CSS only |
+| `color` | `--prefix--color-*` | `settings.color.palette` | Color picker |
+| `gradient` | `--prefix--gradient-*` | `settings.color.gradients` | Gradient picker |
+| `spacing` | `--prefix--spacing-*` | `settings.spacing.spacingSizes` | Spacing controls |
+| `fontFamily` | `--prefix--font-family-*` | `settings.typography.fontFamilies` | Font picker |
+| `fontSize` | `--prefix--font-size-*` | `settings.typography.fontSizes` | Size picker |
+| `shadow` | `--prefix--shadow-*` | `settings.shadow.presets` | Shadow picker |
+| `layout` | `--prefix--layout-*` | `settings.layout` | Layout controls |
+| `fontWeight` | `--prefix--font-weight-*` | `settings.custom.fontWeight` | CSS only |
+| `lineHeight` | `--prefix--line-height-*` | `settings.custom.lineHeight` | CSS only |
+| `radius` | `--prefix--radius-*` | `settings.custom.radius` | CSS only |
+| `transition` | `--prefix--transition-*` | `settings.custom.transition` | CSS only |
+| `zIndex` | `--prefix--z-*` | Not included | CSS only |
 
 Items under `settings.custom` generate `--wp--custom--*` CSS variables in WordPress but don't appear in editor UI controls. Z-Index values are omitted from theme.json entirely as they have no WordPress equivalent.

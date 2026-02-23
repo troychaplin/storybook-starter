@@ -8,6 +8,7 @@ export interface TokenEntry {
   value: string;
   name?: string;
   slug?: string;
+  cssOnly?: boolean;
   fluid?: { min: string; max: string };
   fontFace?: FontFaceEntry[];
 }
@@ -51,15 +52,12 @@ export interface CategoryDef {
  * Adding a new category here is all that's needed to support it across all generators.
  */
 /**
- * Categories that are nested under a parent key in the config file.
- * e.g. "color" in the config contains "palette" and "gradient" sub-keys,
- * which map to the flat registry categories "colorPalette" and "colorGradient".
+ * Maps user-facing config category names to internal flat category names.
+ * Categories not in this map use their key as-is (e.g. "fontSize" → "fontSize").
  */
-export const NESTED_CATEGORIES: Record<string, Record<string, string>> = {
-  color: {
-    palette: 'colorPalette',
-    gradient: 'colorGradient',
-  },
+export const INPUT_CATEGORY_MAP: Record<string, TokenCategory> = {
+  color: 'colorPalette',
+  gradient: 'colorGradient',
 };
 
 export const CATEGORY_REGISTRY: Record<string, CategoryDef> = {
@@ -162,18 +160,33 @@ export const CATEGORY_ORDER = [...VALID_CATEGORIES].sort(
 export interface StbConfig {
   prefix: string;
   tokensPath: string;
-  fontsPath: string;
   outDir: string;
+  wpThemeable: boolean;
   tokens: Partial<Record<TokenCategory, TokenGroup>>;
 }
 
-/** Config as written by the user — supports nested keys like color.palette */
+/**
+ * Token entry as written by user — can be a string (shorthand) or full object.
+ * String "value" expands to { value: "value" }.
+ */
+export type TokenEntryInput = string | TokenEntry;
+
+/** Token group as written by user — supports string shorthand for values */
+export type TokenGroupInput = Record<string, TokenEntryInput>;
+
+/**
+ * Config as written by the user:
+ * - Categories at top level (no "tokens" wrapper)
+ * - "color" maps to colorPalette, "gradient" maps to colorGradient
+ * - Token values can be strings (shorthand) or full objects
+ * - slug is auto-derived from key, name is auto-derived from key (title-case)
+ */
 export interface StbConfigInput {
   prefix: string;
   tokensPath?: string;
-  fontsPath?: string;
   outDir?: string;
-  tokens: Record<string, TokenGroup | Record<string, TokenGroup>>;
+  wpThemeable?: boolean;
+  [category: string]: string | boolean | TokenGroupInput | undefined;
 }
 
 /**
@@ -182,4 +195,15 @@ export interface StbConfigInput {
  */
 export function kebabToCamel(str: string): string {
   return str.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
+}
+
+/**
+ * Convert a kebab-case key to Title Case.
+ * e.g. "primary-hover" → "Primary Hover"
+ */
+export function kebabToTitle(str: string): string {
+  return str
+    .split('-')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }

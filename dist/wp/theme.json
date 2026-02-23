@@ -1,0 +1,188 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/theme.json",
+  "version": 3,
+  "settings": {
+    "color": {
+      "defaultDuotone": false,
+      "defaultPalette": false,
+      "defaultGradients": false,
+      "palette": [
+        {
+          "slug": "primary",
+          "color": "#0073aa",
+          "name": "Primary Brand Color"
+        },
+        {
+          "slug": "secondary",
+          "color": "#23282d",
+          "name": "Secondary"
+        },
+        {
+          "slug": "success",
+          "color": "#00a32a",
+          "name": "Success"
+        },
+        {
+          "slug": "warning",
+          "color": "#dba617",
+          "name": "Warning"
+        },
+        {
+          "slug": "error",
+          "color": "#d63638",
+          "name": "Error"
+        },
+        {
+          "slug": "info",
+          "color": "#72aee6",
+          "name": "Info"
+        }
+      ],
+      "gradients": [
+        {
+          "slug": "custom-gradient-1",
+          "gradient": "linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%)",
+          "name": "Gradient 1"
+        },
+        {
+          "slug": "custom-gradient-2",
+          "gradient": "linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%)",
+          "name": "Gradient 2"
+        }
+      ]
+    },
+    "spacing": {
+      "defaultSpacingSizes": false,
+      "spacingSizes": [
+        {
+          "slug": "20",
+          "size": "0.25rem",
+          "name": "2X-Small"
+        },
+        {
+          "slug": "30",
+          "size": "0.5rem",
+          "name": "X-Small"
+        },
+        {
+          "slug": "40",
+          "size": "min(0.75rem, 1vw)",
+          "name": "Small"
+        },
+        {
+          "slug": "50",
+          "size": "min(1.5rem, 2vw)",
+          "name": "Medium"
+        },
+        {
+          "slug": "60",
+          "size": "min(2.25rem, 3vw)",
+          "name": "Large"
+        },
+        {
+          "slug": "70",
+          "size": "min(3rem, 4vw)",
+          "name": "X-Large"
+        },
+        {
+          "slug": "80",
+          "size": "min(4.5rem, 6vw)",
+          "name": "2X-Large"
+        }
+      ]
+    },
+    "shadow": {
+      "defaultPresets": false,
+      "presets": [
+        {
+          "slug": "natural",
+          "shadow": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+          "name": "Natural"
+        },
+        {
+          "slug": "deep",
+          "shadow": "12px 12px 50px rgba(0, 0, 0, 0.4)",
+          "name": "Deep"
+        },
+        {
+          "slug": "sharp",
+          "shadow": "6px 6px 0px rgba(0, 0, 0, 0.2)",
+          "name": "Sharp"
+        },
+        {
+          "slug": "outlined",
+          "shadow": "6px 6px 0px -3px rgb(255, 255, 255), 6px 6px rgb(0, 0, 0)",
+          "name": "Outlined"
+        },
+        {
+          "slug": "crisp",
+          "shadow": "6px 6px 0px rgb(0, 0, 0)",
+          "name": "Crisp"
+        }
+      ]
+    },
+    "typography": {
+      "fontFamilies": [
+        {
+          "slug": "inter",
+          "fontFamily": "Inter, sans-serif",
+          "name": "Inter",
+          "fontFace": [
+            {
+              "fontFamily": "Inter",
+              "fontStyle": "normal",
+              "fontWeight": "400",
+              "src": [
+                "file:./assets/fonts/inter/inter-400-normal.woff2"
+              ]
+            }
+          ]
+        }
+      ],
+      "fontSizes": [
+        {
+          "slug": "small",
+          "size": "1rem",
+          "name": "Small",
+          "fluid": {
+            "min": "0.875rem",
+            "max": "1rem"
+          }
+        },
+        {
+          "slug": "medium",
+          "size": "1.125rem",
+          "name": "Medium",
+          "fluid": {
+            "min": "1rem",
+            "max": "1.125rem"
+          }
+        },
+        {
+          "slug": "large",
+          "size": "1.25rem",
+          "name": "Large",
+          "fluid": {
+            "min": "1.125rem",
+            "max": "1.25rem"
+          }
+        },
+        {
+          "slug": "x-large",
+          "size": "1.5rem",
+          "name": "X Large",
+          "fluid": {
+            "min": "1.25rem",
+            "max": "1.5rem"
+          }
+        }
+      ],
+      "fluid": true
+    },
+    "layout": {
+      "contentSize": "768px",
+      "wideSize": "1280px"
+    },
+    "useRootPaddingAwareAlignments": true
+  }
+}

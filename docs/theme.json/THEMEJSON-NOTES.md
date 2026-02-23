@@ -107,7 +107,7 @@ The following color settings can be be disabled by setting them to `false` in th
 
 This option falls under the styles entry and is not an ideal candidate for the component library. I feel this is better done in CSS against an element like the body tag and gain greater control over the implementation. Examples of implementation via the `Site Editor` are as follows.
 
-**Tile size option**
+### Tile
 
 ```json
 {
@@ -126,7 +126,7 @@ This option falls under the styles entry and is not an ideal candidate for the c
 }
 ```
 
-**Contain size option with repeat enabled**
+### Contain
 
 ```json
 {
@@ -146,7 +146,7 @@ This option falls under the styles entry and is not an ideal candidate for the c
 }
 ```
 
-**Cover size option**
+### Cover
 
 ```json
 {
@@ -199,6 +199,8 @@ The following color settings can be be disabled by setting them to `false` in th
 }
 ```
 
+----
+
 ## Layout
 
 The primary layout settings relate to the custom content widths. These are already handled in our `stb.config` and are being output as both entries in the generated `theme.json` file, but also as tokens for usage in CSS.
@@ -238,19 +240,7 @@ These style should be factored into the `stb.config` and exported as tokens and 
 
 ## Typography
 
-All typography elements fall under a typography entry.
-
-```json
-{
-	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
-	"version": 3,
-	"settings": {
-		"typography": {
-			// Add settings here
-		}
-	},
-}
-```
+### Font Face
 
 This is an example of how a font face is referenced in a `theme.json` file:
 
@@ -290,9 +280,11 @@ This is an example of how a font face is referenced in a `theme.json` file:
 }
 ```
 
-We can override default font size, and apply fuid typography. There are 4 default sizes, as shown in the example below. In order to replace the defaults and use fluid typography we must use `"defaultFontSizes": false,` and `"fluid": true,`.
+### Default Font Sizes
 
-By default our stb.config should set the 4 default sizes and set `"defaultFontSizes": false,`. These will be needed for font sizes in components, as well as block themes.
+We can override default font size, and apply fluid typography. There are 4 default sizes, as shown in the example below. In order to use fluid typography we must set `"fluid": true,`. Optionally, use `"defaultFontSizes": false,` to hide WordPress's default sizes.
+
+When fontSize tokens are defined, story-to-block automatically sets `"fluid": true` in the generated theme.json. The `defaultFontSizes` option is left to the theme developer to configure manually if needed.
 
 ```json
 {
@@ -300,7 +292,6 @@ By default our stb.config should set the 4 default sizes and set `"defaultFontSi
 	"version": 3,
 	"settings": {
 		"typography": {
-            "defaultFontSizes": false,
             "fluid": true,
 			"fontSizes": [
 				{
@@ -345,7 +336,9 @@ By default our stb.config should set the 4 default sizes and set `"defaultFontSi
 }
 ```
 
-WWe do not have to replace defaults, we can add new ones, as shown below. There are 4 default sizes. In order to use fluid typography we must set `"fluid": true,`.
+### Add Font Sizes
+
+We do not have to replace defaults, we can add new ones, as shown below. There are 4 default sizes. In order to use fluid typography we must set `"fluid": true,`.
 
 Note: by adding `"defaultFontSizes": false,` in this configuration only our custom sizes would be available.
 
@@ -372,3 +365,252 @@ Note: by adding `"defaultFontSizes": false,` in this configuration only our cust
 	},
 }
 ```
+
+----
+
+## Spacing
+
+### Default Spacing Sizes
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "spacingSizes": [
+                {
+                    "name": "2X-Small",
+                    "slug": "20",
+                    "size": "clamp(0.33rem, 0.25rem + 0.25vw, 0.44rem)"
+                },
+                {
+                    "name": "X-Small",
+                    "slug": "30",
+                    "size": "clamp(0.5rem, 0.4rem + 0.5vw, 0.67rem)"
+                },
+                {
+                    "name": "Small",
+                    "slug": "40",
+                    "size": "clamp(0.8rem, 0.7rem + 0.5vw, 1rem)"
+                },
+                {
+                    "name": "Medium",
+                    "slug": "50",
+                    "size": "clamp(1.2rem, 1rem + 1vw, 1.5rem)"
+                },
+                {
+                    "name": "Large",
+                    "slug": "60",
+                    "size": "clamp(1.6rem, 1rem + 2vw, 2.25rem)"
+                },
+                {
+                    "name": "X-Large",
+                    "slug": "70",
+                    "size": "clamp(2.2rem, 1.5rem + 3vw, 3.38rem)"
+                },
+                {
+                    "name": "2X-Large",
+                    "slug": "80",
+                    "size": "clamp(3rem, 2rem + 4vw, 5.06rem)"
+                }
+            ]
+		}
+	},
+}
+```
+
+### Add Spacing Sizes
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "spacingSizes": [
+                {
+                    "name": "Sub-Heading",
+                    "slug": "20",
+                    "size": "clamp(0.33rem, 0.25rem + 0.25vw, 0.44rem)"
+                },
+                {
+                    "name": "Footnote",
+                    "slug": "30",
+                    "size": "clamp(0.5rem, 0.4rem + 0.5vw, 0.67rem)"
+                }
+            ]
+		}
+	},
+}
+```
+
+### Additional Config
+
+Add
+```json
+{
+	"$schema": "https://schemas.wp.org/wp/6.9/theme.json",
+	"version": 3,
+	"settings": {
+		"spacing": {
+            "defaultSpacingSizes": true,
+            "customSpacingSize": true,
+            "spacingSizes": []
+		}
+	},
+}
+```
+
+----
+
+## stb.config.json Format
+
+The `stb.config.json` file uses a simplified format that generates both CSS tokens for the component library and WordPress theme.json presets.
+
+### Config Structure
+
+Categories are defined at the top level (no `tokens` wrapper needed):
+
+```json
+{
+  "prefix": "starter",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
+
+  "color": { ... },
+  "gradient": { ... },
+  "fontFamily": { ... },
+  "fontSize": { ... },
+  "shadow": { ... },
+  "spacing": { ... },
+  "layout": { ... },
+  "fontWeight": { ... },
+  "lineHeight": { ... },
+  "radius": { ... },
+  "transition": { ... },
+  "zIndex": { ... }
+}
+```
+
+### Auto-derived Fields
+
+The config automatically derives `slug` and `name` from the token key:
+
+- **slug**: Uses the token key directly (e.g., `"primary"` → slug `"primary"`)
+- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
+
+You can override either when needed:
+
+```json
+"color": {
+  "primary": "#0073aa",
+  "primary-hover": { "value": "#005a87", "name": "Primary Hover State" }
+}
+```
+
+### String Shorthand
+
+For simple tokens, use a string value directly instead of `{ "value": "..." }`:
+
+```json
+"fontWeight": {
+  "normal": "400",
+  "bold": "700"
+}
+
+"color": {
+  "primary": "#0073aa",
+  "secondary": "#23282d"
+}
+```
+
+### Category Mapping
+
+| Config Key   | Internal Category  | theme.json Path                |
+|--------------|-------------------|--------------------------------|
+| `color`      | `colorPalette`    | `settings.color.palette`       |
+| `gradient`   | `colorGradient`   | `settings.color.gradients`     |
+| `fontFamily` | `fontFamily`      | `settings.typography.fontFamilies` |
+| `fontSize`   | `fontSize`        | `settings.typography.fontSizes` |
+| `shadow`     | `shadow`          | `settings.shadow.presets`      |
+| `spacing`    | `spacing`         | `settings.spacing.spacingSizes` |
+| `layout`     | `layout`          | `settings.layout`              |
+| `fontWeight` | `fontWeight`      | `settings.custom.fontWeight`   |
+| `lineHeight` | `lineHeight`      | `settings.custom.lineHeight`   |
+| `radius`     | `radius`          | `settings.custom.radius`       |
+| `transition` | `transition`      | `settings.custom.transition`   |
+| `zIndex`     | `zIndex`          | *(excluded from theme.json)*   |
+
+### Complete Example
+
+```json
+{
+  "prefix": "starter",
+  "tokensPath": "src/styles/tokens.css",
+  "outDir": "dist/wp",
+
+  "layout": {
+    "content-size": "768px",
+    "wide-size": "1280px"
+  },
+
+  "color": {
+    "primary": "#0073aa",
+    "primary-hover": "#005a87",
+    "secondary": "#23282d",
+    "success": "#00a32a",
+    "warning": "#dba617",
+    "error": "#d63638"
+  },
+
+  "gradient": {
+    "gradient-1": {
+      "value": "linear-gradient(135deg, #ff6b6b 0%, #feca57 100%)",
+      "slug": "custom-gradient-1"
+    }
+  },
+
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" },
+        { "weight": "700", "style": "normal", "src": "inter-700-normal.woff2" }
+      ]
+    },
+    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+  },
+
+  "fontSize": {
+    "small":  { "value": "1rem",   "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "value": "1.125rem", "fluid": { "min": "1rem", "max": "1.125rem" } },
+    "large":  { "value": "1.25rem",  "fluid": { "min": "1.125rem", "max": "1.25rem" } }
+  },
+
+  "shadow": {
+    "natural": "6px 6px 9px rgba(0, 0, 0, 0.2)",
+    "deep": "12px 12px 50px rgba(0, 0, 0, 0.4)"
+  },
+
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
+  }
+}
+```
+
+### Generated Output
+
+Running `npm run generate` produces:
+
+| File | Description |
+|------|-------------|
+| `src/styles/tokens.css` | CSS custom properties for Storybook/local dev |
+| `src/styles/fonts.css` | @font-face declarations (if fontFace defined) |
+| `dist/wp/tokens.wp.css` | CSS with WordPress preset fallbacks |
+| `dist/wp/theme.json` | WordPress theme.json presets |
+| `dist/wp/integrate.php` | PHP filter for plugin integration |
+| `dist/wp/assets/fonts/` | Font files copied from `public/fonts/` |

@@ -5,8 +5,9 @@ import type { StbConfig } from '../src/types.js';
 const config: StbConfig = {
   prefix: 'test',
   tokensPath: 'src/styles/tokens.css',
-  fontsPath: 'public/fonts',
+
   outDir: 'dist/wp',
+  wpThemeable: false,
   tokens: {
     colorPalette: {
       primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
@@ -63,10 +64,20 @@ describe('generateThemeJson', () => {
     expect(slugs).not.toContain('primary-hover');
   });
 
+  it('disables WordPress default color presets when not wpThemeable', () => {
+    expect(parsed.settings.color.defaultDuotone).toBe(false);
+    expect(parsed.settings.color.defaultPalette).toBe(false);
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
   it('includes spacing sizes', () => {
     expect(parsed.settings.spacing.spacingSizes).toEqual([
       { slug: '40', size: '1rem', name: 'Medium' },
     ]);
+  });
+
+  it('disables WordPress default spacing sizes when not wpThemeable', () => {
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(false);
   });
 
   it('includes font families', () => {
@@ -112,8 +123,9 @@ describe('generateThemeJson — layout tokens', () => {
   const layoutConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       layout: {
         'content-size': { value: '645px' },
@@ -137,8 +149,9 @@ describe('generateThemeJson — shadow presets', () => {
   const shadowConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       shadow: {
         sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' },
@@ -150,6 +163,10 @@ describe('generateThemeJson — shadow presets', () => {
 
   const output = generateThemeJson(shadowConfig);
   const parsed = JSON.parse(output);
+
+  it('disables WordPress default shadow presets when not wpThemeable', () => {
+    expect(parsed.settings.shadow.defaultPresets).toBe(false);
+  });
 
   it('places named shadows in settings.shadow.presets', () => {
     expect(parsed.settings.shadow.presets).toEqual([
@@ -174,8 +191,9 @@ describe('generateThemeJson — fluid font sizes', () => {
   const fluidConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       fontSize: {
         small: { value: '1rem', name: 'Small', slug: 'small', fluid: { min: '0.875rem', max: '1rem' } },
@@ -199,12 +217,13 @@ describe('generateThemeJson — fluid font sizes', () => {
 });
 
 describe('generateThemeJson — typography flags', () => {
-  it('sets fluid and defaultFontSizes when fontSize tokens exist', () => {
+  it('sets fluid when fontSize tokens exist', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
+    
       outDir: 'dist/wp',
+      wpThemeable: false,
       tokens: {
         fontSize: {
           small: { value: '1rem', name: 'Small', slug: 'small' },
@@ -213,15 +232,15 @@ describe('generateThemeJson — typography flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.typography.fluid).toBe(true);
-    expect(parsed.settings.typography.defaultFontSizes).toBe(false);
   });
 
-  it('does not set typography flags when no fontSize tokens', () => {
+  it('does not set typography.fluid when no fontSize tokens', () => {
     const cfg: StbConfig = {
       prefix: 'test',
       tokensPath: 'src/styles/tokens.css',
-      fontsPath: 'public/fonts',
+    
       outDir: 'dist/wp',
+      wpThemeable: false,
       tokens: {
         fontFamily: {
           base: { value: 'sans-serif', name: 'Sans', slug: 'body' },
@@ -230,7 +249,139 @@ describe('generateThemeJson — typography flags', () => {
     };
     const parsed = JSON.parse(generateThemeJson(cfg));
     expect(parsed.settings.typography.fluid).toBeUndefined();
-    expect(parsed.settings.typography.defaultFontSizes).toBeUndefined();
+  });
+});
+
+describe('generateThemeJson — WordPress default preset flags', () => {
+  const baseConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+  
+    outDir: 'dist/wp',
+  };
+
+  it('disables color defaults when wpThemeable is false', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultDuotone).toBe(false);
+    expect(parsed.settings.color.defaultPalette).toBe(false);
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
+  it('enables color defaults when wpThemeable is true', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultDuotone).toBe(true);
+    expect(parsed.settings.color.defaultPalette).toBe(true);
+    expect(parsed.settings.color.defaultGradients).toBe(true);
+  });
+
+  it('sets color defaults when gradient tokens exist', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorGradient: { sunset: { value: 'linear-gradient(#ff6b6b, #feca57)', name: 'Sunset', slug: 'sunset' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color.defaultGradients).toBe(false);
+  });
+
+  it('does not set color defaults when no color or gradient tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        fontWeight: { bold: { value: '700' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.color).toBeUndefined();
+  });
+
+  it('disables spacing defaults when wpThemeable is false', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        spacing: { md: { value: '1rem', slug: '40', name: 'Medium' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(false);
+  });
+
+  it('enables spacing defaults when wpThemeable is true', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        spacing: { md: { value: '1rem', slug: '40', name: 'Medium' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing.defaultSpacingSizes).toBe(true);
+  });
+
+  it('does not set spacing defaults when no spacing tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.spacing).toBeUndefined();
+  });
+
+  it('disables shadow defaults when wpThemeable is false', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        shadow: { sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow.defaultPresets).toBe(false);
+  });
+
+  it('enables shadow defaults when wpThemeable is true', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: true,
+      tokens: {
+        shadow: { sm: { value: '0 1px 2px 0 rgb(0 0 0 / 0.05)', name: 'Small', slug: 'sm' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow.defaultPresets).toBe(true);
+  });
+
+  it('does not set shadow defaults when no shadow tokens', () => {
+    const cfg: StbConfig = {
+      ...baseConfig,
+      wpThemeable: false,
+      tokens: {
+        colorPalette: { primary: { value: '#0073aa', name: 'Primary', slug: 'primary' } },
+      },
+    };
+    const parsed = JSON.parse(generateThemeJson(cfg));
+    expect(parsed.settings.shadow).toBeUndefined();
   });
 });
 
@@ -238,8 +389,9 @@ describe('generateThemeJson — fontFace', () => {
   const fontConfig: StbConfig = {
     prefix: 'test',
     tokensPath: 'src/styles/tokens.css',
-    fontsPath: 'public/fonts',
+  
     outDir: 'dist/wp',
+    wpThemeable: false,
     tokens: {
       fontFamily: {
         inter: {

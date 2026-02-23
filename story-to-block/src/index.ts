@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, copyFileSync, existsSync } from 'node:fs';
+import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { loadConfig } from './config.js';
 import { generateTokensCss } from './generators/tokens-css.js';
@@ -42,29 +42,11 @@ export function generate(configPath?: string, cwd?: string): GenerateResult {
   }
 
   // Generate WordPress assets
-  write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
+  if (config.wpThemeable) {
+    write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
+  }
   write(`${config.outDir}/theme.json`, generateThemeJson(config));
   write(`${config.outDir}/integrate.php`, generateIntegratePhp());
-
-  // Copy font files to theme assets
-  const fontFamily = config.tokens.fontFamily;
-  if (fontFamily) {
-    for (const entry of Object.values(fontFamily)) {
-      if (!entry.fontFace || !entry.slug) continue;
-      for (const face of entry.fontFace) {
-        const srcPath = resolve(baseDir, config.fontsPath, entry.slug, face.src);
-        const destRelative = `${config.outDir}/assets/fonts/${entry.slug}/${face.src}`;
-        const destPath = resolve(baseDir, destRelative);
-        if (existsSync(srcPath)) {
-          mkdirSync(dirname(destPath), { recursive: true });
-          copyFileSync(srcPath, destPath);
-          files.push({ path: destRelative, size: 0 });
-        } else {
-          process.stderr.write(`Warning: Font file not found: ${srcPath}\n`);
-        }
-      }
-    }
-  }
 
   return { files };
 }

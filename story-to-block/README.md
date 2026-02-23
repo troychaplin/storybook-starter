@@ -9,13 +9,16 @@ You define design tokens once in `stb.config.json`. The generator produces:
 - **`tokens.css`** — CSS variables with hardcoded values (for Storybook and React/Next.js)
 - **`tokens.wp.css`** — CSS variables mapped to `--wp--preset--*` with fallbacks (for WordPress)
 - **`theme.json`** — WordPress theme.json base layer with colors, spacing, fonts, and custom values
+- **`fonts.css`** — @font-face declarations (when fontFace is defined)
 - **`integrate.php`** — PHP filter that loads theme.json via `wp_theme_json_data_default`
 
 ```
 stb.config.json  →  story-to-block generate  →  src/styles/tokens.css
+                                                src/styles/fonts.css
                                                 dist/wp/tokens.wp.css
                                                 dist/wp/theme.json
                                                 dist/wp/integrate.php
+                                                dist/wp/assets/fonts/
 ```
 
 ## Installation
@@ -28,28 +31,20 @@ npm install story-to-block --save-dev
 
 ### 1. Create the config
 
-Create `stb.config.json` in your project root:
+Create `stb.config.json` in your project root. Categories are defined at the top level — no wrapper needed:
 
 ```json
 {
   "prefix": "mylib",
-  "tokens": {
-    "color": {
-      "primary": {
-        "value": "#0073aa",
-        "name": "Primary",
-        "slug": "primary"
-      },
-      "primary-hover": {
-        "value": "#005a87"
-      }
-    },
-    "spacing": {
-      "md": { "value": "1rem", "slug": "40", "name": "Medium" }
-    },
-    "fontSize": {
-      "base": { "value": "1rem", "slug": "medium", "name": "Medium" }
-    }
+  "color": {
+    "primary": "#0073aa",
+    "primary-hover": "#005a87"
+  },
+  "spacing": {
+    "md": { "value": "1rem", "slug": "40", "name": "Medium" }
+  },
+  "fontSize": {
+    "base": { "value": "1rem", "fluid": { "min": "0.875rem", "max": "1rem" } }
   }
 }
 ```
@@ -91,13 +86,15 @@ npx story-to-block generate
 | `prefix` | Yes | — | CSS variable prefix (e.g. `mylib` produces `--mylib-*`) |
 | `tokensPath` | No | `src/styles/tokens.css` | Output path for the development tokens CSS file |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
-| `tokens` | Yes | — | Token definitions grouped by category |
 
 ### Token Categories
+
+Categories are defined at the top level of the config:
 
 | Category | CSS Variable | Example |
 |----------|-------------|---------|
 | `color` | `--prefix-color-*` | `--mylib-color-primary` |
+| `gradient` | `--prefix-gradient-*` | `--mylib-gradient-sunset` |
 | `spacing` | `--prefix-spacing-*` | `--mylib-spacing-md` |
 | `fontFamily` | `--prefix-font-family-*` | `--mylib-font-family-base` |
 | `fontSize` | `--prefix-font-size-*` | `--mylib-font-size-lg` |
@@ -107,28 +104,92 @@ npx story-to-block generate
 | `shadow` | `--prefix-shadow-*` | `--mylib-shadow-sm` |
 | `transition` | `--prefix-transition-*` | `--mylib-transition-fast` |
 | `zIndex` | `--prefix-z-*` | `--mylib-z-modal` |
+| `layout` | `--prefix-layout-*` | `--mylib-layout-content-size` |
 
-### Token Properties
+### Token Syntax
 
-Each token requires a `value`. Tokens with `name` and `slug` are exposed to the WordPress editor UI. Tokens without them exist only as CSS variables.
+#### String Shorthand
+
+For simple tokens, use a string value directly:
 
 ```json
 {
-  "primary": {
-    "value": "#0073aa",
-    "name": "Primary",
-    "slug": "primary"
+  "color": {
+    "primary": "#0073aa",
+    "secondary": "#23282d"
+  },
+  "fontWeight": {
+    "normal": "400",
+    "bold": "700"
   }
 }
 ```
 
+#### Object Syntax
+
+For tokens with additional properties:
+
+```json
+{
+  "fontSize": {
+    "small": {
+      "value": "1rem",
+      "fluid": { "min": "0.875rem", "max": "1rem" }
+    }
+  }
+}
+```
+
+### Auto-derived Fields
+
+The `slug` and `name` are automatically derived from the token key:
+
+- **slug**: Uses the key directly (e.g., `"primary"` → slug `"primary"`)
+- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
+
+Override when needed:
+
+```json
+{
+  "color": {
+    "primary": { "value": "#0073aa", "name": "Primary Brand Color" }
+  },
+  "spacing": {
+    "md": { "value": "1rem", "slug": "40", "name": "Medium" }
+  }
+}
+```
+
+### Token Properties
+
 | Property | Required | Description |
 |----------|----------|-------------|
 | `value` | Yes | The CSS value |
-| `name` | No | Human-readable label for the WordPress editor |
-| `slug` | No | WordPress preset slug. Required alongside `name` |
+| `name` | No | Human-readable label (auto-derived from key) |
+| `slug` | No | WordPress preset slug (auto-derived from key) |
+| `fluid` | No | Fluid typography settings (fontSize only) |
+| `fontFace` | No | Font file definitions (fontFamily only) |
 
-`name` and `slug` must appear together. A token with `name` but no `slug` (or vice versa) will produce a validation error.
+### Font Families with Local Fonts
+
+Define font families with `fontFace` to generate @font-face CSS and theme.json entries:
+
+```json
+{
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" },
+        { "weight": "700", "style": "normal", "src": "inter-700-normal.woff2" }
+      ]
+    },
+    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
+  }
+}
+```
+
+Font files should be placed at `public/fonts/{slug}/{filename}` (e.g., `public/fonts/inter/inter-400-normal.woff2`). For WordPress themes, copy the font files into `assets/fonts/{slug}/` alongside `theme.json`.
 
 ## CLI
 
@@ -157,6 +218,7 @@ import {
   generateTokensCss,
   generateTokensWpCss,
   generateThemeJson,
+  generateFontsCss,
   generateIntegratePhp,
 } from 'story-to-block';
 
@@ -164,6 +226,7 @@ const config = loadConfig('./stb.config.json');
 const css = generateTokensCss(config);
 const wpCss = generateTokensWpCss(config);
 const themeJson = generateThemeJson(config);
+const fontsCss = generateFontsCss(config);
 const php = generateIntegratePhp();
 ```
 
@@ -171,14 +234,14 @@ const php = generateIntegratePhp();
 
 ### How tokens.wp.css Works
 
-Tokens with `name` + `slug` map to WordPress preset variables with fallbacks:
+All tokens map to WordPress preset variables with fallbacks:
 
 ```css
-/* Token with slug → maps to --wp--preset--* */
+/* Token → maps to --wp--preset--* */
 --mylib-color-primary: var(--wp--preset--color--primary, #0073aa);
 
-/* Token without slug → hardcoded value */
---mylib-color-primary-hover: #005a87;
+/* Custom categories → hardcoded value */
+--mylib-font-weight-bold: 700;
 ```
 
 When a theme overrides `primary` in its `theme.json`, `--wp--preset--color--primary` changes and `--mylib-color-primary` automatically picks up the new value.
@@ -209,20 +272,18 @@ Similarly, copy `tokens.wp.css` and component CSS files into your theme's assets
 
 | Category | WordPress Mapping | Editor UI |
 |----------|------------------|-----------|
-| Color (with slug) | `--wp--preset--color--{slug}` | Color picker |
-| Color (without slug) | Hardcoded | Not visible |
-| Spacing | `--wp--preset--spacing--{slug}` | Spacing controls |
-| Font Family | `--wp--preset--font-family--{slug}` | Font picker |
-| Font Size (with slug) | `--wp--preset--font-size--{slug}` | Size picker |
-| Font Size (without slug) | Hardcoded | Not visible |
-| Font Weight | Hardcoded | Not visible |
-| Line Height | Hardcoded | Not visible |
-| Radius | Hardcoded | Not visible |
-| Shadow | Hardcoded | Not visible |
-| Transition | Hardcoded | Not visible |
-| Z-Index | Hardcoded | Not visible |
-
-Font Weight, Line Height, Radius, Shadow, and Transition are placed under `settings.custom` in `theme.json`, which generates `--wp--custom--*` variables but doesn't surface in editor UI controls. Z-Index is excluded from `theme.json` entirely.
+| `color` | `--wp--preset--color--{slug}` | Color picker |
+| `gradient` | `--wp--preset--gradient--{slug}` | Gradient picker |
+| `spacing` | `--wp--preset--spacing--{slug}` | Spacing controls |
+| `fontFamily` | `--wp--preset--font-family--{slug}` | Font picker |
+| `fontSize` | `--wp--preset--font-size--{slug}` | Size picker |
+| `shadow` | `--wp--preset--shadow--{slug}` | Shadow picker |
+| `fontWeight` | `settings.custom.fontWeight` | CSS only |
+| `lineHeight` | `settings.custom.lineHeight` | CSS only |
+| `radius` | `settings.custom.radius` | CSS only |
+| `transition` | `settings.custom.transition` | CSS only |
+| `zIndex` | *(excluded from theme.json)* | CSS only |
+| `layout` | `settings.layout` | Layout controls |
 
 ## Development
 
