@@ -14,7 +14,10 @@ your-project/
 │
 ├── src/styles/
 │   ├── tokens.css                   (generated — CSS vars for Storybook dev)
-│   └── fonts.css                    (generated — @font-face declarations)
+│   ├── fonts.css                    (generated — @font-face declarations)
+│   ├── _content-generated.scss      (generated — base typography from config)
+│   ├── content.scss                 (authored — imports generated + behavioral rules)
+│   └── reset.scss                   (authored — structural CSS reset)
 │
 └── dist/wp/
     ├── theme.json                   (generated — base theme.json layer)
@@ -102,6 +105,14 @@ Create `stb.config.json` in your project root. Categories are defined at the top
   "zIndex": {
     "dropdown": "100",
     "modal": "300"
+  },
+
+  "baseStyles": {
+    "body": { "fontFamily": "inter", "fontSize": "medium", "fontWeight": "400", "lineHeight": "1.6" },
+    "heading": { "fontFamily": "inter" },
+    "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
+    "h2": { "fontSize": "3rem", "fontWeight": "500" },
+    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
   }
 }
 ```
@@ -114,6 +125,7 @@ Create `stb.config.json` in your project root. Categories are defined at the top
 | `tokensPath` | No | `src/styles/tokens.css` | Where to write the generated tokens CSS file |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
 | `wpThemeable` | No | `false` | When `true`, generates `tokens.wp.css` with `--wp--preset--*` variable mappings |
+| `baseStyles` | No | — | Element-level typography for body, headings, and caption. Generates `_content-generated.scss` and a `styles` block in theme.json. See [Base Styles](./BASE-STYLES.md) |
 
 ### Token Syntax
 
@@ -231,6 +243,7 @@ This reads `stb.config.json` and produces:
 |----------------|----------|---------|
 | `tokens.css` | `src/styles/tokens.css` | CSS variables with hardcoded values |
 | `fonts.css` | `src/styles/fonts.css` | @font-face declarations (if fontFace defined) |
+| `_content-generated.scss` | `src/styles/_content-generated.scss` | Base typography from `baseStyles` config (`:where()` rules) |
 | `theme.json` | `dist/wp/theme.json` | WordPress theme.json base layer |
 | `tokens.wp.css` | `dist/wp/tokens.wp.css` | CSS variables mapped to `--wp--preset--*` (if `wpThemeable: true`) |
 | `integrate.php` | `dist/wp/integrate.php` | PHP filter for wp_theme_json_data_default |
@@ -255,14 +268,17 @@ After running the generator, `src/styles/tokens.css` contains all your CSS varia
 }
 ```
 
-Your Storybook preview imports these files:
+The `story-to-block` Storybook preset auto-injects all generated and authored style files. Add it to your `.storybook/main.ts`:
 
 ```ts
-// .storybook/preview.ts
-import '../src/styles/tokens.css';
-import '../src/styles/fonts.css';
-import '../src/styles/reset.scss';
+// .storybook/main.ts
+addons: [
+  '@storybook/addon-docs',
+  '../story-to-block/dist/preset.js',
+],
 ```
+
+The preset reads `stb.config.json`, derives file paths from `tokensPath`, and injects any that exist: `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss`. No manual imports needed in `preview.ts`.
 
 Component SCSS files reference the generated CSS variables and can use shared mixins:
 

@@ -10,15 +10,16 @@ You define design tokens once in `stb.config.json`. The generator produces:
 - **`tokens.wp.css`** — CSS variables mapped to `--wp--preset--*` with fallbacks (for WordPress)
 - **`theme.json`** — WordPress theme.json base layer with colors, spacing, fonts, and custom values
 - **`fonts.css`** — @font-face declarations (when fontFace is defined)
+- **`_content-generated.scss`** — Base typography from `baseStyles` config (when defined)
 - **`integrate.php`** — PHP filter that loads theme.json via `wp_theme_json_data_default`
 
 ```
 stb.config.json  →  story-to-block generate  →  src/styles/tokens.css
                                                 src/styles/fonts.css
+                                                src/styles/_content-generated.scss
                                                 dist/wp/tokens.wp.css
                                                 dist/wp/theme.json
                                                 dist/wp/integrate.php
-                                                dist/wp/assets/fonts/
 ```
 
 ## Installation
@@ -86,6 +87,8 @@ npx story-to-block generate
 | `prefix` | Yes | — | CSS variable prefix (e.g. `mylib` produces `--mylib-*`) |
 | `tokensPath` | No | `src/styles/tokens.css` | Output path for the development tokens CSS file |
 | `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
+| `wpThemeable` | No | `false` | When `true`, generates `tokens.wp.css` with `--wp--preset--*` variable mappings |
+| `baseStyles` | No | — | Element-level typography for body, headings, and caption |
 
 ### Token Categories
 
@@ -201,6 +204,19 @@ Options:
   --dry-run         Output to stdout instead of writing files
 ```
 
+## Storybook Preset
+
+The package ships a Storybook preset that auto-injects all generated and authored style files into the preview. Add it to your `.storybook/main.ts`:
+
+```ts
+addons: [
+  '@storybook/addon-docs',
+  '../story-to-block/dist/preset.js',
+],
+```
+
+The preset reads `stb.config.json`, derives file paths from `tokensPath`, and injects any that exist: `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss`. No manual imports needed in `preview.ts`.
+
 ## Programmatic API
 
 ```ts
@@ -219,6 +235,7 @@ import {
   generateTokensWpCss,
   generateThemeJson,
   generateFontsCss,
+  generateContentScss,
   generateIntegratePhp,
 } from 'story-to-block';
 
@@ -226,7 +243,8 @@ const config = loadConfig('./stb.config.json');
 const css = generateTokensCss(config);
 const wpCss = generateTokensWpCss(config);
 const themeJson = generateThemeJson(config);
-const fontsCss = generateFontsCss(config);
+const fontsCss = generateFontsCss(config);         // string | null
+const contentScss = generateContentScss(config);    // string | null
 const php = generateIntegratePhp();
 ```
 

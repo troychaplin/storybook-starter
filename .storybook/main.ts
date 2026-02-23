@@ -5,7 +5,8 @@ const config: StorybookConfig = {
   addons: [
     '@storybook/addon-docs',
     '@storybook/addon-a11y',
-    '@storybook/addon-vitest'
+    '@storybook/addon-vitest',
+    '../story-to-block/dist/preset.js',
   ],
   framework: '@storybook/react-vite',
   typescript: {

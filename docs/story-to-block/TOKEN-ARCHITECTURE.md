@@ -13,6 +13,7 @@ stb.config.json                       (single source of truth)
     │
     ├──► src/styles/tokens.css        (CSS vars for Storybook dev)
     ├──► src/styles/fonts.css         (@font-face declarations)
+    ├──► src/styles/_content-generated.scss  (element typography from baseStyles)
     ├──► dist/wp/tokens.wp.css        (if wpThemeable: true)
     ├──► dist/wp/theme.json           (WordPress theme.json base layer)
     └──► dist/wp/integrate.php        (WordPress filter hook)
@@ -344,6 +345,7 @@ Generated to `dist/wp/theme.json`. Only preset-registered tokens (object entries
 - Token categories without native theme.json support go under `settings.custom`
 - WordPress generates CSS variables for custom values as `--wp--custom--*`
 - `zIndex` is omitted from theme.json entirely
+- When `baseStyles` is configured, a `styles` block is added with `styles.typography` (body defaults) and `styles.elements` (heading/caption typography). See [Base Styles](./BASE-STYLES.md) for the full structure
 
 ### integrate.php
 
@@ -361,14 +363,17 @@ add_filter( 'wp_theme_json_data_default', function ( $theme_json ) {
 
 ### Storybook (Development)
 
-No changes to the development workflow. Storybook loads the generated CSS and SCSS via the preview config:
+The `story-to-block` preset auto-injects all generated and authored style files. Add it to your `.storybook/main.ts`:
 
 ```ts
-// .storybook/preview.ts
-import '../src/styles/tokens.css';
-import '../src/styles/fonts.css';
-import '../src/styles/reset.scss';
+// .storybook/main.ts
+addons: [
+  '@storybook/addon-docs',
+  '../story-to-block/dist/preset.js',
+],
 ```
+
+The preset reads `stb.config.json` and injects `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss` into the Storybook preview — no manual imports needed in `preview.ts`.
 
 ### React / Next.js
 
@@ -437,6 +442,7 @@ dist/
 ├── css/
 │   ├── tokens.css       # CSS vars — hardcoded values (React/Next.js)
 │   ├── fonts.css        # @font-face declarations
+│   ├── content.css      # Compiled base typography + authored rules
 │   └── reset.css        # Compiled base styles
 └── wp/
     ├── theme.json       # WordPress theme.json base layer

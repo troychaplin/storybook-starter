@@ -21,15 +21,22 @@ Two layers work together:
 
 ### Layer 1: Reset (what exists today)
 
-`src/styles/reset.scss` handles box-sizing, margin removal, list resets, and form normalization. It does not apply any typography — no font sizes, no line heights on elements, no heading scales. It's purely structural.
+`src/styles/reset.scss` handles box-sizing, margin removal, list resets, form normalization, and fallback body typography. The body defaults provide a baseline that `_content-generated.scss` overrides with config-driven values when `baseStyles` is defined:
 
 ```scss
-// reset.scss — structural only, no typography opinions
+// reset.scss — structural resets + fallback body typography
 
 *,
 *::before,
 *::after {
   box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  line-height: var(--prefix-line-height-normal, 1.5);
+  font-family: var(--prefix-font-family-base, system-ui, sans-serif);
+  -webkit-font-smoothing: antialiased;
 }
 
 h1, h2, h3, h4, h5, h6,
@@ -55,10 +62,12 @@ The generator reads the `baseStyles` section from `stb.config.json` and produces
 ```scss
 // _content-generated.scss — do not edit manually
 
-font-family: var(--design-system--font-family-inter);
-font-size: var(--design-system--font-size-medium);
-font-weight: 400;
-line-height: 1.6;
+body {
+  font-family: var(--design-system--font-family-inter);
+  font-size: var(--design-system--font-size-medium);
+  font-weight: 400;
+  line-height: 1.6;
+}
 
 :where(h1, h2, h3, h4, h5, h6) {
   font-family: var(--design-system--font-family-inter);
@@ -107,7 +116,7 @@ line-height: 1.6;
 }
 ```
 
-This partial outputs bare declarations and `:where()` rules without a wrapping selector — it's designed to be included inside the content scope class in `content.scss`.
+Body-level typography is wrapped in `body { }` to match theme.json's `styles.typography`. Heading and caption rules use `:where()` for zero specificity so component BEM classes always win.
 
 #### Authored: `content.scss`
 
@@ -116,39 +125,26 @@ You own this file. It imports the generated partial and adds behavioral rules th
 ```scss
 // content.scss — you own this file
 
-.example-content {
-  // Generated element typography from stb.config.json
-  @use 'content-generated';
+@use 'content-generated';
 
-  // List styles
-  :where(ul, ol) {
-    list-style: revert;
-    padding-left: 1.25em;
-  }
+// Vertical rhythm for block-level elements
+:where(p, ul, ol, blockquote, pre, figure, table) {
+  margin-block: 0 1em;
+}
 
-  // Link styles
-  :where(a) {
-    color: var(--design-system--color-primary);
-    text-decoration: underline;
+// Restore list markers
+:where(ul) {
+  list-style: disc;
+  padding-inline-start: 1.5em;
+}
 
-    &:hover {
-      color: var(--design-system--color-primary-hover);
-    }
-  }
-
-  // Vertical rhythm between block elements
-  :where(h1, h2, h3, h4, h5, h6, p, ul, ol, blockquote, figure) {
-    & + & {
-      margin-top: var(--design-system--spacing-small);
-    }
-  }
-
-  // Extra space before headings that follow content
-  :where(p, ul, ol, blockquote) + :where(h1, h2, h3, h4, h5, h6) {
-    margin-top: var(--design-system--spacing-medium);
-  }
+:where(ol) {
+  list-style: decimal;
+  padding-inline-start: 1.5em;
 }
 ```
+
+The `@use 'content-generated'` at the top pulls in the generated partial. The `:where()` rules below add behavioral styles that don't belong in config — vertical rhythm, list markers, link styles, and anything else specific to prose content.
 
 When the generator runs, only `_content-generated.scss` changes. Your authored rules in `content.scss` are untouched.
 
@@ -234,15 +230,17 @@ The bare `<h2>` and `<p>` outside the Card get content scope styles. The `<h2>` 
 
 ### Storybook
 
-Import in the preview alongside tokens and reset:
+The `story-to-block` preset auto-injects all generated and authored style files. Add it to your addons:
 
 ```ts
-// .storybook/preview.ts
-import '../src/styles/tokens.css';
-import '../src/styles/fonts.css';
-import '../src/styles/reset.scss';
-import '../src/styles/content.scss';
+// .storybook/main.ts
+addons: [
+  '@storybook/addon-docs',
+  '../story-to-block/dist/preset.js',
+],
 ```
+
+The preset reads `stb.config.json`, derives file paths from `tokensPath`, and injects any that exist: `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss`. No manual imports needed in `preview.ts`.
 
 Use in page-level stories that show prose content:
 
