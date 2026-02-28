@@ -178,7 +178,7 @@ This produces `_content-generated.scss` with `body {}`, `:where()` rules, `.has-
 
 The `spacing.padding` section maps to WordPress's `useRootPaddingAwareAlignments` pattern. Token keys like `"large"` resolve to spacing preset variables (`var(--wp--preset--spacing--60)` in theme.json, `var(--prefix--spacing-large)` in SCSS). For Storybook/React, apply `.has-global-padding` to container elements and `.alignfull` to children that should break out to full width.
 
-See [Base Styles](../docs/story-to-block/BASE-STYLES.md) for the full design rationale.
+See [Base Styles](./docs/getting-started/BASE-STYLES.md) for the full design rationale.
 
 ## CLI
 
@@ -215,14 +215,25 @@ import {
 
 ## Documentation
 
+### Getting Started
+
 | Guide | Description |
 |-------|-------------|
-| [Getting Started](../docs/story-to-block/GETTING-STARTED.md) | Full config reference, token syntax, build setup |
-| [Token Architecture](../docs/story-to-block/TOKEN-ARCHITECTURE.md) | How tokens flow from config to each platform |
-| [Base Styles](../docs/story-to-block/BASE-STYLES.md) | Content scope typography and `:where()` approach |
-| [Theme Integration](../docs/story-to-block/THEME-INTEGRATION.md) | WordPress theme setup with integrate.php and tokens.wp.css |
-| [Plugin Integration](../docs/story-to-block/PLUGIN-INTEGRATION.md) | WordPress block plugin with component CSS and block.json |
-| [Editor Styles](../docs/story-to-block/EDITOR-STYLES.md) | Loading styles in the WordPress block editor iframe |
+| [Installation](./docs/getting-started/INSTALLATION.md) | Install, config, generate, build setup |
+| [Tokens](./docs/getting-started/TOKENS.md) | Token categories, syntax, CSS output |
+| [Base Styles](./docs/getting-started/BASE-STYLES.md) | Typography, spacing, alignfull |
+| [Storybook Preset](./docs/getting-started/STORYBOOK-PRESET.md) | Preset setup, auto-injected files |
+
+### Advanced
+
+| Guide | Description |
+|-------|-------------|
+| [Architecture](./docs/advanced/ARCHITECTURE.md) | Design decisions, project structure |
+| [Token Architecture](./docs/advanced/TOKEN-ARCHITECTURE.md) | Full token flow, internals |
+| [Theme Integration](./docs/advanced/THEME-INTEGRATION.md) | WordPress theme setup |
+| [Plugin Integration](./docs/advanced/PLUGIN-INTEGRATION.md) | WordPress block plugin setup |
+| [Editor Styles](./docs/advanced/EDITOR-STYLES.md) | WordPress editor iframe styles |
+| [theme.json Notes](./docs/advanced/THEMEJSON-NOTES.md) | theme.json reference |
 
 ## Development
 

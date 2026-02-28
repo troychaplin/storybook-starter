@@ -39,10 +39,11 @@ describe('integration: generate() — default (locked)', () => {
   it('generates expected files without tokens.wp.css', () => {
     const result = generate(CONFIG_PATH, TEST_DIR);
 
-    expect(result.files).toHaveLength(3);
+    expect(result.files).toHaveLength(4);
 
     const paths = result.files.map((f) => f.path);
     expect(paths).toContain('src/tokens.css');
+    expect(paths).toContain('out/wp/tokens.css');
     expect(paths).not.toContain('out/wp/tokens.wp.css');
     expect(paths).toContain('out/wp/theme.json');
     expect(paths).toContain('out/wp/integrate.php');
@@ -70,10 +71,15 @@ describe('integration: generate() — default (locked)', () => {
     expect(parsed.settings.custom).not.toHaveProperty('zIndex');
   });
 
-  it('writes integrate.php with wp_theme_json_data_default filter', () => {
+  it('writes integrate.php with theme.json filter and token enqueue', () => {
     const content = readFileSync(resolve(TEST_DIR, 'out/wp/integrate.php'), 'utf-8');
     expect(content).toContain('wp_theme_json_data_default');
     expect(content).toContain('update_with');
+    expect(content).toContain('wp_enqueue_style');
+    expect(content).toContain('tokens.wp.css');
+    expect(content).toContain('tokens.css');
+    expect(content).toContain('wp_enqueue_scripts');
+    expect(content).toContain('enqueue_block_editor_assets');
   });
 });
 
@@ -118,8 +124,8 @@ describe('integration: generate() — baseStyles', () => {
 
     const paths = result.files.map((f) => f.path);
     expect(paths).toContain('src/_content-generated.scss');
-    // base files: tokens.css, theme.json, integrate.php + _content-generated.scss = 4
-    expect(result.files.length).toBeGreaterThanOrEqual(4);
+    // base files: src/tokens.css, out/wp/tokens.css, theme.json, integrate.php + _content-generated.scss = 5
+    expect(result.files.length).toBeGreaterThanOrEqual(5);
   });
 
   it('_content-generated.scss has :where() selectors', () => {
@@ -262,10 +268,11 @@ describe('integration: generate() — wpThemeable', () => {
   it('generates tokens.wp.css when wpThemeable is true', () => {
     const result = generate(WP_CONFIG_PATH, WP_TEST_DIR);
 
-    expect(result.files).toHaveLength(4);
+    expect(result.files).toHaveLength(5);
 
     const paths = result.files.map((f) => f.path);
     expect(paths).toContain('src/tokens.css');
+    expect(paths).toContain('out/wp/tokens.css');
     expect(paths).toContain('out/wp/tokens.wp.css');
     expect(paths).toContain('out/wp/theme.json');
     expect(paths).toContain('out/wp/integrate.php');

@@ -345,7 +345,7 @@ Generated to `dist/wp/theme.json`. Only preset-registered tokens (object entries
 - Token categories without native theme.json support go under `settings.custom`
 - WordPress generates CSS variables for custom values as `--wp--custom--*`
 - `zIndex` is omitted from theme.json entirely
-- When `baseStyles` is configured, a `styles` block is added with `styles.typography` (body defaults) and `styles.elements` (heading/caption typography). See [Base Styles](./BASE-STYLES.md) for the full structure
+- When `baseStyles` is configured, a `styles` block is added with `styles.typography` (body defaults) and `styles.elements` (heading/caption typography). See [Base Styles](../getting-started/BASE-STYLES.md) for the full structure
 
 ### integrate.php
 

@@ -51,6 +51,7 @@ export function generate(configPath?: string, cwd?: string): GenerateResult {
   }
 
   // Generate WordPress assets
+  write(`${config.outDir}/tokens.css`, generateTokensCss(config));
   if (config.wpThemeable) {
     write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
   }
