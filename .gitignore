@@ -3,7 +3,7 @@ node_modules/
 
 # Build outputs
 storybook-static/
-#component2block/
+component2block/
 
 # IDE
 .idea/
