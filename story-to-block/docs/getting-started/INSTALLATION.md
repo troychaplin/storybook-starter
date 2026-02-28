@@ -162,6 +162,9 @@ node_modules/your-component-library/
 │   │   ├── tokens.css        # CSS vars with hardcoded values
 │   │   ├── fonts.css         # @font-face declarations
 │   │   └── reset.css         # Compiled base styles
+│   ├── fonts/                # Font files (if fontFace defined)
+│   │   └── inter/
+│   │       └── inter-400-normal.woff2
 │   └── wp/
 │       ├── integrate.php     # PHP hooks: theme.json filter + token enqueue
 │       ├── theme.json        # WordPress theme.json base layer

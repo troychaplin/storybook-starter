@@ -8,9 +8,9 @@
  *
  * Setup:
  *   1. Copy this file, theme.json, and your token CSS file into your theme
- *      (e.g. inc/story-to-block/)
+ *      (e.g. assets/stb/)
  *   2. Add to your theme's functions.php:
- *      require_once get_template_directory() . '/inc/story-to-block/integrate.php';
+ *      require_once get_template_directory() . '/assets/stb/integrate.php';
  *
  * @package story-to-block
  */
