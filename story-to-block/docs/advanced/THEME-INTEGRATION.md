@@ -123,8 +123,10 @@ Everything needed for WordPress integration is in one directory. Copy the entire
 
 ```bash
 mkdir -p inc/story-to-block
-cp node_modules/your-component-library/dist/wp/* inc/story-to-block/
+cp -r node_modules/your-component-library/dist/wp/* inc/story-to-block/
 ```
+
+> **Note:** Use `cp -r` (recursive) to include the `assets/fonts/` subdirectory.
 
 Your theme structure:
 
@@ -135,7 +137,11 @@ your-theme/
 │       ├── integrate.php    (theme.json filter + token CSS enqueue)
 │       ├── theme.json       (base layer presets)
 │       ├── tokens.css       (locked token values — always present)
-│       └── tokens.wp.css    (themeable token values — if wpThemeable: true)
+│       ├── tokens.wp.css    (themeable token values — if wpThemeable: true)
+│       └── assets/
+│           └── fonts/       (font files referenced by theme.json fontFace)
+│               └── inter/
+│                   └── inter-400-normal.woff2
 ├── functions.php
 └── theme.json               (your theme's own theme.json — overrides library defaults)
 ```
@@ -150,10 +156,12 @@ require_once get_template_directory() . '/inc/story-to-block/integrate.php';
 
 This single file handles everything:
 
-1. **Injects `theme.json`** into WordPress's theme.json cascade at the default layer, registering your design tokens as presets
+1. **Injects `theme.json`** into WordPress's theme.json cascade at the default layer, registering your design tokens as presets (including font families and `fontFace` declarations)
 2. **Enqueues the token CSS** on both the frontend and inside the block editor iframe
 
 The enqueue auto-detects which token file to load: if `tokens.wp.css` exists in the same directory, it uses that (themeable). Otherwise it falls back to `tokens.css` (locked). No manual `wp_enqueue_style` calls needed.
+
+**Fonts are loaded automatically** — WordPress reads the `fontFace` entries from the injected theme.json and generates `@font-face` rules pointing to the `assets/fonts/` directory. No separate font stylesheet enqueue is needed. The `file:./` paths in theme.json are relative to where `theme.json` sits, so fonts must be in `assets/fonts/` alongside it.
 
 ### Step 3: Override defaults in your theme.json (optional)
 
@@ -186,9 +194,10 @@ You only need to define what's different. All other values fall through from the
 | File | Purpose |
 |------|---------|
 | `integrate.php` | Injects library theme.json as defaults + enqueues token CSS (auto-detects locked vs themeable) |
-| `theme.json` | Library's base layer presets (colors, spacing, fonts, custom values) |
+| `theme.json` | Library's base layer presets (colors, spacing, fonts, custom values) + `fontFace` declarations |
 | `tokens.css` | `--prefix--*` CSS variables with hardcoded values (locked, always present) |
 | `tokens.wp.css` | `--prefix--*` CSS variables mapped to `--wp--preset--*` (themeable, opt-in) |
+| `assets/fonts/` | Font files referenced by `fontFace` entries in theme.json (loaded automatically by WordPress) |
 | Theme's own `theme.json` | Overrides any library defaults (colors, spacing, fonts) |
 
 ## theme.json Cascade
@@ -249,6 +258,62 @@ Create a file like `styles/twilight.json`:
 
 The default variation also needs a `styles` section in the theme's root `theme.json` for the preview to render correctly. See [Known Issues](#style-variation-preview-shows-blank-colors) below.
 
+## Font Loading
+
+Fonts are handled entirely through theme.json — no separate font stylesheet is needed for WordPress.
+
+When the library defines `fontFace` entries in `stb.config.json`:
+
+```json
+{
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+      ]
+    }
+  }
+}
+```
+
+The generator produces `fontFace` entries in the generated theme.json:
+
+```json
+{
+  "settings": {
+    "typography": {
+      "fontFamilies": [{
+        "slug": "inter",
+        "fontFamily": "Inter, sans-serif",
+        "name": "Inter",
+        "fontFace": [{
+          "fontFamily": "Inter",
+          "fontStyle": "normal",
+          "fontWeight": "400",
+          "src": ["file:./assets/fonts/inter/inter-400-normal.woff2"]
+        }]
+      }]
+    }
+  }
+}
+```
+
+When `integrate.php` injects this into the WordPress theme.json cascade, WordPress automatically generates `@font-face` rules and loads the font files. The `file:./` paths are resolved relative to where `theme.json` sits — so `assets/fonts/` must be alongside it:
+
+```
+inc/story-to-block/
+├── theme.json                          ← file:./assets/fonts/... resolves from here
+├── integrate.php
+├── tokens.css
+└── assets/
+    └── fonts/
+        └── inter/
+            └── inter-400-normal.woff2  ← WordPress loads this automatically
+```
+
+> **Important:** The generator creates font *references*, not font *files*. Your build process must copy the actual `.woff2` files into `dist/wp/assets/fonts/{slug}/` before publishing. See [Token Architecture](./TOKEN-ARCHITECTURE.md) for details on managing font files.
+
 ## Troubleshooting
 
 ### CSS variables not taking effect
@@ -256,6 +321,12 @@ The default variation also needs a `styles` section in the theme's root `theme.j
 1. **Tokens must load before component CSS.** Set `['stb-tokens']` as a dependency on component style registrations
 2. **Check specificity.** Theme overrides may need to match or exceed library specificity
 3. **Verify the variable names match.** Open browser dev tools and inspect the element
+
+### Fonts not loading
+
+1. **Check the font files exist.** The `assets/fonts/` directory must be alongside `theme.json` inside `inc/story-to-block/`. The generator creates references but not the actual font files — your build process must copy them
+2. **Verify `file:./` paths.** WordPress resolves these relative to the theme.json location. If you moved theme.json to a different directory, the font paths won't resolve
+3. **Check the browser Network tab.** Look for 404s on `.woff2` requests to identify the exact missing path
 
 ### Theme overrides not affecting components
 
