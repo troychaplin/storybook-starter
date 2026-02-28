@@ -23,6 +23,7 @@ export interface BaseStylesSpacingPadding {
 
 /** Spacing section within baseStyles */
 export interface BaseStylesSpacing {
+  blockGap?: string;
   padding?: BaseStylesSpacingPadding;
 }
 

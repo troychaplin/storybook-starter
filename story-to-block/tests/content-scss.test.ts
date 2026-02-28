@@ -226,3 +226,103 @@ describe('generateContentScss — spacing padding', () => {
     expect(result).not.toContain('--design-system--root-padding-bottom:');
   });
 });
+
+describe('generateContentScss — spacing blockGap', () => {
+  const blockGapConfig: StbConfig = {
+    prefix: 'design-system',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      spacing: {
+        medium: { value: 'min(1.5rem, 2vw)', slug: '50', name: 'Medium' },
+        large: { value: 'min(2.25rem, 3vw)', slug: '60', name: 'Large' },
+      },
+    },
+    baseStyles: {
+      spacing: {
+        blockGap: 'medium',
+      },
+    },
+  };
+
+  it('generates root block gap CSS variable in body block', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain('  --design-system--root-block-gap: var(--design-system--spacing-medium);');
+  });
+
+  it('generates constrained layout rule', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain(':where(.is-layout-constrained) > * + * {');
+    expect(result).toContain('  margin-block-start: var(--design-system--root-block-gap);');
+  });
+
+  it('generates flex layout rule', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain(':where(.is-layout-flex) {');
+    expect(result).toContain('  gap: var(--design-system--root-block-gap);');
+  });
+
+  it('generates grid layout rule', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain(':where(.is-layout-grid) {');
+    expect(result).toContain('  gap: var(--design-system--root-block-gap);');
+  });
+
+  it('resolves token references in blockGap value', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain('var(--design-system--spacing-medium)');
+  });
+
+  it('passes raw blockGap values through unchanged', () => {
+    const rawConfig: StbConfig = {
+      ...blockGapConfig,
+      baseStyles: {
+        spacing: { blockGap: '2rem' },
+      },
+    };
+    const result = generateContentScss(rawConfig)!;
+    expect(result).toContain('--design-system--root-block-gap: 2rem;');
+  });
+
+  it('does not produce block gap rules when blockGap absent', () => {
+    const noGapConfig: StbConfig = {
+      ...blockGapConfig,
+      baseStyles: {
+        spacing: {
+          padding: { right: 'large', left: 'large' },
+        },
+      },
+    };
+    const result = generateContentScss(noGapConfig)!;
+    expect(result).not.toContain('root-block-gap');
+    expect(result).not.toContain('.is-layout-constrained');
+    expect(result).not.toContain('.is-layout-flex');
+    expect(result).not.toContain('.is-layout-grid');
+  });
+
+  it('generates both blockGap and padding when both defined', () => {
+    const bothConfig: StbConfig = {
+      ...blockGapConfig,
+      baseStyles: {
+        spacing: {
+          blockGap: 'medium',
+          padding: { right: 'large', left: 'large' },
+        },
+      },
+    };
+    const result = generateContentScss(bothConfig)!;
+    expect(result).toContain('--design-system--root-block-gap:');
+    expect(result).toContain('--design-system--root-padding-right:');
+    expect(result).toContain('.is-layout-constrained');
+    expect(result).toContain('.has-global-padding');
+  });
+
+  it('creates body block with just blockGap when no typography or padding', () => {
+    const result = generateContentScss(blockGapConfig)!;
+    expect(result).toContain('body {');
+    expect(result).toContain('--design-system--root-block-gap:');
+    expect(result).not.toContain('font-family:');
+    expect(result).not.toContain('root-padding');
+  });
+});

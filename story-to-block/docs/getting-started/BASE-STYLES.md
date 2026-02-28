@@ -440,6 +440,7 @@ The content scope (`.example-content` with `:where()` rules) and theme.json `sty
 | Heading scale | `_content-generated.scss` — `:where(h1)` etc. | `styles.elements.h1` etc. |
 | Shared heading font | `_content-generated.scss` — `:where(h1, h2, ...)` | `styles.elements.heading` |
 | Caption styling | `_content-generated.scss` — `:where(figcaption)` | `styles.elements.caption` |
+| Block gap | `_content-generated.scss` — layout utility rules | `styles.spacing.blockGap` |
 | Prose spacing | `content.scss` — authored margin rules | Block gap / theme.json spacing |
 | List styles | `content.scss` — authored `:where(ul, ol)` | Not in theme.json |
 | Link styles | `content.scss` — authored `:where(a)` | Not in theme.json |
@@ -550,6 +551,91 @@ export const PageLayout: Story = {
   ),
 };
 ```
+
+## Block Gap
+
+The `baseStyles.spacing.blockGap` field sets the default vertical spacing between blocks inside layout containers. This mirrors WordPress's `styles.spacing.blockGap` in theme.json.
+
+### The Config
+
+```json
+{
+  "baseStyles": {
+    "spacing": {
+      "blockGap": "medium",
+      "padding": {
+        "top": "0",
+        "right": "large",
+        "bottom": "0",
+        "left": "large"
+      }
+    }
+  }
+}
+```
+
+The value `"medium"` resolves to the spacing token the same way padding values do.
+
+### Generated SCSS
+
+A CSS custom property is declared on `body`, and layout utility rules mirror the classes WordPress applies to layout containers:
+
+```scss
+body {
+  --prefix--root-block-gap: var(--prefix--spacing-medium);
+}
+
+:where(.is-layout-constrained) > * + * {
+  margin-block-start: var(--prefix--root-block-gap);
+}
+
+:where(.is-layout-flex) {
+  gap: var(--prefix--root-block-gap);
+}
+
+:where(.is-layout-grid) {
+  gap: var(--prefix--root-block-gap);
+}
+```
+
+### Generated theme.json
+
+```json
+{
+  "styles": {
+    "spacing": {
+      "blockGap": "var(--wp--preset--spacing--50)"
+    }
+  }
+}
+```
+
+WordPress reads this value and generates its own layout CSS. The SCSS rules above replicate that behavior in Storybook.
+
+### Usage in Components
+
+Layout components apply the appropriate WordPress layout class so spacing works in both Storybook and WordPress:
+
+```tsx
+// Section — stacked vertical layout
+<section className="prefix-section is-layout-constrained">
+  {children}
+</section>
+
+// Grid — CSS grid layout
+<div className="prefix-grid is-layout-grid">
+  {children}
+</div>
+
+// Flex row
+<div className="prefix-row is-layout-flex">
+  {children}
+</div>
+```
+
+In **Storybook**, the generated SCSS layout rules apply the gap/margin. In **WordPress**, the WordPress layout engine applies its own rules using the same class names and the same spacing value from theme.json.
+
+Individual components (Card, Button, etc.) don't use blockGap — it's a container-level concern. Block gap controls spacing *between* blocks, not *within* a component.
 
 ## Relationship to WordPress Blocks
 

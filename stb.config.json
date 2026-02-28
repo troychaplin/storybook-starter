@@ -84,6 +84,7 @@
         "h6": { "fontSize": "1.45rem", "fontWeight": "500", "fontStyle": "italic" },
         "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" },
         "spacing": {
+            "blockGap": "medium",
             "padding": {
                 "top": "0",
                 "right": "large",

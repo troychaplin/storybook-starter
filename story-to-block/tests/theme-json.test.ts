@@ -578,3 +578,68 @@ describe('generateThemeJson — baseStyles spacing', () => {
     expect(result.styles.spacing).toBeUndefined();
   });
 });
+
+describe('generateThemeJson — baseStyles blockGap', () => {
+  const baseConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      spacing: {
+        medium: { value: 'min(1.5rem, 2vw)', slug: '50', name: 'Medium' },
+        large: { value: 'min(2.25rem, 3vw)', slug: '60', name: 'Large' },
+      },
+    },
+  };
+
+  it('resolves blockGap token ref to wp preset variable', () => {
+    const config: StbConfig = {
+      ...baseConfig,
+      baseStyles: {
+        spacing: { blockGap: 'medium' },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(config));
+    expect(result.styles.spacing.blockGap).toBe('var(--wp--preset--spacing--50)');
+  });
+
+  it('passes raw blockGap values through unchanged', () => {
+    const config: StbConfig = {
+      ...baseConfig,
+      baseStyles: {
+        spacing: { blockGap: '2rem' },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(config));
+    expect(result.styles.spacing.blockGap).toBe('2rem');
+  });
+
+  it('includes blockGap alongside padding in styles.spacing', () => {
+    const config: StbConfig = {
+      ...baseConfig,
+      baseStyles: {
+        spacing: {
+          blockGap: 'medium',
+          padding: { right: 'large', left: 'large' },
+        },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(config));
+    expect(result.styles.spacing.blockGap).toBe('var(--wp--preset--spacing--50)');
+    expect(result.styles.spacing.padding.right).toBe('var(--wp--preset--spacing--60)');
+    expect(result.styles.spacing.padding.left).toBe('var(--wp--preset--spacing--60)');
+  });
+
+  it('produces only blockGap when no padding defined', () => {
+    const config: StbConfig = {
+      ...baseConfig,
+      baseStyles: {
+        spacing: { blockGap: 'large' },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(config));
+    expect(result.styles.spacing.blockGap).toBe('var(--wp--preset--spacing--60)');
+    expect(result.styles.spacing.padding).toBeUndefined();
+  });
+});

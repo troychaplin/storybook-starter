@@ -168,15 +168,27 @@ function buildStylesBlock(
   }
 
   // Spacing → styles.spacing (prefer spacing category for ambiguous keys)
-  if (baseStyles.spacing?.padding) {
-    const padding: Record<string, string> = {};
-    for (const [side, value] of Object.entries(baseStyles.spacing.padding)) {
-      if (value !== undefined) {
-        padding[side] = resolveForThemeJson(value, tokens, 'spacing');
+  if (baseStyles.spacing?.blockGap || baseStyles.spacing?.padding) {
+    const spacingBlock: Record<string, unknown> = {};
+
+    if (baseStyles.spacing.blockGap) {
+      spacingBlock.blockGap = resolveForThemeJson(baseStyles.spacing.blockGap, tokens, 'spacing');
+    }
+
+    if (baseStyles.spacing.padding) {
+      const padding: Record<string, string> = {};
+      for (const [side, value] of Object.entries(baseStyles.spacing.padding)) {
+        if (value !== undefined) {
+          padding[side] = resolveForThemeJson(value, tokens, 'spacing');
+        }
+      }
+      if (Object.keys(padding).length > 0) {
+        spacingBlock.padding = padding;
       }
     }
-    if (Object.keys(padding).length > 0) {
-      styles.spacing = { padding };
+
+    if (Object.keys(spacingBlock).length > 0) {
+      styles.spacing = spacingBlock;
     }
   }
 

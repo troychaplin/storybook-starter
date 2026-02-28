@@ -9,6 +9,19 @@ body {
   --design-system--root-padding-right: var(--design-system--spacing-large);
   --design-system--root-padding-bottom: 0;
   --design-system--root-padding-left: var(--design-system--spacing-large);
+  --design-system--root-block-gap: var(--design-system--spacing-medium);
+}
+
+:where(.is-layout-constrained) > * + * {
+  margin-block-start: var(--design-system--root-block-gap);
+}
+
+:where(.is-layout-flex) {
+  gap: var(--design-system--root-block-gap);
+}
+
+:where(.is-layout-grid) {
+  gap: var(--design-system--root-block-gap);
 }
 
 .has-global-padding {

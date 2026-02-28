@@ -193,6 +193,7 @@
       "lineHeight": "1.6"
     },
     "spacing": {
+      "blockGap": "var(--wp--preset--spacing--50)",
       "padding": {
         "top": "0",
         "right": "var(--wp--preset--spacing--60)",

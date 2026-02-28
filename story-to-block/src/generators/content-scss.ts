@@ -1,4 +1,4 @@
-import type { StbConfig, BaseStyleElementDef, BaseStylesSpacingPadding } from '../types.js';
+import type { StbConfig, BaseStyleElementDef, BaseStylesSpacingPadding, BaseStylesSpacing } from '../types.js';
 import { camelToKebab } from '../types.js';
 import { resolveForScss, ensureFontStyle } from '../config.js';
 
@@ -19,9 +19,10 @@ export function generateContentScss(config: StbConfig): string | null {
   const { baseStyles, prefix, tokens } = config;
   const hasBodyTypography = !!baseStyles.body;
   const hasSpacingPadding = !!baseStyles.spacing?.padding;
+  const hasBlockGap = !!baseStyles.spacing?.blockGap;
 
-  // Body — wraps in body { } for typography and/or root padding variables
-  if (hasBodyTypography || hasSpacingPadding) {
+  // Body — wraps in body { } for typography, root padding variables, and/or block gap
+  if (hasBodyTypography || hasSpacingPadding || hasBlockGap) {
     lines.push('body {');
 
     // Typography declarations
@@ -34,7 +35,17 @@ export function generateContentScss(config: StbConfig): string | null {
       appendRootPaddingVars(lines, baseStyles.spacing.padding, prefix, tokens);
     }
 
+    // Block gap CSS custom property
+    if (baseStyles.spacing?.blockGap) {
+      appendBlockGapVar(lines, baseStyles.spacing, prefix, tokens);
+    }
+
     lines.push('}');
+  }
+
+  // Block gap layout utility rules
+  if (hasBlockGap) {
+    appendBlockGapRules(lines, prefix);
   }
 
   // Global padding + alignfull rules
@@ -127,4 +138,43 @@ function appendRootPaddingVars(
     const resolvedValue = resolveForScss(value, prefix, tokens, 'spacing');
     lines.push(`  --${prefix}--root-padding-${side}: ${resolvedValue};`);
   }
+}
+
+/**
+ * Append block gap CSS custom property inside the body block.
+ * Resolves token references using 'spacing' as preferred category.
+ */
+function appendBlockGapVar(
+  lines: string[],
+  spacing: BaseStylesSpacing,
+  prefix: string,
+  tokens: StbConfig['tokens'],
+): void {
+  if (!spacing.blockGap) return;
+  const resolvedValue = resolveForScss(spacing.blockGap, prefix, tokens, 'spacing');
+  lines.push(`  --${prefix}--root-block-gap: ${resolvedValue};`);
+}
+
+/**
+ * Append layout utility rules that mirror WordPress block gap behavior.
+ * Uses the root block gap CSS custom property set in appendBlockGapVar.
+ *
+ * - Constrained/flow layouts: margin-block-start on children
+ * - Flex/grid layouts: gap on the container
+ */
+function appendBlockGapRules(lines: string[], prefix: string): void {
+  lines.push('');
+  lines.push(`:where(.is-layout-constrained) > * + * {`);
+  lines.push(`  margin-block-start: var(--${prefix}--root-block-gap);`);
+  lines.push('}');
+
+  lines.push('');
+  lines.push(`:where(.is-layout-flex) {`);
+  lines.push(`  gap: var(--${prefix}--root-block-gap);`);
+  lines.push('}');
+
+  lines.push('');
+  lines.push(`:where(.is-layout-grid) {`);
+  lines.push(`  gap: var(--${prefix}--root-block-gap);`);
+  lines.push('}');
 }
