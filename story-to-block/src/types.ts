@@ -4,6 +4,43 @@ export interface FontFaceEntry {
   src: string;
 }
 
+/** Valid typography CSS properties for baseStyles element definitions */
+export type BaseStyleProperty = 'fontFamily' | 'fontSize' | 'fontWeight' | 'lineHeight' | 'fontStyle';
+
+/** A single element definition within baseStyles */
+export interface BaseStyleElementDef {
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  lineHeight?: string;
+  fontStyle?: string;
+  color?: string;
+  background?: string;
+  hoverColor?: string;
+}
+
+/** Valid element keys in baseStyles config */
+export type BaseStyleElement = 'body' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'caption' | 'button' | 'link';
+
+/** Padding values for each side */
+export interface BaseStylesSpacingPadding {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+}
+
+/** Spacing section within baseStyles */
+export interface BaseStylesSpacing {
+  blockGap?: string;
+  padding?: BaseStylesSpacingPadding;
+}
+
+/** The full baseStyles config section */
+export type BaseStylesConfig = Partial<Record<BaseStyleElement, BaseStyleElementDef>> & {
+  spacing?: BaseStylesSpacing;
+};
+
 export interface TokenEntry {
   value: string;
   name?: string;
@@ -163,6 +200,7 @@ export interface StbConfig {
   outDir: string;
   wpThemeable: boolean;
   tokens: Partial<Record<TokenCategory, TokenGroup>>;
+  baseStyles?: BaseStylesConfig;
 }
 
 /**
@@ -186,7 +224,8 @@ export interface StbConfigInput {
   tokensPath?: string;
   outDir?: string;
   wpThemeable?: boolean;
-  [category: string]: string | boolean | TokenGroupInput | undefined;
+  baseStyles?: BaseStylesConfig;
+  [category: string]: string | boolean | BaseStylesConfig | TokenGroupInput | undefined;
 }
 
 /**
@@ -206,4 +245,12 @@ export function kebabToTitle(str: string): string {
     .split('-')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
+}
+
+/**
+ * Convert a camelCase key to kebab-case.
+ * e.g. "fontFamily" → "font-family"
+ */
+export function camelToKebab(str: string): string {
+  return str.replace(/([A-Z])/g, '-$1').toLowerCase();
 }

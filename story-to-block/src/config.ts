@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import type { StbConfig, StbConfigInput, TokenCategory, TokenEntry, TokenEntryInput, TokenGroup, TokenGroupInput } from './types.js';
+import type { StbConfig, StbConfigInput, TokenCategory, TokenEntry, TokenEntryInput, TokenGroup, TokenGroupInput, BaseStyleElementDef } from './types.js';
 import { CATEGORY_REGISTRY, INPUT_CATEGORY_MAP, VALID_CATEGORIES, kebabToTitle } from './types.js';
 
 const DEFAULTS = {
@@ -9,7 +9,7 @@ const DEFAULTS = {
 } as const;
 
 /** Reserved config keys that are not token categories */
-const CONFIG_KEYS = ['prefix', 'tokensPath', 'outDir', 'wpThemeable'] as const;
+const CONFIG_KEYS = ['prefix', 'tokensPath', 'outDir', 'wpThemeable', 'baseStyles'] as const;
 
 export function loadConfig(configPath?: string): StbConfig {
   const resolvedPath = resolve(configPath ?? 'stb.config.json');
@@ -141,7 +141,105 @@ export function validateConfig(input: StbConfigInput): StbConfig {
     outDir: input.outDir ?? DEFAULTS.outDir,
     wpThemeable: input.wpThemeable === true,
     tokens,
+    baseStyles: input.baseStyles,
   };
+}
+
+export interface ResolvedTokenRef {
+  category: TokenCategory;
+  key: string;
+  slug?: string;
+  cssSegment: string;
+  wpPreset?: string;
+}
+
+/**
+ * Check if a value matches a token key in any category.
+ * Returns resolution info if found, null if it's a raw value.
+ *
+ * When `preferCategory` is provided, that category is checked first.
+ * This resolves ambiguity when the same key exists in multiple categories
+ * (e.g. "large" in both fontSize and spacing).
+ */
+export function resolveTokenRef(
+  value: string,
+  tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
+): ResolvedTokenRef | null {
+  // Check preferred category first to resolve ambiguous keys
+  if (preferCategory) {
+    const group = tokens[preferCategory];
+    if (group && value in group) {
+      const def = CATEGORY_REGISTRY[preferCategory];
+      return {
+        category: preferCategory,
+        key: value,
+        slug: group[value].slug,
+        cssSegment: def.cssSegment,
+        wpPreset: def.wpPreset,
+      };
+    }
+  }
+
+  for (const [category, group] of Object.entries(tokens)) {
+    if (!group) continue;
+    if (value in group) {
+      const def = CATEGORY_REGISTRY[category];
+      return {
+        category: category as TokenCategory,
+        key: value,
+        slug: group[value].slug,
+        cssSegment: def.cssSegment,
+        wpPreset: def.wpPreset,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Resolve a baseStyles value to a CSS var() reference for SCSS output.
+ * Token keys become var(--{prefix}--{cssSegment}-{key}).
+ * Raw values pass through unchanged.
+ */
+export function resolveForScss(
+  value: string,
+  prefix: string,
+  tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
+): string {
+  const ref = resolveTokenRef(value, tokens, preferCategory);
+  if (ref) {
+    return `var(--${prefix}--${ref.cssSegment}-${ref.key})`;
+  }
+  return value;
+}
+
+/**
+ * Resolve a baseStyles value to a CSS var() reference for theme.json output.
+ * Token keys become var(--wp--preset--{wpCategory}--{slug}).
+ * Uses slug when available (e.g. spacing slug "60"), falls back to key.
+ * Raw values pass through unchanged.
+ */
+export function resolveForThemeJson(
+  value: string,
+  tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
+): string {
+  const ref = resolveTokenRef(value, tokens, preferCategory);
+  if (ref && ref.wpPreset) {
+    return `var(${ref.wpPreset}--${ref.slug ?? ref.key})`;
+  }
+  return value;
+}
+
+/**
+ * For individual heading elements, ensure fontStyle is present.
+ * If the config doesn't specify fontStyle, default to "normal".
+ */
+export function ensureFontStyle(def: BaseStyleElementDef): BaseStyleElementDef {
+  if (def.fontStyle !== undefined) return def;
+  return { ...def, fontStyle: 'normal' };
 }
 
 function validateTokenGroup(category: string, group: TokenGroup): void {

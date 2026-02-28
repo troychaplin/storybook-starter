@@ -44,21 +44,21 @@ function prefix_register_block_styles() {
     wp_register_style(
         'prefix-card',
         $plugin_uri . 'assets/css/Card.css',
-        [ 'prefix-tokens' ],
+        [ 'stb-tokens' ],
         '0.0.1'
     );
 
     wp_register_style(
         'prefix-button',
         $plugin_uri . 'assets/css/Button.css',
-        [ 'prefix-tokens' ],
+        [ 'stb-tokens' ],
         '0.0.1'
     );
 }
 add_action( 'init', 'prefix_register_block_styles' );
 ```
 
-> **Note:** The dependency on `prefix-tokens` ensures the theme's token stylesheet loads before any component CSS. The theme must register and enqueue this handle (see [Theme Integration](./THEME-INTEGRATION.md)).
+> **Note:** The dependency on `stb-tokens` ensures the token stylesheet loads before any component CSS. This handle is registered by `integrate.php` (see [Theme Integration](./THEME-INTEGRATION.md)).
 
 ### Step 4: Associate styles with blocks via block.json
 
@@ -115,10 +115,9 @@ function render_card_block($attributes) {
 | File | Loaded by | When |
 |------|-----------|------|
 | `integrate.php` | Theme | Always (functions.php require_once) |
-| `tokens.wp.css` | Theme | Always (global enqueue) |
+| `tokens.wp.css` or `tokens.css` | integrate.php | Always (auto-detected, global enqueue as `stb-tokens`) |
 | `Card.css` | Plugin | Only when Card block is on the page |
 | `Button.css` | Plugin | Only when Button block is on the page |
-| `tokens.css` | Neither | Use `tokens.wp.css` instead |
 | `styles.css` | Neither | Use individual files instead |
 
 ## Static Blocks (JS Rendered)
@@ -490,14 +489,14 @@ import { Button } from 'your-component-library';
 ### Styles not appearing on frontend
 
 1. **Check the style handle is registered.** Verify `wp_register_style` is called on `init`
-2. **Check the dependency chain.** Component CSS must depend on `prefix-tokens`
+2. **Check the dependency chain.** Component CSS must depend on `stb-tokens`
 3. **Verify block.json `style` field** matches the registered handle name exactly
 4. **Check file paths.** Use browser dev tools Network tab to see if CSS returns 404
 
 ### Styles not appearing in block editor
 
 1. **Add `editorStyle` to block.json** — the editor iframe needs styles explicitly loaded
-2. **Enqueue tokens via `enqueue_block_editor_assets`** — the editor needs tokens too (this is the theme's responsibility)
+2. **Ensure integrate.php is loaded** — it enqueues tokens on both `wp_enqueue_scripts` and `enqueue_block_editor_assets`
 3. **Check for iframe isolation** — styles in the parent page don't reach the editor iframe
 
 ### Block validation errors (static blocks only)
@@ -510,7 +509,7 @@ If a saved static block shows "This block contains unexpected content":
 
 ### Multiple blocks loading duplicate tokens
 
-This is expected and fine. `wp_enqueue_style` is idempotent — if `prefix-tokens` is already enqueued, WordPress skips the duplicate. Using style dependencies ensures tokens always load before any component CSS.
+This is expected and fine. `wp_enqueue_style` is idempotent — if `stb-tokens` is already enqueued, WordPress skips the duplicate. Using style dependencies ensures tokens always load before any component CSS.
 
 ### Performance with many block types
 

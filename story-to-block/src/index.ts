@@ -6,6 +6,7 @@ import { generateTokensWpCss } from './generators/tokens-wp-css.js';
 import { generateThemeJson } from './generators/theme-json.js';
 import { generateIntegratePhp } from './generators/integrate-php.js';
 import { generateFontsCss } from './generators/fonts-css.js';
+import { generateContentScss } from './generators/content-scss.js';
 
 export { loadConfig, validateConfig } from './config.js';
 export { generateTokensCss } from './generators/tokens-css.js';
@@ -13,7 +14,8 @@ export { generateTokensWpCss } from './generators/tokens-wp-css.js';
 export { generateThemeJson } from './generators/theme-json.js';
 export { generateIntegratePhp } from './generators/integrate-php.js';
 export { generateFontsCss } from './generators/fonts-css.js';
-export type { StbConfig, StbConfigInput, TokenEntry, TokenGroup, TokenCategory, FontFaceEntry } from './types.js';
+export { generateContentScss } from './generators/content-scss.js';
+export type { StbConfig, StbConfigInput, TokenEntry, TokenGroup, TokenCategory, FontFaceEntry, BaseStylesConfig } from './types.js';
 
 export interface GenerateResult {
   files: Array<{ path: string; size: number }>;
@@ -41,7 +43,15 @@ export function generate(configPath?: string, cwd?: string): GenerateResult {
     write(fontsPath, fontsCss);
   }
 
+  // Generate _content-generated.scss if baseStyles are defined
+  const contentScss = generateContentScss(config);
+  if (contentScss) {
+    const contentScssPath = join(dirname(config.tokensPath), '_content-generated.scss');
+    write(contentScssPath, contentScss);
+  }
+
   // Generate WordPress assets
+  write(`${config.outDir}/tokens.css`, generateTokensCss(config));
   if (config.wpThemeable) {
     write(`${config.outDir}/tokens.wp.css`, generateTokensWpCss(config));
   }

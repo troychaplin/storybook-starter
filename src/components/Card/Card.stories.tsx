@@ -37,7 +37,13 @@ type Story = StoryObj<typeof meta>;
 export const Default: Story = {
   args: {
     title: 'Card Title',
-    children: 'This is the card content. You can put any content here including text, images, or other components.',
+    children: (
+      <>
+        <p>
+          This is the card content. You can put any content here including text, images, or other components.
+        </p>
+      </>
+    ),
   },
 };
 
@@ -47,7 +53,13 @@ export const Default: Story = {
 export const Featured: Story = {
   args: {
     title: 'Featured Card',
-    children: 'This card uses the featured variant which highlights it with the primary color.',
+    children: (
+      <>
+        <p>
+          This card uses the featured variant which highlights it with the primary color.
+        </p>
+      </>
+    ),
     variant: 'featured',
   },
 };

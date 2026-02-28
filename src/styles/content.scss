@@ -1,0 +1,34 @@
+/**
+ * Content Scope Styles
+ *
+ * Combines auto-generated base typography from the config with
+ * hand-authored behavioural rules (vertical rhythm, lists, links, etc.).
+ *
+ * The generated partial (_content-generated.scss) is rebuilt on every
+ * `story-to-block generate` run — do not edit it by hand.
+ * Add any custom rules below the @use import.
+ */
+
+@use 'content-generated';
+
+// ---------------------------------------------------------------------------
+// Authored rules — add vertical rhythm, list styles, link styles, etc. below.
+// Use :where() to keep specificity at (0, 1, 0) so component BEM classes
+// always win without needing overrides.
+// ---------------------------------------------------------------------------
+
+// Vertical rhythm for block-level elements inside content areas
+:where(p, ul, ol, blockquote, pre, figure, table) {
+  margin-block: 0 1em;
+}
+
+// Restore list markers inside content
+:where(ul) {
+  list-style: disc;
+  padding-inline-start: 1.5em;
+}
+
+:where(ol) {
+  list-style: decimal;
+  padding-inline-start: 1.5em;
+}

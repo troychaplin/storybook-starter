@@ -257,3 +257,36 @@ describe('validateConfig — cssOnly flag', () => {
     expect(result.tokens.colorPalette!.border.slug).toBeUndefined();
   });
 });
+
+describe('validateConfig — baseStyles', () => {
+  it('passes baseStyles through to config', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      fontFamily: { inter: { value: 'Inter, sans-serif' } },
+      baseStyles: {
+        body: { fontFamily: 'inter', fontSize: 'medium' },
+        h1: { fontSize: '3rem' },
+      },
+    } as StbConfigInput);
+    expect(result.baseStyles).toBeDefined();
+    expect(result.baseStyles!.body!.fontFamily).toBe('inter');
+    expect(result.baseStyles!.h1!.fontSize).toBe('3rem');
+  });
+
+  it('does not treat baseStyles as a token category', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      color: { primary: { value: '#000' } },
+      baseStyles: { body: { fontFamily: 'inter' } },
+    } as StbConfigInput);
+    expect(result.tokens).not.toHaveProperty('baseStyles');
+  });
+
+  it('works without baseStyles (backward compatible)', () => {
+    const result = validateConfig({
+      prefix: 'test',
+      color: { primary: { value: '#000' } },
+    } as StbConfigInput);
+    expect(result.baseStyles).toBeUndefined();
+  });
+});

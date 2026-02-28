@@ -10,10 +10,12 @@
   --design-system--color-warning: #dba617;
   --design-system--color-error: #d63638;
   --design-system--color-info: #72aee6;
+  --design-system--color-off-white: #f8f8f8;
+  --design-system--color-text-black: #191919;
 
   /* Gradients */
-  --design-system--gradient-gradient-1: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
-  --design-system--gradient-gradient-2: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
+  --design-system--gradient-fade-out: linear-gradient(135deg,rgb(134,255,223) 0%,rgb(143,51,228) 100%);
+  --design-system--gradient-fade-in: linear-gradient(0deg,rgb(227,7,97) 0%,rgb(0,195,255) 100%);
 
   /* Spacing */
   --design-system--spacing-2x-small: 0.25rem;

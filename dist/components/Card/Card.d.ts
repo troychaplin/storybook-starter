@@ -1,30 +1,26 @@
 export interface CardProps {
-    /** Card title displayed in the header */
     title: string;
-    /** Main content of the card */
     children: React.ReactNode;
-    /** Visual variant of the card */
     variant?: 'default' | 'featured';
-    /** Additional CSS classes */
     className?: string;
 }
 /**
  * Card component for displaying content in a contained, styled box.
  *
  * ## CSS Classes
- * - `.prefix-card` - Base card styles
- * - `.prefix-card__header` - Header container
- * - `.prefix-card__title` - Title element (h3)
- * - `.prefix-card__content` - Content container
- * - `.prefix-card--featured` - Featured variant modifier
+ * - `.example-card` - Base card styles
+ * - `.example-card__header` - Header container
+ * - `.example-card__title` - Title element (h3)
+ * - `.example-card__content` - Content container
+ * - `.example-card--featured` - Featured variant modifier
  *
- * ## WordPress (PHP)
+ * ## HTML Structure
  * ```php
- * <article class="prefix-card prefix-card--featured">
- *   <header class="prefix-card__header">
- *     <h3 class="prefix-card__title">Title</h3>
+ * <article class="example-card example-card--featured">
+ *   <header class="example-card__header">
+ *     <h3 class="example-card__title">Title</h3>
  *   </header>
- *   <div class="prefix-card__content">Content here</div>
+ *   <div class="example-card__content">Content here</div>
  * </article>
  * ```
  */
