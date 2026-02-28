@@ -81,3 +81,53 @@ $stb_enqueue_tokens = function () {
 
 add_action( 'wp_enqueue_scripts', $stb_enqueue_tokens );
 add_action( 'enqueue_block_editor_assets', $stb_enqueue_tokens );
+
+/**
+ * Locked mode enforcement.
+ *
+ * When the library was built with wpThemeable: false (detected by the
+ * absence of tokens.wp.css), enforce design system restrictions at the
+ * theme layer so the theme's theme.json cannot override them:
+ *
+ *   - Layout sizes (contentSize, wideSize) are locked
+ *   - Custom color/gradient creation is disabled in the Site Editor
+ *
+ * When wpThemeable: true (tokens.wp.css exists), none of these
+ * restrictions apply — the theme has full control.
+ */
+if ( ! file_exists( __DIR__ . '/tokens.wp.css' ) ) {
+	add_filter( 'wp_theme_json_data_theme', function ( $theme_json ) {
+		$library_json_path = __DIR__ . '/theme.json';
+
+		if ( ! file_exists( $library_json_path ) ) {
+			return $theme_json;
+		}
+
+		$library_data = json_decode(
+			file_get_contents( $library_json_path ),
+			true
+		);
+
+		if ( ! is_array( $library_data ) ) {
+			return $theme_json;
+		}
+
+		$enforced = array(
+			'version'  => $library_data['version'] ?? 3,
+			'settings' => array(
+				'color' => array(
+					'custom'         => false,
+					'customDuotone'  => false,
+					'customGradient' => false,
+				),
+			),
+		);
+
+		// Lock layout sizes if defined
+		if ( isset( $library_data['settings']['layout'] ) ) {
+			$enforced['settings']['layout'] = $library_data['settings']['layout'];
+		}
+
+		return $theme_json->update_with( $enforced );
+	} );
+}

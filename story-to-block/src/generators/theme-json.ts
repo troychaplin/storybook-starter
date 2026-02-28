@@ -9,24 +9,22 @@ export function generateThemeJson(config: StbConfig): string {
   const settings: AnySettings = {};
   const custom: Record<string, Record<string, string>> = {};
 
-  // WordPress default preset flags — set first so they appear at the top of each section
-  if (config.tokens.colorPalette || config.tokens.colorGradient) {
+  // Note: We intentionally do NOT set default*: false flags (defaultPalette,
+  // defaultGradients, defaultSpacingSizes, etc.) because the library's theme.json
+  // is injected at the wp_theme_json_data_default layer. Setting these to false
+  // hides the library's own presets since WordPress treats them as defaults.
+  // Themes that want to hide WordPress core presets should set these flags in
+  // their own theme.json (layer 3), where they won't affect the library.
+
+  // When locked (wpThemeable: false), disable custom color/gradient/duotone
+  // creation in the Site Editor. Users can only pick from the defined presets.
+  // integrate.php enforces this at the theme layer so themes can't override it.
+  // Placed before the category loop so these flags appear first in settings.color.
+  if (!config.wpThemeable) {
     settings.color = {
-      defaultDuotone: config.wpThemeable,
-      defaultPalette: config.wpThemeable,
-      defaultGradients: config.wpThemeable,
-    };
-  }
-
-  if (config.tokens.spacing) {
-    settings.spacing = {
-      defaultSpacingSizes: config.wpThemeable,
-    };
-  }
-
-  if (config.tokens.shadow) {
-    settings.shadow = {
-      defaultPresets: config.wpThemeable,
+      custom: false,
+      customDuotone: false,
+      customGradient: false,
     };
   }
 
@@ -167,6 +165,14 @@ function buildStylesBlock(
     }
   }
 
+  // Body color → styles.color
+  if (baseStyles.body) {
+    const bodyColor = buildColorObject(baseStyles.body, tokens);
+    if (Object.keys(bodyColor).length > 0) {
+      styles.color = bodyColor;
+    }
+  }
+
   // Spacing → styles.spacing (prefer spacing category for ambiguous keys)
   if (baseStyles.spacing?.blockGap || baseStyles.spacing?.padding) {
     const spacingBlock: Record<string, unknown> = {};
@@ -194,7 +200,7 @@ function buildStylesBlock(
 
   // Elements → styles.elements
   const elements: Record<string, unknown> = {};
-  const elementKeys = ['heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'caption'] as const;
+  const elementKeys = ['heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'caption', 'button', 'link'] as const;
 
   for (const element of elementKeys) {
     const def = baseStyles[element];
@@ -204,9 +210,28 @@ function buildStylesBlock(
     const isIndividualHeading = /^h[1-6]$/.test(element);
     const withDefaults = isIndividualHeading ? ensureFontStyle(def) : def;
 
+    const elementObj: Record<string, unknown> = {};
+
     const typo = buildTypographyObject(withDefaults, tokens);
     if (Object.keys(typo).length > 0) {
-      elements[element] = { typography: typo };
+      elementObj.typography = typo;
+    }
+
+    const color = buildColorObject(withDefaults, tokens);
+    if (Object.keys(color).length > 0) {
+      elementObj.color = color;
+    }
+
+    // Link :hover pseudo-class
+    if (element === 'link' && def.hoverColor !== undefined) {
+      const hoverColor: Record<string, string> = {
+        text: resolveForThemeJson(def.hoverColor, tokens, 'colorPalette'),
+      };
+      elementObj[':hover'] = { color: hoverColor };
+    }
+
+    if (Object.keys(elementObj).length > 0) {
+      elements[element] = elementObj;
     }
   }
 
@@ -241,6 +266,27 @@ function buildTypographyObject(
   }
   if (def.lineHeight !== undefined) {
     result.lineHeight = def.lineHeight;
+  }
+
+  return result;
+}
+
+/**
+ * Build a theme.json color object from a BaseStyleElementDef.
+ * Maps color → text and background → background.
+ * Values are resolved through resolveForThemeJson with 'colorPalette' preference.
+ */
+function buildColorObject(
+  def: BaseStyleElementDef,
+  tokens: StbConfig['tokens'],
+): Record<string, string> {
+  const result: Record<string, string> = {};
+
+  if (def.color !== undefined) {
+    result.text = resolveForThemeJson(def.color, tokens, 'colorPalette');
+  }
+  if (def.background !== undefined) {
+    result.background = resolveForThemeJson(def.background, tokens, 'colorPalette');
   }
 
   return result;

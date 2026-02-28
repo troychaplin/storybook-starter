@@ -97,13 +97,38 @@ export function generateContentScss(config: StbConfig): string | null {
     lines.push('}');
   }
 
+  // Button — :where(button) { ... }
+  if (baseStyles.button) {
+    lines.push('');
+    lines.push(':where(button) {');
+    appendDeclarations(lines, baseStyles.button, prefix, tokens, '  ');
+    lines.push('}');
+  }
+
+  // Link — :where(a) { ... } and :where(a:hover) { ... }
+  if (baseStyles.link) {
+    lines.push('');
+    lines.push(':where(a) {');
+    appendDeclarations(lines, baseStyles.link, prefix, tokens, '  ');
+    lines.push('}');
+
+    if (baseStyles.link.hoverColor !== undefined) {
+      const resolvedHoverColor = resolveForScss(baseStyles.link.hoverColor, prefix, tokens, 'colorPalette');
+      lines.push('');
+      lines.push(':where(a:hover) {');
+      lines.push(`  color: ${resolvedHoverColor};`);
+      lines.push('}');
+    }
+  }
+
   lines.push('');
   return lines.join('\n');
 }
 
 /**
  * Append CSS declarations for a base style element definition.
- * Converts camelCase properties to kebab-case and resolves token references.
+ * Handles typography properties (camelCase → kebab-case) and
+ * color properties (color → color, background → background-color).
  */
 function appendDeclarations(
   lines: string[],
@@ -112,12 +137,23 @@ function appendDeclarations(
   tokens: StbConfig['tokens'],
   indent: string,
 ): void {
+  // Typography declarations
   for (const prop of PROPERTY_ORDER) {
     const value = def[prop];
     if (value === undefined) continue;
     const cssProperty = camelToKebab(prop);
     const resolvedValue = resolveForScss(value, prefix, tokens);
     lines.push(`${indent}${cssProperty}: ${resolvedValue};`);
+  }
+
+  // Color declarations
+  if (def.color !== undefined) {
+    const resolvedValue = resolveForScss(def.color, prefix, tokens, 'colorPalette');
+    lines.push(`${indent}color: ${resolvedValue};`);
+  }
+  if (def.background !== undefined) {
+    const resolvedValue = resolveForScss(def.background, prefix, tokens, 'colorPalette');
+    lines.push(`${indent}background-color: ${resolvedValue};`);
   }
 }
 

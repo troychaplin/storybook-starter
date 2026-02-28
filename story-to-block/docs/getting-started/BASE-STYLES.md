@@ -67,10 +67,13 @@ body {
   font-size: var(--design-system--font-size-medium);
   font-weight: 400;
   line-height: 1.6;
+  color: var(--design-system--color-secondary);
+  background-color: var(--design-system--color-base);
 }
 
 :where(h1, h2, h3, h4, h5, h6) {
   font-family: var(--design-system--font-family-inter);
+  color: var(--design-system--color-primary);
 }
 
 :where(h1) {
@@ -114,6 +117,19 @@ body {
   font-style: italic;
   font-weight: 300;
 }
+
+:where(button) {
+  color: var(--design-system--color-off-white);
+  background-color: var(--design-system--color-primary);
+}
+
+:where(a) {
+  color: var(--design-system--color-primary);
+}
+
+:where(a:hover) {
+  color: var(--design-system--color-primary-hover);
+}
 ```
 
 Body-level typography is wrapped in `body { }` to match theme.json's `styles.typography`. Heading and caption rules use `:where()` for zero specificity so component BEM classes always win.
@@ -150,7 +166,7 @@ When the generator runs, only `_content-generated.scss` changes. Your authored r
 
 ### The Config
 
-The `baseStyles` section in `stb.config.json` defines element-level typography. Values that match a token key (like `"inter"` or `"medium"`) resolve to the corresponding CSS variable. Raw values (like `"3rem"`) pass through as-is:
+The `baseStyles` section in `stb.config.json` defines element-level typography and color. Values that match a token key (like `"inter"` or `"primary"`) resolve to the corresponding CSS variable. Raw values (like `"3rem"` or `"#333"`) pass through as-is:
 
 ```json
 {
@@ -159,10 +175,13 @@ The `baseStyles` section in `stb.config.json` defines element-level typography. 
       "fontFamily": "inter",
       "fontSize": "medium",
       "fontWeight": "400",
-      "lineHeight": "1.6"
+      "lineHeight": "1.6",
+      "color": "secondary",
+      "background": "base"
     },
     "heading": {
-      "fontFamily": "inter"
+      "fontFamily": "inter",
+      "color": "primary"
     },
     "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
     "h2": { "fontSize": "3rem", "fontWeight": "500" },
@@ -170,10 +189,25 @@ The `baseStyles` section in `stb.config.json` defines element-level typography. 
     "h4": { "fontSize": "2rem", "fontWeight": "500" },
     "h5": { "fontSize": "1.5rem", "fontWeight": "500" },
     "h6": { "fontSize": "1.45rem", "fontWeight": "500", "fontStyle": "italic" },
-    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
+    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" },
+    "button": { "color": "off-white", "background": "primary" },
+    "link": { "color": "primary", "hoverColor": "primary-hover" }
   }
 }
 ```
+
+Each element accepts these properties:
+
+| Property | CSS output | theme.json path |
+|----------|-----------|-----------------|
+| `fontFamily` | `font-family` | `typography.fontFamily` |
+| `fontSize` | `font-size` | `typography.fontSize` |
+| `fontWeight` | `font-weight` | `typography.fontWeight` |
+| `lineHeight` | `line-height` | `typography.lineHeight` |
+| `fontStyle` | `font-style` | `typography.fontStyle` |
+| `color` | `color` | `color.text` |
+| `background` | `background-color` | `color.background` |
+| `hoverColor` | `:hover` → `color` | `.:hover.color.text` (link only) |
 
 From this single config, the generator produces:
 
@@ -186,8 +220,10 @@ The token key resolution works differently per output:
 |--------------|---------------------------|---------------------|
 | `"inter"` (token key) | `var(--design-system--font-family-inter)` | `var(--wp--preset--font-family--inter)` |
 | `"medium"` (token key) | `var(--design-system--font-size-medium)` | `var(--wp--preset--font-size--medium)` |
+| `"primary"` (color key) | `var(--design-system--color-primary)` | `var(--wp--preset--color--primary)` |
 | `"3rem"` (raw value) | `3rem` | `3rem` |
 | `"500"` (raw value) | `500` | `500` |
+| `"#333"` (raw value) | `#333` | `#333` |
 
 ## Why `:where()` Matters
 
@@ -370,10 +406,17 @@ This is the WordPress equivalent of the content scope. It defines base typograph
       "fontWeight": "400",
       "lineHeight": "1.6"
     },
+    "color": {
+      "text": "var(--wp--preset--color--secondary)",
+      "background": "var(--wp--preset--color--base)"
+    },
     "elements": {
       "heading": {
         "typography": {
           "fontFamily": "var(--wp--preset--font-family--inter)"
+        },
+        "color": {
+          "text": "var(--wp--preset--color--primary)"
         }
       },
       "h1": {
@@ -424,6 +467,22 @@ This is the WordPress equivalent of the content scope. It defines base typograph
           "fontStyle": "italic",
           "fontWeight": "300"
         }
+      },
+      "button": {
+        "color": {
+          "text": "var(--wp--preset--color--off-white)",
+          "background": "var(--wp--preset--color--primary)"
+        }
+      },
+      "link": {
+        "color": {
+          "text": "var(--wp--preset--color--primary)"
+        },
+        ":hover": {
+          "color": {
+            "text": "var(--wp--preset--color--primary-hover)"
+          }
+        }
       }
     }
   }
@@ -437,13 +496,16 @@ The content scope (`.example-content` with `:where()` rules) and theme.json `sty
 | Concern | Storybook / React | WordPress |
 |---------|-------------------|-----------|
 | Body default font | `_content-generated.scss` — body-level rules | `styles.typography` |
+| Body text / background color | `_content-generated.scss` — body `color` + `background-color` | `styles.color` |
 | Heading scale | `_content-generated.scss` — `:where(h1)` etc. | `styles.elements.h1` etc. |
+| Heading color | `_content-generated.scss` — `:where(h1, h2, ...)` color | `styles.elements.heading.color` |
 | Shared heading font | `_content-generated.scss` — `:where(h1, h2, ...)` | `styles.elements.heading` |
 | Caption styling | `_content-generated.scss` — `:where(figcaption)` | `styles.elements.caption` |
+| Button styling | `_content-generated.scss` — `:where(button)` | `styles.elements.button` |
+| Link styling | `_content-generated.scss` — `:where(a)` + `:where(a:hover)` | `styles.elements.link` + `.:hover` |
 | Block gap | `_content-generated.scss` — layout utility rules | `styles.spacing.blockGap` |
 | Prose spacing | `content.scss` — authored margin rules | Block gap / theme.json spacing |
 | List styles | `content.scss` — authored `:where(ul, ol)` | Not in theme.json |
-| Link styles | `content.scss` — authored `:where(a)` | Not in theme.json |
 
 Note that WordPress heading sizes in `styles.elements` can use hardcoded values (like `3rem`) or reference presets (like `var(--wp--preset--font-size--x-large)`). Hardcoded values mean the heading scale stays fixed even if a theme changes the font size presets. Referencing presets makes individual heading sizes themeable via the Site Editor.
 

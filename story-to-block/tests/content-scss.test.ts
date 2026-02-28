@@ -326,3 +326,246 @@ describe('generateContentScss — spacing blockGap', () => {
     expect(result).not.toContain('root-padding');
   });
 });
+
+describe('generateContentScss — baseStyles color', () => {
+  const colorConfig: StbConfig = {
+    prefix: 'design-system',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      colorPalette: {
+        primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+        secondary: { value: '#23282d', name: 'Secondary', slug: 'secondary' },
+        base: { value: '#ffffff', name: 'Base', slug: 'base' },
+      },
+      fontFamily: {
+        inter: { value: 'Inter, sans-serif', name: 'Inter', slug: 'inter' },
+      },
+    },
+  };
+
+  it('emits color declaration in body block', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { color: 'secondary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain('color: var(--design-system--color-secondary);');
+  });
+
+  it('emits background-color declaration in body block', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { background: 'base' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain('background-color: var(--design-system--color-base);');
+  });
+
+  it('emits both color and background-color alongside typography', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { fontFamily: 'inter', color: 'secondary', background: 'base' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain('font-family: var(--design-system--font-family-inter);');
+    expect(result).toContain('color: var(--design-system--color-secondary);');
+    expect(result).toContain('background-color: var(--design-system--color-base);');
+  });
+
+  it('emits heading color', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        heading: { color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(h1, h2, h3, h4, h5, h6) {');
+    expect(result).toContain('color: var(--design-system--color-primary);');
+  });
+
+  it('emits individual heading color', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        h1: { fontSize: '4.5rem', color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(h1) {');
+    expect(result).toContain('color: var(--design-system--color-primary);');
+  });
+
+  it('passes raw color values through', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { color: '#333333', background: '#ffffff' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain('color: #333333;');
+    expect(result).toContain('background-color: #ffffff;');
+  });
+
+  it('does not emit color declarations when not defined', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { fontFamily: 'inter' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).not.toMatch(/^\s+color:/m);
+    expect(result).not.toContain('background-color:');
+  });
+
+  it('emits caption color', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        caption: { color: 'secondary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(figcaption) {');
+    expect(result).toContain('color: var(--design-system--color-secondary);');
+  });
+});
+
+describe('generateContentScss — button element', () => {
+  const colorConfig: StbConfig = {
+    prefix: 'design-system',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      colorPalette: {
+        primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+        'off-white': { value: '#f8f8f8', name: 'Off White', slug: 'off-white' },
+      },
+    },
+  };
+
+  it('emits :where(button) selector with color and background', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        button: { color: 'off-white', background: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(button) {');
+    expect(result).toContain('color: var(--design-system--color-off-white);');
+    expect(result).toContain('background-color: var(--design-system--color-primary);');
+  });
+
+  it('emits button with only background', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        button: { background: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(button) {');
+    expect(result).toContain('background-color: var(--design-system--color-primary);');
+  });
+
+  it('does not emit :where(button) when button not defined', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).not.toContain(':where(button)');
+  });
+});
+
+describe('generateContentScss — link element', () => {
+  const colorConfig: StbConfig = {
+    prefix: 'design-system',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      colorPalette: {
+        primary: { value: '#0073aa', name: 'Primary', slug: 'primary' },
+        warning: { value: '#dba617', name: 'Warning', slug: 'warning' },
+      },
+    },
+  };
+
+  it('emits :where(a) selector with color', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        link: { color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(a) {');
+    expect(result).toContain('color: var(--design-system--color-primary);');
+  });
+
+  it('emits :where(a:hover) selector when hoverColor is defined', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        link: { color: 'primary', hoverColor: 'warning' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(a) {');
+    expect(result).toContain(':where(a:hover) {');
+    const hoverBlock = result.split(':where(a:hover) {')[1].split('}')[0];
+    expect(hoverBlock).toContain('color: var(--design-system--color-warning);');
+  });
+
+  it('does not emit :where(a:hover) when hoverColor is not defined', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        link: { color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).toContain(':where(a) {');
+    expect(result).not.toContain(':where(a:hover)');
+  });
+
+  it('passes raw hoverColor values through', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        link: { color: '#0000ff', hoverColor: '#ff0000' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    const linkBlock = result.split(':where(a) {')[1].split('}')[0];
+    expect(linkBlock).toContain('color: #0000ff;');
+    const hoverBlock = result.split(':where(a:hover) {')[1].split('}')[0];
+    expect(hoverBlock).toContain('color: #ff0000;');
+  });
+
+  it('does not emit :where(a) when link not defined', () => {
+    const cfg: StbConfig = {
+      ...colorConfig,
+      baseStyles: {
+        body: { color: 'primary' },
+      },
+    };
+    const result = generateContentScss(cfg)!;
+    expect(result).not.toContain(':where(a)');
+  });
+});

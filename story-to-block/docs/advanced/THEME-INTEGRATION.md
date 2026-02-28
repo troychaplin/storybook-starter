@@ -160,6 +160,7 @@ This single file handles everything:
 
 1. **Injects `theme.json`** into WordPress's theme.json cascade at the default layer, registering your design tokens as presets (including font families and `fontFace` declarations)
 2. **Enqueues the token CSS** on both the frontend and inside the block editor iframe
+3. **Enforces locked-mode restrictions** when `wpThemeable: false` — locks layout sizes and disables custom color/gradient creation so themes cannot override the design system
 
 The enqueue auto-detects which token file to load: if `tokens.wp.css` exists in the same directory, it uses that (themeable). Otherwise it falls back to `tokens.css` (locked). No manual `wp_enqueue_style` calls needed.
 
@@ -371,12 +372,43 @@ This is a WordPress core behavior introduced in [Gutenberg PR #59514](https://gi
 
 **Why the library can't fix this:** The `styles` section defines how tokens are *applied* to page elements (background, text, buttons), which is a theme-level concern. The library provides the design tokens (`settings`), but the theme decides how to use them.
 
-### Avoid defaultPalette: false in the library's theme.json
+### Locked vs Themeable Mode
 
-**Symptom:** Setting `"defaultPalette": false` in `settings.color` causes the library's own color palette to disappear.
+The `wpThemeable` flag in `stb.config.json` controls how much freedom themes and editors have:
 
-**Cause:** The library's `theme.json` is injected at the WordPress default layer via `wp_theme_json_data_default`. The `defaultPalette: false` setting tells WordPress to exclude the default palette — which includes the library's palette since it lives at that layer.
+| Behavior | `wpThemeable: false` (locked) | `wpThemeable: true` (themeable) |
+|----------|-------------------------------|----------------------------------|
+| Token CSS file | `tokens.css` (hardcoded values) | `tokens.wp.css` (maps to `--wp--preset--*`) |
+| Custom color picker | Disabled — users pick from defined palette only | Enabled |
+| Custom duotone creator | Disabled | Enabled |
+| Custom gradient creator | Disabled — users pick from defined gradients only | Enabled |
+| Layout sizes | Locked — theme cannot override `contentSize` / `wideSize` | Overridable — theme's values win |
+| Color/spacing/font presets | Theme can override via its `theme.json` | Theme can override via its `theme.json` |
+| Components follow theme overrides | No — hardcoded values | Yes — via `--wp--preset--*` mapping |
 
-**Recommendation:** Do not add `defaultPalette: false` to the library's generated `theme.json`. If a theme needs to remove the WordPress default palette, it should set this in its own `theme.json` (layer 3), where it won't affect the library's injected palette.
+**How it works:** `integrate.php` auto-detects the mode by checking whether `tokens.wp.css` exists in the same directory. In locked mode, it adds a second filter on `wp_theme_json_data_theme` that enforces layout sizes and color restrictions at the theme layer — the theme's `theme.json` cannot override these settings.
 
-The library's generated `theme.json` uses `"custom": false` and `"customGradient": false` to disable the custom color picker in the Site Editor. These settings are safe at the default layer and can be overridden by themes that want to re-enable them.
+The generated `theme.json` includes `custom: false`, `customDuotone: false`, and `customGradient: false` in the `settings.color` block when locked. This sets the default at the base layer, and `integrate.php` reinforces it at the theme layer.
+
+### Hiding WordPress default presets
+
+The library's generated `theme.json` intentionally does **not** set `defaultPalette`, `defaultGradients`, `defaultSpacingSizes`, or `defaultPresets` flags. Because the library injects at the `wp_theme_json_data_default` layer, setting these to `false` would hide the library's own presets (WordPress treats them as defaults).
+
+If your theme wants to hide WordPress's built-in color palette, gradients, or spacing sizes, set these flags in the theme's own `theme.json` (layer 3):
+
+```json
+{
+    "settings": {
+        "color": {
+            "defaultPalette": false,
+            "defaultGradients": false,
+            "defaultDuotone": false
+        },
+        "spacing": {
+            "defaultSpacingSizes": false
+        }
+    }
+}
+```
+
+At the theme layer, these flags only remove WordPress's core presets — the library's presets are preserved.

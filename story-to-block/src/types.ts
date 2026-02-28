@@ -4,14 +4,23 @@ export interface FontFaceEntry {
   src: string;
 }
 
-/** Valid CSS properties for baseStyles element definitions */
+/** Valid typography CSS properties for baseStyles element definitions */
 export type BaseStyleProperty = 'fontFamily' | 'fontSize' | 'fontWeight' | 'lineHeight' | 'fontStyle';
 
 /** A single element definition within baseStyles */
-export type BaseStyleElementDef = Partial<Record<BaseStyleProperty, string>>;
+export interface BaseStyleElementDef {
+  fontFamily?: string;
+  fontSize?: string;
+  fontWeight?: string;
+  lineHeight?: string;
+  fontStyle?: string;
+  color?: string;
+  background?: string;
+  hoverColor?: string;
+}
 
 /** Valid element keys in baseStyles config */
-export type BaseStyleElement = 'body' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'caption';
+export type BaseStyleElement = 'body' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'caption' | 'button' | 'link';
 
 /** Padding values for each side */
 export interface BaseStylesSpacingPadding {
