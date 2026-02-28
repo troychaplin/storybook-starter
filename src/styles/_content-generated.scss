@@ -87,6 +87,7 @@ body {
   font-size: var(--design-system--font-size-small);
   font-style: italic;
   font-weight: 300;
+  color: var(--design-system--color-warning);
 }
 
 :where(button) {
@@ -99,5 +100,5 @@ body {
 }
 
 :where(a:hover) {
-  color: var(--design-system--color-primary-hover);
+  color: var(--design-system--color-error);
 }

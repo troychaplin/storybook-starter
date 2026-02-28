@@ -269,6 +269,9 @@
           "fontSize": "var(--wp--preset--font-size--small)",
           "fontStyle": "italic",
           "fontWeight": "300"
+        },
+        "color": {
+          "text": "var(--wp--preset--color--warning)"
         }
       },
       "button": {
@@ -283,7 +286,7 @@
         },
         ":hover": {
           "color": {
-            "text": "var(--wp--preset--color--primary-hover)"
+            "text": "var(--wp--preset--color--error)"
           }
         }
       }
