@@ -170,6 +170,77 @@ describe('integration: generate() — baseStyles', () => {
   });
 });
 
+describe('integration: generate() — baseStyles spacing', () => {
+  const SP_TEST_DIR = resolve(import.meta.dirname ?? '.', '__test-output-sp__');
+  const SP_CONFIG_PATH = resolve(SP_TEST_DIR, 'stb.config.json');
+
+  const spacingConfig = {
+    ...testConfig,
+    fontFamily: {
+      inter: { value: 'Inter, sans-serif', name: 'Inter' },
+    },
+    fontSize: {
+      medium: { value: '1.125rem', name: 'Medium' },
+    },
+    baseStyles: {
+      body: {
+        fontFamily: 'inter',
+        fontSize: 'medium',
+        fontWeight: '400',
+      },
+      spacing: {
+        padding: {
+          top: '0',
+          right: 'large',
+          bottom: '0',
+          left: 'large',
+        },
+      },
+    },
+  };
+
+  // Update spacing to include the "large" token referenced in padding
+  const configWithLarge = {
+    ...spacingConfig,
+    spacing: {
+      ...testConfig.spacing,
+      large: { value: 'min(2.25rem, 3vw)', slug: '60', name: 'Large' },
+    },
+  };
+
+  beforeAll(() => {
+    mkdirSync(SP_TEST_DIR, { recursive: true });
+    writeFileSync(SP_CONFIG_PATH, JSON.stringify(configWithLarge, null, 2));
+  });
+
+  afterAll(() => {
+    rmSync(SP_TEST_DIR, { recursive: true, force: true });
+  });
+
+  it('theme.json includes styles.spacing.padding with resolved refs', () => {
+    generate(SP_CONFIG_PATH, SP_TEST_DIR);
+    const content = readFileSync(resolve(SP_TEST_DIR, 'out/wp/theme.json'), 'utf-8');
+    const parsed = JSON.parse(content);
+
+    expect(parsed.styles.spacing).toBeDefined();
+    expect(parsed.styles.spacing.padding.right).toBe('var(--wp--preset--spacing--60)');
+    expect(parsed.styles.spacing.padding.left).toBe('var(--wp--preset--spacing--60)');
+    expect(parsed.styles.spacing.padding.top).toBe('0');
+  });
+
+  it('_content-generated.scss includes root padding and alignfull rules', () => {
+    generate(SP_CONFIG_PATH, SP_TEST_DIR);
+    const content = readFileSync(
+      resolve(SP_TEST_DIR, 'src/_content-generated.scss'),
+      'utf-8',
+    );
+
+    expect(content).toContain('--inttest--root-padding-right: var(--inttest--spacing-large);');
+    expect(content).toContain('.has-global-padding');
+    expect(content).toContain('.alignfull');
+  });
+});
+
 describe('integration: generate() — wpThemeable', () => {
   const WP_TEST_DIR = resolve(import.meta.dirname ?? '.', '__test-output-wp__');
   const WP_CONFIG_PATH = resolve(WP_TEST_DIR, 'stb.config.json');

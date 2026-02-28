@@ -13,8 +13,23 @@ export type BaseStyleElementDef = Partial<Record<BaseStyleProperty, string>>;
 /** Valid element keys in baseStyles config */
 export type BaseStyleElement = 'body' | 'heading' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'caption';
 
+/** Padding values for each side */
+export interface BaseStylesSpacingPadding {
+  top?: string;
+  right?: string;
+  bottom?: string;
+  left?: string;
+}
+
+/** Spacing section within baseStyles */
+export interface BaseStylesSpacing {
+  padding?: BaseStylesSpacingPadding;
+}
+
 /** The full baseStyles config section */
-export type BaseStylesConfig = Partial<Record<BaseStyleElement, BaseStyleElementDef>>;
+export type BaseStylesConfig = Partial<Record<BaseStyleElement, BaseStyleElementDef>> & {
+  spacing?: BaseStylesSpacing;
+};
 
 export interface TokenEntry {
   value: string;

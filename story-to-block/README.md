@@ -95,7 +95,7 @@ stb.config.json
 |------|----------------|---------|
 | `tokens.css` | Always | CSS custom properties with hardcoded values |
 | `fonts.css` | When `fontFace` is defined | `@font-face` declarations |
-| `_content-generated.scss` | When `baseStyles` is defined | Body and heading typography using `:where()` |
+| `_content-generated.scss` | When `baseStyles` is defined | Body typography, root padding, `.has-global-padding` / `.alignfull`, and heading styles |
 | `theme.json` | Always | WordPress settings and styles |
 | `tokens.wp.css` | When `wpThemeable: true` | CSS vars mapped to `--wp--preset--*` with fallbacks |
 | `integrate.php` | Always | PHP hook to inject theme.json as a WordPress default layer |
@@ -110,7 +110,7 @@ stb.config.json
 | `tokensPath` | No | `src/styles/tokens.css` | Output path for the generated tokens file |
 | `outDir` | No | `dist/wp` | Output directory for WordPress files |
 | `wpThemeable` | No | `false` | Generates `tokens.wp.css` with `--wp--preset--*` mappings |
-| `baseStyles` | No | — | Element typography for body, headings, and caption |
+| `baseStyles` | No | — | Element typography, spacing, and layout for body, headings, and caption |
 
 ### Token Categories
 
@@ -157,7 +157,7 @@ stb.config.json
 
 ### Base Styles
 
-The `baseStyles` section generates base typography for body, headings, and captions. Values that match a token key resolve to the corresponding CSS variable:
+The `baseStyles` section generates base typography and spacing for body, headings, and captions. Values that match a token key resolve to the corresponding CSS variable:
 
 ```json
 {
@@ -166,12 +166,19 @@ The `baseStyles` section generates base typography for body, headings, and capti
     "heading": { "fontFamily": "inter" },
     "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
     "h2": { "fontSize": "3rem", "fontWeight": "500" },
-    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
+    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" },
+    "spacing": {
+      "padding": { "top": "0", "right": "large", "bottom": "0", "left": "large" }
+    }
   }
 }
 ```
 
-This produces `_content-generated.scss` with `body {}` and `:where()` rules for Storybook/React, and a `styles` block in theme.json for WordPress. See [Base Styles](../docs/story-to-block/BASE-STYLES.md) for the full design rationale.
+This produces `_content-generated.scss` with `body {}`, `:where()` rules, `.has-global-padding`, and `.alignfull` breakout rules for Storybook/React, and a `styles` block in theme.json for WordPress.
+
+The `spacing.padding` section maps to WordPress's `useRootPaddingAwareAlignments` pattern. Token keys like `"large"` resolve to spacing preset variables (`var(--wp--preset--spacing--60)` in theme.json, `var(--prefix--spacing-large)` in SCSS). For Storybook/React, apply `.has-global-padding` to container elements and `.alignfull` to children that should break out to full width.
+
+See [Base Styles](../docs/story-to-block/BASE-STYLES.md) for the full design rationale.
 
 ## CLI
 

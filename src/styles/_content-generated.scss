@@ -5,6 +5,26 @@ body {
   font-size: var(--design-system--font-size-medium);
   font-weight: 400;
   line-height: 1.6;
+  --design-system--root-padding-top: 0;
+  --design-system--root-padding-right: var(--design-system--spacing-large);
+  --design-system--root-padding-bottom: 0;
+  --design-system--root-padding-left: var(--design-system--spacing-large);
+}
+
+.has-global-padding {
+  padding-right: var(--design-system--root-padding-right);
+  padding-left: var(--design-system--root-padding-left);
+}
+
+.has-global-padding > .alignfull {
+  max-width: none;
+  margin-right: calc(var(--design-system--root-padding-right) * -1);
+  margin-left: calc(var(--design-system--root-padding-left) * -1);
+}
+
+.has-global-padding > .alignfull > .has-global-padding {
+  padding-right: var(--design-system--root-padding-right);
+  padding-left: var(--design-system--root-padding-left);
 }
 
 :where(h1, h2, h3, h4, h5, h6) {

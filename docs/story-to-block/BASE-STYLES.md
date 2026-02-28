@@ -446,6 +446,111 @@ The content scope (`.example-content` with `:where()` rules) and theme.json `sty
 
 Note that WordPress heading sizes in `styles.elements` can use hardcoded values (like `3rem`) or reference presets (like `var(--wp--preset--font-size--x-large)`). Hardcoded values mean the heading scale stays fixed even if a theme changes the font size presets. Referencing presets makes individual heading sizes themeable via the Site Editor.
 
+## Root Padding + Alignfull
+
+The `baseStyles.spacing` section generates root-level padding and `.alignfull` breakout behavior, matching WordPress's `useRootPaddingAwareAlignments` pattern.
+
+### The Config
+
+```json
+{
+  "baseStyles": {
+    "spacing": {
+      "padding": {
+        "top": "0",
+        "right": "large",
+        "bottom": "0",
+        "left": "large"
+      }
+    }
+  }
+}
+```
+
+Token keys like `"large"` resolve to spacing tokens — `var(--prefix--spacing-large)` in SCSS, `var(--wp--preset--spacing--60)` in theme.json.
+
+### Generated SCSS
+
+Root padding CSS variables are declared on `body`, and three utility rule sets provide the padding/breakout behavior:
+
+```scss
+body {
+  --prefix--root-padding-top: 0;
+  --prefix--root-padding-right: var(--prefix--spacing-large);
+  --prefix--root-padding-bottom: 0;
+  --prefix--root-padding-left: var(--prefix--spacing-large);
+}
+
+.has-global-padding {
+  padding-right: var(--prefix--root-padding-right);
+  padding-left: var(--prefix--root-padding-left);
+}
+
+.has-global-padding > .alignfull {
+  max-width: none;
+  margin-right: calc(var(--prefix--root-padding-right) * -1);
+  margin-left: calc(var(--prefix--root-padding-left) * -1);
+}
+
+.has-global-padding > .alignfull > .has-global-padding {
+  padding-right: var(--prefix--root-padding-right);
+  padding-left: var(--prefix--root-padding-left);
+}
+```
+
+### Generated theme.json
+
+```json
+{
+  "settings": {
+    "useRootPaddingAwareAlignments": true
+  },
+  "styles": {
+    "spacing": {
+      "padding": {
+        "top": "0",
+        "right": "var(--wp--preset--spacing--60)",
+        "bottom": "0",
+        "left": "var(--wp--preset--spacing--60)"
+      }
+    }
+  }
+}
+```
+
+### How WordPress Uses These Classes
+
+In WordPress, `.has-global-padding` is applied to **container elements** (not the body) — any element that wraps content needing root-level padding. `.alignfull` is applied to **child elements** that break out past the padding. An element can be both `.alignfull` and `.has-global-padding`, breaking out of its parent's padding while providing padding for its own children:
+
+```html
+<div class="wp-block-group has-global-padding is-layout-constrained">
+  <p>Padded content</p>
+  <div class="entry-content alignfull has-global-padding">
+    <p>Full-width area with its own padding</p>
+    <figure class="alignfull">Full-width image</figure>
+  </div>
+</div>
+```
+
+### Usage in Storybook / React
+
+Apply `.has-global-padding` to your content container and `.alignfull` to components that should break out:
+
+```tsx
+export const PageLayout: Story = {
+  render: () => (
+    <div className="has-global-padding">
+      <h1>Page Title</h1>
+      <p>Content with root padding applied.</p>
+      <div className="alignfull">
+        <img src="hero.jpg" alt="Full-width hero" />
+      </div>
+      <p>Back to padded content.</p>
+    </div>
+  ),
+};
+```
+
 ## Relationship to WordPress Blocks
 
 Components (blocks) are self-contained. Each block carries its own styles via BEM classes and does not depend on content scope or theme.json `styles`.

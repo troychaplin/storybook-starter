@@ -148,6 +148,7 @@ export function validateConfig(input: StbConfigInput): StbConfig {
 export interface ResolvedTokenRef {
   category: TokenCategory;
   key: string;
+  slug?: string;
   cssSegment: string;
   wpPreset?: string;
 }
@@ -155,11 +156,31 @@ export interface ResolvedTokenRef {
 /**
  * Check if a value matches a token key in any category.
  * Returns resolution info if found, null if it's a raw value.
+ *
+ * When `preferCategory` is provided, that category is checked first.
+ * This resolves ambiguity when the same key exists in multiple categories
+ * (e.g. "large" in both fontSize and spacing).
  */
 export function resolveTokenRef(
   value: string,
   tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
 ): ResolvedTokenRef | null {
+  // Check preferred category first to resolve ambiguous keys
+  if (preferCategory) {
+    const group = tokens[preferCategory];
+    if (group && value in group) {
+      const def = CATEGORY_REGISTRY[preferCategory];
+      return {
+        category: preferCategory,
+        key: value,
+        slug: group[value].slug,
+        cssSegment: def.cssSegment,
+        wpPreset: def.wpPreset,
+      };
+    }
+  }
+
   for (const [category, group] of Object.entries(tokens)) {
     if (!group) continue;
     if (value in group) {
@@ -167,6 +188,7 @@ export function resolveTokenRef(
       return {
         category: category as TokenCategory,
         key: value,
+        slug: group[value].slug,
         cssSegment: def.cssSegment,
         wpPreset: def.wpPreset,
       };
@@ -184,8 +206,9 @@ export function resolveForScss(
   value: string,
   prefix: string,
   tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
 ): string {
-  const ref = resolveTokenRef(value, tokens);
+  const ref = resolveTokenRef(value, tokens, preferCategory);
   if (ref) {
     return `var(--${prefix}--${ref.cssSegment}-${ref.key})`;
   }
@@ -194,16 +217,18 @@ export function resolveForScss(
 
 /**
  * Resolve a baseStyles value to a CSS var() reference for theme.json output.
- * Token keys become var(--wp--preset--{wpCategory}--{key}).
+ * Token keys become var(--wp--preset--{wpCategory}--{slug}).
+ * Uses slug when available (e.g. spacing slug "60"), falls back to key.
  * Raw values pass through unchanged.
  */
 export function resolveForThemeJson(
   value: string,
   tokens: StbConfig['tokens'],
+  preferCategory?: TokenCategory,
 ): string {
-  const ref = resolveTokenRef(value, tokens);
+  const ref = resolveTokenRef(value, tokens, preferCategory);
   if (ref && ref.wpPreset) {
-    return `var(${ref.wpPreset}--${ref.key})`;
+    return `var(${ref.wpPreset}--${ref.slug ?? ref.key})`;
   }
   return value;
 }

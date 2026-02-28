@@ -113,3 +113,116 @@ describe('generateContentScss', () => {
     expect(fontWeightIdx).toBeLessThan(lineHeightIdx);
   });
 });
+
+describe('generateContentScss — spacing padding', () => {
+  const spacingConfig: StbConfig = {
+    prefix: 'design-system',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      spacing: {
+        large: { value: 'min(2.25rem, 3vw)', slug: '60', name: 'Large' },
+      },
+      fontFamily: {
+        inter: { value: 'Inter, sans-serif', name: 'Inter', slug: 'inter' },
+      },
+    },
+    baseStyles: {
+      body: { fontFamily: 'inter', fontWeight: '400' },
+      spacing: {
+        padding: {
+          top: '0',
+          right: 'large',
+          bottom: '0',
+          left: 'large',
+        },
+      },
+    },
+  };
+
+  it('generates root padding CSS variables in body block', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('  --design-system--root-padding-top: 0;');
+    expect(result).toContain('  --design-system--root-padding-right: var(--design-system--spacing-large);');
+    expect(result).toContain('  --design-system--root-padding-bottom: 0;');
+    expect(result).toContain('  --design-system--root-padding-left: var(--design-system--spacing-large);');
+  });
+
+  it('generates .has-global-padding class with horizontal padding', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('.has-global-padding {');
+    expect(result).toContain('  padding-right: var(--design-system--root-padding-right);');
+    expect(result).toContain('  padding-left: var(--design-system--root-padding-left);');
+  });
+
+  it('generates .alignfull breakout rules', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('.has-global-padding > .alignfull {');
+    expect(result).toContain('  max-width: none;');
+    expect(result).toContain('  margin-right: calc(var(--design-system--root-padding-right) * -1);');
+    expect(result).toContain('  margin-left: calc(var(--design-system--root-padding-left) * -1);');
+  });
+
+  it('generates nested .has-global-padding restore rule', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('.has-global-padding > .alignfull > .has-global-padding {');
+    expect(result).toContain('  padding-right: var(--design-system--root-padding-right);');
+    expect(result).toContain('  padding-left: var(--design-system--root-padding-left);');
+  });
+
+  it('resolves token references in padding values', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('var(--design-system--spacing-large)');
+  });
+
+  it('passes raw padding values through unchanged', () => {
+    const result = generateContentScss(spacingConfig)!;
+    expect(result).toContain('--design-system--root-padding-top: 0;');
+    expect(result).toContain('--design-system--root-padding-bottom: 0;');
+  });
+
+  it('creates body block with just padding vars when no body typography', () => {
+    const spacingOnlyConfig: StbConfig = {
+      ...spacingConfig,
+      baseStyles: {
+        spacing: {
+          padding: { right: 'large', left: 'large' },
+        },
+      },
+    };
+    const result = generateContentScss(spacingOnlyConfig)!;
+    expect(result).toContain('body {');
+    expect(result).toContain('--design-system--root-padding-right: var(--design-system--spacing-large);');
+    expect(result).not.toContain('font-family:');
+  });
+
+  it('produces no padding or alignfull rules when no spacing config', () => {
+    const noSpacingConfig: StbConfig = {
+      ...spacingConfig,
+      baseStyles: {
+        body: { fontFamily: 'inter' },
+      },
+    };
+    const result = generateContentScss(noSpacingConfig)!;
+    expect(result).not.toContain('root-padding');
+    expect(result).not.toContain('.has-global-padding');
+    expect(result).not.toContain('.alignfull');
+  });
+
+  it('only outputs defined padding sides', () => {
+    const partialConfig: StbConfig = {
+      ...spacingConfig,
+      baseStyles: {
+        spacing: {
+          padding: { right: 'large', left: 'large' },
+        },
+      },
+    };
+    const result = generateContentScss(partialConfig)!;
+    expect(result).toContain('--design-system--root-padding-right:');
+    expect(result).toContain('--design-system--root-padding-left:');
+    expect(result).not.toContain('--design-system--root-padding-top:');
+    expect(result).not.toContain('--design-system--root-padding-bottom:');
+  });
+});

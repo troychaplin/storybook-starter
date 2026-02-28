@@ -1,9 +1,12 @@
-import type { StbConfig, BaseStyleElementDef } from '../types.js';
+import type { StbConfig, BaseStyleElementDef, BaseStylesSpacingPadding } from '../types.js';
 import { camelToKebab } from '../types.js';
 import { resolveForScss, ensureFontStyle } from '../config.js';
 
 /** Property output order for consistent generated CSS */
 const PROPERTY_ORDER = ['fontFamily', 'fontSize', 'fontStyle', 'fontWeight', 'lineHeight'] as const;
+
+/** Padding sides in output order */
+const PADDING_SIDES = ['top', 'right', 'bottom', 'left'] as const;
 
 export function generateContentScss(config: StbConfig): string | null {
   if (!config.baseStyles) return null;
@@ -14,11 +17,45 @@ export function generateContentScss(config: StbConfig): string | null {
   ];
 
   const { baseStyles, prefix, tokens } = config;
+  const hasBodyTypography = !!baseStyles.body;
+  const hasSpacingPadding = !!baseStyles.spacing?.padding;
 
-  // Body — wraps in body { } to match theme.json styles.typography
-  if (baseStyles.body) {
+  // Body — wraps in body { } for typography and/or root padding variables
+  if (hasBodyTypography || hasSpacingPadding) {
     lines.push('body {');
-    appendDeclarations(lines, baseStyles.body, prefix, tokens, '  ');
+
+    // Typography declarations
+    if (baseStyles.body) {
+      appendDeclarations(lines, baseStyles.body, prefix, tokens, '  ');
+    }
+
+    // Root padding CSS custom properties
+    if (baseStyles.spacing?.padding) {
+      appendRootPaddingVars(lines, baseStyles.spacing.padding, prefix, tokens);
+    }
+
+    lines.push('}');
+  }
+
+  // Global padding + alignfull rules
+  if (hasSpacingPadding) {
+    lines.push('');
+    lines.push('.has-global-padding {');
+    lines.push(`  padding-right: var(--${prefix}--root-padding-right);`);
+    lines.push(`  padding-left: var(--${prefix}--root-padding-left);`);
+    lines.push('}');
+
+    lines.push('');
+    lines.push('.has-global-padding > .alignfull {');
+    lines.push('  max-width: none;');
+    lines.push(`  margin-right: calc(var(--${prefix}--root-padding-right) * -1);`);
+    lines.push(`  margin-left: calc(var(--${prefix}--root-padding-left) * -1);`);
+    lines.push('}');
+
+    lines.push('');
+    lines.push('.has-global-padding > .alignfull > .has-global-padding {');
+    lines.push(`  padding-right: var(--${prefix}--root-padding-right);`);
+    lines.push(`  padding-left: var(--${prefix}--root-padding-left);`);
     lines.push('}');
   }
 
@@ -70,5 +107,24 @@ function appendDeclarations(
     const cssProperty = camelToKebab(prop);
     const resolvedValue = resolveForScss(value, prefix, tokens);
     lines.push(`${indent}${cssProperty}: ${resolvedValue};`);
+  }
+}
+
+/**
+ * Append root padding CSS custom properties inside the body block.
+ * Only defined sides are output. Uses 'spacing' as preferred category
+ * to resolve ambiguous keys like "large" that exist in both spacing and fontSize.
+ */
+function appendRootPaddingVars(
+  lines: string[],
+  padding: BaseStylesSpacingPadding,
+  prefix: string,
+  tokens: StbConfig['tokens'],
+): void {
+  for (const side of PADDING_SIDES) {
+    const value = padding[side];
+    if (value === undefined) continue;
+    const resolvedValue = resolveForScss(value, prefix, tokens, 'spacing');
+    lines.push(`  --${prefix}--root-padding-${side}: ${resolvedValue};`);
   }
 }

@@ -167,6 +167,19 @@ function buildStylesBlock(
     }
   }
 
+  // Spacing → styles.spacing (prefer spacing category for ambiguous keys)
+  if (baseStyles.spacing?.padding) {
+    const padding: Record<string, string> = {};
+    for (const [side, value] of Object.entries(baseStyles.spacing.padding)) {
+      if (value !== undefined) {
+        padding[side] = resolveForThemeJson(value, tokens, 'spacing');
+      }
+    }
+    if (Object.keys(padding).length > 0) {
+      styles.spacing = { padding };
+    }
+  }
+
   // Elements → styles.elements
   const elements: Record<string, unknown> = {};
   const elementKeys = ['heading', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'caption'] as const;

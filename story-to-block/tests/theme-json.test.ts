@@ -504,3 +504,77 @@ describe('generateThemeJson — baseStyles', () => {
     expect(parsed.version).toBe(3);
   });
 });
+
+describe('generateThemeJson — baseStyles spacing', () => {
+  const spacingConfig: StbConfig = {
+    prefix: 'test',
+    tokensPath: 'src/styles/tokens.css',
+    outDir: 'dist/wp',
+    wpThemeable: false,
+    tokens: {
+      spacing: {
+        large: { value: 'min(2.25rem, 3vw)', slug: '60', name: 'Large' },
+      },
+      fontFamily: {
+        inter: { value: 'Inter, sans-serif', name: 'Inter', slug: 'inter' },
+      },
+    },
+    baseStyles: {
+      body: { fontFamily: 'inter', fontWeight: '400' },
+      spacing: {
+        padding: {
+          top: '0',
+          right: 'large',
+          bottom: '0',
+          left: 'large',
+        },
+      },
+    },
+  };
+
+  const parsed = JSON.parse(generateThemeJson(spacingConfig));
+
+  it('produces styles.spacing.padding with resolved token refs', () => {
+    expect(parsed.styles.spacing.padding.right).toBe('var(--wp--preset--spacing--60)');
+    expect(parsed.styles.spacing.padding.left).toBe('var(--wp--preset--spacing--60)');
+  });
+
+  it('passes raw padding values through unchanged', () => {
+    expect(parsed.styles.spacing.padding.top).toBe('0');
+    expect(parsed.styles.spacing.padding.bottom).toBe('0');
+  });
+
+  it('includes spacing alongside typography in styles', () => {
+    expect(parsed.styles.typography).toBeDefined();
+    expect(parsed.styles.spacing).toBeDefined();
+  });
+
+  it('handles partial padding (only some sides defined)', () => {
+    const partialConfig: StbConfig = {
+      ...spacingConfig,
+      baseStyles: {
+        spacing: {
+          padding: { left: 'large', right: 'large' },
+        },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(partialConfig));
+    expect(result.styles.spacing.padding).toEqual({
+      left: 'var(--wp--preset--spacing--60)',
+      right: 'var(--wp--preset--spacing--60)',
+    });
+    expect(result.styles.spacing.padding.top).toBeUndefined();
+    expect(result.styles.spacing.padding.bottom).toBeUndefined();
+  });
+
+  it('does not produce styles.spacing when no spacing in baseStyles', () => {
+    const noSpacingConfig: StbConfig = {
+      ...spacingConfig,
+      baseStyles: {
+        body: { fontFamily: 'inter' },
+      },
+    };
+    const result = JSON.parse(generateThemeJson(noSpacingConfig));
+    expect(result.styles.spacing).toBeUndefined();
+  });
+});
