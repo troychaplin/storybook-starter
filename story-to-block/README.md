@@ -2,71 +2,68 @@
 
 Generate WordPress `theme.json`, CSS token mappings, and PHP integration hooks from a single JSON config. Designed for Storybook component libraries that need to work in WordPress block themes.
 
-## What It Does
-
-You define design tokens once in `stb.config.json`. The generator produces:
-
-- **`tokens.css`** — CSS variables with hardcoded values (for Storybook and React/Next.js)
-- **`tokens.wp.css`** — CSS variables mapped to `--wp--preset--*` with fallbacks (for WordPress)
-- **`theme.json`** — WordPress theme.json base layer with colors, spacing, fonts, and custom values
-- **`fonts.css`** — @font-face declarations (when fontFace is defined)
-- **`_content-generated.scss`** — Base typography from `baseStyles` config (when defined)
-- **`integrate.php`** — PHP filter that loads theme.json via `wp_theme_json_data_default`
-
-```
-stb.config.json  →  story-to-block generate  →  src/styles/tokens.css
-                                                src/styles/fonts.css
-                                                src/styles/_content-generated.scss
-                                                dist/wp/tokens.wp.css
-                                                dist/wp/theme.json
-                                                dist/wp/integrate.php
-```
-
-## Installation
+## Quick Setup
 
 ```bash
 npm install story-to-block --save-dev
 ```
 
-## Quick Start
-
-### 1. Create the config
-
-Create `stb.config.json` in your project root. Categories are defined at the top level — no wrapper needed:
+**1. Create `stb.config.json`** in your project root:
 
 ```json
 {
   "prefix": "mylib",
   "color": {
-    "primary": "#0073aa",
-    "primary-hover": "#005a87"
+    "primary": { "value": "#0073aa", "name": "Primary" },
+    "primary-hover": { "value": "#005a87", "cssOnly": true }
   },
   "spacing": {
+    "sm": { "value": "0.5rem", "slug": "30", "name": "Small" },
     "md": { "value": "1rem", "slug": "40", "name": "Medium" }
   },
+  "fontFamily": {
+    "inter": {
+      "value": "Inter, sans-serif",
+      "fontFace": [
+        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" }
+      ]
+    }
+  },
   "fontSize": {
-    "base": { "value": "1rem", "fluid": { "min": "0.875rem", "max": "1rem" } }
+    "small": { "fluid": { "min": "0.875rem", "max": "1rem" } },
+    "medium": { "fluid": { "min": "1rem", "max": "1.125rem" } }
   }
 }
 ```
 
-### 2. Generate
+**2. Generate:**
 
 ```bash
 npx story-to-block generate
 ```
 
-### 3. Use in your components
+**3. Add the Storybook preset** to `.storybook/main.ts`:
 
-```css
+```ts
+addons: [
+  '@storybook/addon-docs',
+  '../story-to-block/dist/preset.js',
+],
+```
+
+The preset auto-injects `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss` into Storybook. No manual imports needed in `preview.ts`.
+
+**4. Use tokens in components:**
+
+```scss
 .mylib-card {
-  background: var(--mylib-color-background);
-  padding: var(--mylib-spacing-md);
-  border: 1px solid var(--mylib-color-border);
+  padding: var(--mylib--spacing-md);
+  border-radius: var(--mylib--radius-md);
+  font-size: var(--mylib--font-size-medium);
 }
 ```
 
-### 4. Add to your build
+**5. Add to your build scripts:**
 
 ```json
 {
@@ -78,121 +75,103 @@ npx story-to-block generate
 }
 ```
 
-## Configuration
+## What It Generates
 
-### Config Fields
+```
+stb.config.json
+    │
+    │   story-to-block generate
+    │
+    ├──► src/styles/tokens.css              CSS variables (Storybook / React)
+    ├──► src/styles/fonts.css               @font-face declarations
+    ├──► src/styles/_content-generated.scss  Base typography from baseStyles
+    │
+    ├──► dist/wp/theme.json                 WordPress theme.json base layer
+    ├──► dist/wp/tokens.wp.css              CSS variables mapped to --wp--preset--*
+    └──► dist/wp/integrate.php              PHP filter for wp_theme_json_data_default
+```
+
+| File | When generated | Purpose |
+|------|----------------|---------|
+| `tokens.css` | Always | CSS custom properties with hardcoded values |
+| `fonts.css` | When `fontFace` is defined | `@font-face` declarations |
+| `_content-generated.scss` | When `baseStyles` is defined | Body and heading typography using `:where()` |
+| `theme.json` | Always | WordPress settings and styles |
+| `tokens.wp.css` | When `wpThemeable: true` | CSS vars mapped to `--wp--preset--*` with fallbacks |
+| `integrate.php` | Always | PHP hook to inject theme.json as a WordPress default layer |
+
+## Config Reference
+
+### Fields
 
 | Field | Required | Default | Description |
 |-------|----------|---------|-------------|
-| `prefix` | Yes | — | CSS variable prefix (e.g. `mylib` produces `--mylib-*`) |
-| `tokensPath` | No | `src/styles/tokens.css` | Output path for the development tokens CSS file |
-| `outDir` | No | `dist/wp` | Output directory for WordPress-specific files |
-| `wpThemeable` | No | `false` | When `true`, generates `tokens.wp.css` with `--wp--preset--*` variable mappings |
-| `baseStyles` | No | — | Element-level typography for body, headings, and caption |
+| `prefix` | Yes | — | CSS variable prefix (`mylib` produces `--mylib--*`) |
+| `tokensPath` | No | `src/styles/tokens.css` | Output path for the generated tokens file |
+| `outDir` | No | `dist/wp` | Output directory for WordPress files |
+| `wpThemeable` | No | `false` | Generates `tokens.wp.css` with `--wp--preset--*` mappings |
+| `baseStyles` | No | — | Element typography for body, headings, and caption |
 
 ### Token Categories
 
-Categories are defined at the top level of the config:
-
-| Category | CSS Variable | Example |
-|----------|-------------|---------|
-| `color` | `--prefix-color-*` | `--mylib-color-primary` |
-| `gradient` | `--prefix-gradient-*` | `--mylib-gradient-sunset` |
-| `spacing` | `--prefix-spacing-*` | `--mylib-spacing-md` |
-| `fontFamily` | `--prefix-font-family-*` | `--mylib-font-family-base` |
-| `fontSize` | `--prefix-font-size-*` | `--mylib-font-size-lg` |
-| `fontWeight` | `--prefix-font-weight-*` | `--mylib-font-weight-bold` |
-| `lineHeight` | `--prefix-line-height-*` | `--mylib-line-height-normal` |
-| `radius` | `--prefix-radius-*` | `--mylib-radius-md` |
-| `shadow` | `--prefix-shadow-*` | `--mylib-shadow-sm` |
-| `transition` | `--prefix-transition-*` | `--mylib-transition-fast` |
-| `zIndex` | `--prefix-z-*` | `--mylib-z-modal` |
-| `layout` | `--prefix-layout-*` | `--mylib-layout-content-size` |
+| Category | CSS Variable Pattern | WordPress Mapping |
+|----------|---------------------|-------------------|
+| `color` | `--prefix--color-*` | `settings.color.palette` |
+| `gradient` | `--prefix--gradient-*` | `settings.color.gradients` |
+| `spacing` | `--prefix--spacing-*` | `settings.spacing.spacingSizes` |
+| `fontFamily` | `--prefix--font-family-*` | `settings.typography.fontFamilies` |
+| `fontSize` | `--prefix--font-size-*` | `settings.typography.fontSizes` |
+| `shadow` | `--prefix--shadow-*` | `settings.shadow.presets` |
+| `layout` | `--prefix--layout-*` | `settings.layout` |
+| `fontWeight` | `--prefix--font-weight-*` | `settings.custom` (CSS only) |
+| `lineHeight` | `--prefix--line-height-*` | `settings.custom` (CSS only) |
+| `radius` | `--prefix--radius-*` | `settings.custom` (CSS only) |
+| `transition` | `--prefix--transition-*` | `settings.custom` (CSS only) |
+| `zIndex` | `--prefix--z-*` | Excluded from theme.json |
 
 ### Token Syntax
 
-#### String Shorthand
+**Object syntax** registers the token as a WordPress preset (visible in the Site Editor). The `slug` and `name` are auto-derived from the key:
 
-For simple tokens, use a string value directly:
+```json
+{ "color": { "primary": { "value": "#0073aa", "name": "Primary" } } }
+```
+
+**String shorthand** creates a CSS variable only (no WordPress preset):
+
+```json
+{ "fontWeight": { "bold": "700" } }
+```
+
+**`cssOnly` flag** on an object entry skips preset registration while keeping the object format:
+
+```json
+{ "color": { "primary-hover": { "value": "#005a87", "cssOnly": true } } }
+```
+
+**Fluid font sizes** generate responsive `clamp()` values:
+
+```json
+{ "fontSize": { "small": { "fluid": { "min": "0.875rem", "max": "1rem" } } } }
+```
+
+### Base Styles
+
+The `baseStyles` section generates base typography for body, headings, and captions. Values that match a token key resolve to the corresponding CSS variable:
 
 ```json
 {
-  "color": {
-    "primary": "#0073aa",
-    "secondary": "#23282d"
-  },
-  "fontWeight": {
-    "normal": "400",
-    "bold": "700"
+  "baseStyles": {
+    "body": { "fontFamily": "inter", "fontSize": "medium", "fontWeight": "400", "lineHeight": "1.6" },
+    "heading": { "fontFamily": "inter" },
+    "h1": { "fontSize": "4.5rem", "fontWeight": "500" },
+    "h2": { "fontSize": "3rem", "fontWeight": "500" },
+    "caption": { "fontSize": "small", "fontStyle": "italic", "fontWeight": "300" }
   }
 }
 ```
 
-#### Object Syntax
-
-For tokens with additional properties:
-
-```json
-{
-  "fontSize": {
-    "small": {
-      "value": "1rem",
-      "fluid": { "min": "0.875rem", "max": "1rem" }
-    }
-  }
-}
-```
-
-### Auto-derived Fields
-
-The `slug` and `name` are automatically derived from the token key:
-
-- **slug**: Uses the key directly (e.g., `"primary"` → slug `"primary"`)
-- **name**: Title-cases the key (e.g., `"primary-hover"` → name `"Primary Hover"`)
-
-Override when needed:
-
-```json
-{
-  "color": {
-    "primary": { "value": "#0073aa", "name": "Primary Brand Color" }
-  },
-  "spacing": {
-    "md": { "value": "1rem", "slug": "40", "name": "Medium" }
-  }
-}
-```
-
-### Token Properties
-
-| Property | Required | Description |
-|----------|----------|-------------|
-| `value` | Yes | The CSS value |
-| `name` | No | Human-readable label (auto-derived from key) |
-| `slug` | No | WordPress preset slug (auto-derived from key) |
-| `fluid` | No | Fluid typography settings (fontSize only) |
-| `fontFace` | No | Font file definitions (fontFamily only) |
-
-### Font Families with Local Fonts
-
-Define font families with `fontFace` to generate @font-face CSS and theme.json entries:
-
-```json
-{
-  "fontFamily": {
-    "inter": {
-      "value": "Inter, sans-serif",
-      "fontFace": [
-        { "weight": "400", "style": "normal", "src": "inter-400-normal.woff2" },
-        { "weight": "700", "style": "normal", "src": "inter-700-normal.woff2" }
-      ]
-    },
-    "system": "-apple-system, BlinkMacSystemFont, sans-serif"
-  }
-}
-```
-
-Font files should be placed at `public/fonts/{slug}/{filename}` (e.g., `public/fonts/inter/inter-400-normal.woff2`). For WordPress themes, copy the font files into `assets/fonts/{slug}/` alongside `theme.json`.
+This produces `_content-generated.scss` with `body {}` and `:where()` rules for Storybook/React, and a `styles` block in theme.json for WordPress. See [Base Styles](../docs/story-to-block/BASE-STYLES.md) for the full design rationale.
 
 ## CLI
 
@@ -204,19 +183,6 @@ Options:
   --dry-run         Output to stdout instead of writing files
 ```
 
-## Storybook Preset
-
-The package ships a Storybook preset that auto-injects all generated and authored style files into the preview. Add it to your `.storybook/main.ts`:
-
-```ts
-addons: [
-  '@storybook/addon-docs',
-  '../story-to-block/dist/preset.js',
-],
-```
-
-The preset reads `stb.config.json`, derives file paths from `tokensPath`, and injects any that exist: `tokens.css`, `fonts.css`, `reset.scss`, and `content.scss`. No manual imports needed in `preview.ts`.
-
 ## Programmatic API
 
 ```ts
@@ -226,7 +192,7 @@ const result = generate('./stb.config.json');
 // result.files: Array<{ path: string; size: number }>
 ```
 
-Individual generators are also exported:
+Individual generators:
 
 ```ts
 import {
@@ -238,70 +204,18 @@ import {
   generateContentScss,
   generateIntegratePhp,
 } from 'story-to-block';
-
-const config = loadConfig('./stb.config.json');
-const css = generateTokensCss(config);
-const wpCss = generateTokensWpCss(config);
-const themeJson = generateThemeJson(config);
-const fontsCss = generateFontsCss(config);         // string | null
-const contentScss = generateContentScss(config);    // string | null
-const php = generateIntegratePhp();
 ```
 
-## WordPress Integration
+## Documentation
 
-### How tokens.wp.css Works
-
-All tokens map to WordPress preset variables with fallbacks:
-
-```css
-/* Token → maps to --wp--preset--* */
---mylib-color-primary: var(--wp--preset--color--primary, #0073aa);
-
-/* Custom categories → hardcoded value */
---mylib-font-weight-bold: 700;
-```
-
-When a theme overrides `primary` in its `theme.json`, `--wp--preset--color--primary` changes and `--mylib-color-primary` automatically picks up the new value.
-
-### How integrate.php Works
-
-The generated PHP file hooks into `wp_theme_json_data_default` — the lowest priority layer in the WordPress theme.json cascade:
-
-1. WordPress core defaults
-2. **Library base layer** (integrate.php injects here)
-3. Parent theme `theme.json`
-4. Child theme `theme.json`
-5. User Global Styles
-
-A theme's `theme.json` automatically overrides library defaults.
-
-### Using in WordPress
-
-The `integrate.php` and `theme.json` files must be **copied into your theme** — `node_modules` does not exist on production servers. Copy both files into a directory in your theme (e.g. `inc/story-to-block/`) and include via `require_once`:
-
-```php
-require_once get_template_directory() . '/inc/story-to-block/integrate.php';
-```
-
-Similarly, copy `tokens.wp.css` and component CSS files into your theme's assets directory and enqueue them with `wp_register_style` / `wp_enqueue_style`.
-
-### WordPress Token Mapping
-
-| Category | WordPress Mapping | Editor UI |
-|----------|------------------|-----------|
-| `color` | `--wp--preset--color--{slug}` | Color picker |
-| `gradient` | `--wp--preset--gradient--{slug}` | Gradient picker |
-| `spacing` | `--wp--preset--spacing--{slug}` | Spacing controls |
-| `fontFamily` | `--wp--preset--font-family--{slug}` | Font picker |
-| `fontSize` | `--wp--preset--font-size--{slug}` | Size picker |
-| `shadow` | `--wp--preset--shadow--{slug}` | Shadow picker |
-| `fontWeight` | `settings.custom.fontWeight` | CSS only |
-| `lineHeight` | `settings.custom.lineHeight` | CSS only |
-| `radius` | `settings.custom.radius` | CSS only |
-| `transition` | `settings.custom.transition` | CSS only |
-| `zIndex` | *(excluded from theme.json)* | CSS only |
-| `layout` | `settings.layout` | Layout controls |
+| Guide | Description |
+|-------|-------------|
+| [Getting Started](../docs/story-to-block/GETTING-STARTED.md) | Full config reference, token syntax, build setup |
+| [Token Architecture](../docs/story-to-block/TOKEN-ARCHITECTURE.md) | How tokens flow from config to each platform |
+| [Base Styles](../docs/story-to-block/BASE-STYLES.md) | Content scope typography and `:where()` approach |
+| [Theme Integration](../docs/story-to-block/THEME-INTEGRATION.md) | WordPress theme setup with integrate.php and tokens.wp.css |
+| [Plugin Integration](../docs/story-to-block/PLUGIN-INTEGRATION.md) | WordPress block plugin with component CSS and block.json |
+| [Editor Styles](../docs/story-to-block/EDITOR-STYLES.md) | Loading styles in the WordPress block editor iframe |
 
 ## Development
 
