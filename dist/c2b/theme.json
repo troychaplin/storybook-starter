@@ -10,7 +10,7 @@
         {
           "slug": "primary",
           "color": "#0073aa",
-          "name": "Primary Brand Color"
+          "name": "Primary"
         },
         {
           "slug": "secondary",
@@ -66,12 +66,12 @@
         {
           "slug": "20",
           "size": "0.25rem",
-          "name": "2X-Small"
+          "name": "2x Small"
         },
         {
           "slug": "30",
           "size": "0.5rem",
-          "name": "X-Small"
+          "name": "X Small"
         },
         {
           "slug": "40",
@@ -91,12 +91,12 @@
         {
           "slug": "70",
           "size": "min(3rem, 4vw)",
-          "name": "X-Large"
+          "name": "X Large"
         },
         {
           "slug": "80",
           "size": "min(4.5rem, 6vw)",
-          "name": "2X-Large"
+          "name": "2x Large"
         }
       ]
     },
@@ -116,6 +116,11 @@
               ]
             }
           ]
+        },
+        {
+          "slug": "system",
+          "fontFamily": "-apple-system, BlinkMacSystemFont, sans-serif",
+          "name": "System"
         }
       ],
       "fontSizes": [
@@ -190,6 +195,17 @@
     "layout": {
       "contentSize": "768px",
       "wideSize": "1280px"
+    },
+    "custom": {
+      "fontWeight": {
+        "normal": "400",
+        "bold": "700"
+      },
+      "radius": {
+        "sm": "2px",
+        "md": "4px",
+        "lg": "8px"
+      }
     },
     "useRootPaddingAwareAlignments": true
   },

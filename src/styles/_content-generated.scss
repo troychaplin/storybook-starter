@@ -26,6 +26,18 @@ body {
   gap: var(--design-system--root-block-gap);
 }
 
+.is-layout-constrained > :where(:not(.alignleft):not(.alignright):not(.alignfull)) {
+  max-width: var(--design-system--layout-content-size);
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.is-layout-constrained > .alignwide {
+  max-width: var(--design-system--layout-wide-size);
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
 .has-global-padding {
   padding-right: var(--design-system--root-padding-right);
   padding-left: var(--design-system--root-padding-left);
@@ -49,31 +61,31 @@ body {
 
 :where(h1) {
   font-size: 4.5rem;
-  font-style: normal;
+  font-style: var(--design-system--font-weight-normal);
   font-weight: 500;
 }
 
 :where(h2) {
   font-size: 3rem;
-  font-style: normal;
+  font-style: var(--design-system--font-weight-normal);
   font-weight: 500;
 }
 
 :where(h3) {
   font-size: 2.5rem;
-  font-style: normal;
+  font-style: var(--design-system--font-weight-normal);
   font-weight: 500;
 }
 
 :where(h4) {
   font-size: 2rem;
-  font-style: normal;
+  font-style: var(--design-system--font-weight-normal);
   font-weight: 500;
 }
 
 :where(h5) {
   font-size: 1.5rem;
-  font-style: normal;
+  font-style: var(--design-system--font-weight-normal);
   font-weight: 500;
 }
 
