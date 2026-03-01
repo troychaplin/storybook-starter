@@ -1,7 +1,7 @@
 {
     "prefix": "design-system",
     "tokensPath": "src/styles/tokens.css",
-    "outDir": "dist/wp",
+    "outDir": "dist/c2b",
     "wpThemeable": false,
 
     "layout": {
