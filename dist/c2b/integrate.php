@@ -8,11 +8,11 @@
  *
  * Setup:
  *   1. Copy this file, theme.json, and your token CSS file into your theme
- *      (e.g. assets/stb/)
+ *      (e.g. assets/c2b/)
  *   2. Add to your theme's functions.php:
- *      require_once get_template_directory() . '/assets/stb/integrate.php';
+ *      require_once get_template_directory() . '/assets/c2b/integrate.php';
  *
- * @package story-to-block
+ * @package component2block
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
@@ -54,7 +54,7 @@ add_filter( 'wp_theme_json_data_default', function ( $theme_json ) {
  *
  * Loads on both the frontend and inside the block editor iframe.
  */
-$stb_enqueue_tokens = function () {
+$c2b_enqueue_tokens = function () {
 	if ( file_exists( __DIR__ . '/tokens.wp.css' ) ) {
 		$file = 'tokens.wp.css';
 	} elseif ( file_exists( __DIR__ . '/tokens.css' ) ) {
@@ -72,15 +72,15 @@ $stb_enqueue_tokens = function () {
 	);
 
 	wp_enqueue_style(
-		'stb-tokens',
+		'c2b-tokens',
 		$base_url . '/' . $file,
 		array(),
 		filemtime( __DIR__ . '/' . $file )
 	);
 };
 
-add_action( 'wp_enqueue_scripts', $stb_enqueue_tokens );
-add_action( 'enqueue_block_editor_assets', $stb_enqueue_tokens );
+add_action( 'wp_enqueue_scripts', $c2b_enqueue_tokens );
+add_action( 'enqueue_block_editor_assets', $c2b_enqueue_tokens );
 
 /**
  * Locked mode enforcement.
